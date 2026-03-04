@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IKASLO6</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; }
+body {
+  background: #fff; color: #000;
+  font-family: 'Courier New', monospace;
+  padding: clamp(10px,2vw,20px);
+}
+
+/* HEADER */
+.hdr { display:flex; justify-content:space-between; align-items:baseline; border-bottom:2px solid #000; padding-bottom:6px; margin-bottom:clamp(6px,1.2vw,12px); }
+.hdr-left { font-weight:bold; font-size:clamp(9px,1.4vw,13px); letter-spacing:2px; text-transform:uppercase; }
+.hdr-right { font-size:clamp(8px,1.1vw,11px); color:#555; }
+
+/* TOP ROW */
+.top-row { display:flex; align-items:stretch; margin-bottom:clamp(6px,1.2vw,12px); }
+.temp-block { flex-shrink:0; display:flex; align-items:flex-end; gap:clamp(3px,0.6vw,8px); padding-right:clamp(7px,1.3vw,16px); }
+.temp-num { font-size:clamp(42px,8.5vw,80px); font-weight:bold; line-height:1; letter-spacing:-2px; white-space:nowrap; }
+.moon-wrap { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; padding-bottom:clamp(2px,0.4vw,5px); flex-shrink:0; }
+.moon-wrap canvas { display:block; width:clamp(24px,4vw,40px); height:clamp(24px,4vw,40px); }
+.moon-lbl { font-size:clamp(6px,0.8vw,8px); color:#aaa; letter-spacing:1px; text-transform:uppercase; text-align:center; white-space:nowrap; }
+.temp-meta { padding-bottom:clamp(2px,0.4vw,5px); font-size:clamp(8px,1.1vw,11px); line-height:1.9; color:#444; white-space:nowrap; }
+.temp-meta b { color:#000; }
+.divider-v { width:1px; background:#ddd; flex-shrink:0; align-self:stretch; margin-right:clamp(7px,1.3vw,16px); }
+
+/* 4-STAT ROW */
+.stats-block { flex:1; display:grid; grid-template-columns:repeat(4,1fr); }
+.stat { padding:clamp(3px,0.55vw,6px) clamp(5px,1vw,12px); border-right:1px solid #eee; display:flex; flex-direction:column; justify-content:center; }
+.stat:last-child { border-right:none; }
+.stat-lbl { font-size:clamp(6px,0.9vw,8px); letter-spacing:2px; text-transform:uppercase; color:#888; margin-bottom:1px; }
+.stat-val { font-size:clamp(13px,2.4vw,20px); font-weight:bold; line-height:1.1; white-space:nowrap; }
+.stat-unit { font-size:clamp(7px,1vw,10px); font-weight:normal; color:#666; margin-left:2px; }
+.stat-sub { font-size:clamp(7px,0.9vw,9px); color:#666; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.trend { display:inline-block; font-size:clamp(6px,0.85vw,8px); font-weight:bold; letter-spacing:1px; text-transform:uppercase; border:1px solid #000; padding:1px 4px; margin-top:2px; align-self:flex-start; }
+.precip-history { display:flex; gap:clamp(4px,0.8vw,8px); margin-top:2px; }
+.ph-item { flex:1; }
+.ph-lbl { font-size:clamp(6px,0.8vw,7px); color:#aaa; letter-spacing:1px; text-transform:uppercase; }
+.ph-val { font-size:clamp(9px,1.6vw,14px); font-weight:bold; }
+.ph-unit { font-size:clamp(6px,0.8vw,8px); color:#888; }
+
+/* 7-DAY FORECAST STRIP */
+.fc-strip { display:grid; grid-template-columns:repeat(7,1fr); border-top:1px solid #ddd; border-bottom:1px solid #000; }
+.fc-col { display:flex; flex-direction:column; align-items:center; padding:clamp(4px,0.8vw,8px) clamp(2px,0.4vw,4px); border-right:1px solid #eee; }
+.fc-col:last-child { border-right:none; }
+.fc-col.today { background:#f9f9f9; }
+.fc-day-name { font-size:clamp(8px,1.2vw,11px); font-weight:bold; letter-spacing:1px; text-transform:uppercase; line-height:1.2; }
+.fc-day-date { font-size:clamp(7px,0.95vw,9px); color:#888; margin-bottom:clamp(2px,0.4vw,4px); }
+.fc-icon { font-size:clamp(18px,3.2vw,28px); line-height:1; margin-bottom:clamp(2px,0.3vw,4px); }
+.fc-hilo { display:flex; gap:clamp(2px,0.4vw,5px); align-items:baseline; white-space:nowrap; }
+.fc-hi { font-size:clamp(9px,1.4vw,13px); font-weight:bold; }
+.fc-lo { font-size:clamp(8px,1.1vw,11px); color:#888; }
+.fc-pop { font-size:clamp(6px,0.85vw,8px); color:#888; margin-top:1px; }
+.fc-mm  { font-size:clamp(6px,0.85vw,8px); color:#555; font-weight:bold; }
+
+/* CHART */
+.chart-wrap { width:100%; background:#fff; }
+canvas.main-chart { width:100% !important; display:block; }
+
+/* CALENDAR ROW */
+.cal-strip { display:grid; grid-template-columns:repeat(7,1fr); border-top:1px solid #000; border-bottom:1px solid #ddd; margin-bottom:clamp(6px,1.2vw,12px); }
+.cal-cell { min-height:clamp(40px,7vw,64px); border-right:1px solid #eee; padding:clamp(3px,0.5vw,5px) clamp(3px,0.6vw,6px); font-size:clamp(7px,0.9vw,9px); color:#ccc; letter-spacing:1px; text-transform:uppercase; }
+.cal-cell:last-child { border-right:none; }
+
+/* STATUS */
+.status-bar { display:flex; justify-content:space-between; padding-top:5px; font-size:clamp(7px,1vw,9px); color:#888; letter-spacing:1px; }
+.dot { display:inline-block; width:6px; height:6px; border-radius:50%; background:#000; margin-right:4px; animation:blink 2s infinite; }
+.dot.off { background:#bbb; animation:none; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-left">IKASLO6 · Kaslo BC</div>
+  <div class="hdr-right" id="obsTime">—</div>
+</div>
+
+<div class="top-row">
+  <div class="temp-block">
+    <div class="temp-num"><span id="tempC">—</span>°</div>
+    <div class="moon-wrap">
+      <canvas id="moonCanvas"></canvas>
+      <div class="moon-lbl" id="moonLbl">—</div>
+    </div>
+    <div class="temp-meta">
+      <div>Feels&nbsp;<b id="heatIndex">—</b>°</div>
+      <div>Dew&nbsp;&nbsp;&nbsp;<b id="dewpt">—</b>°</div>
+      <div>Hum&nbsp;&nbsp;&nbsp;<b id="humidity">—</b>%</div>
+    </div>
+  </div>
+  <div class="divider-v"></div>
+  <div class="stats-block">
+    <div class="stat">
+      <div class="stat-lbl">UV / Solar</div>
+      <div class="stat-val"><span id="uv">—</span></div>
+      <div class="stat-sub"><span id="solar">—</span> W/m²</div>
+    </div>
+    <div class="stat">
+      <div class="stat-lbl">Pressure</div>
+      <div class="stat-val"><span id="pressure">—</span><span class="stat-unit">hPa</span></div>
+      <div class="trend" id="trendPill">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-lbl">Wind</div>
+      <div class="stat-val"><span id="windSpeed">—</span><span class="stat-unit">km/h</span></div>
+      <div class="stat-sub"><span id="windDir">—</span> · Gust <span id="windGust">—</span> km/h</div>
+    </div>
+    <div class="stat">
+      <div class="stat-lbl">Precipitation</div>
+      <div class="stat-val"><span id="precipTotal">—</span><span class="stat-unit">mm</span>
+        <span style="font-size:clamp(6px,0.85vw,8px);font-weight:normal;color:#888"> today</span>
+      </div>
+      <div class="stat-sub">Rate: <span id="precipRate">—</span> mm/hr</div>
+      <div class="precip-history">
+        <div class="ph-item"><div class="ph-lbl">24hr</div><div><span class="ph-val" id="precip24h">—</span><span class="ph-unit"> mm</span></div></div>
+        <div class="ph-item"><div class="ph-lbl">7d</div><div><span class="ph-val" id="precip30d">—</span><span class="ph-unit"> mm</span></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 7-DAY FORECAST STRIP -->
+<div class="fc-strip" id="fcStrip">
+  <div class="fc-col" style="grid-column:1/8;text-align:center;padding:8px;color:#bbb;font-size:11px;letter-spacing:1px">LOADING FORECAST…</div>
+</div>
+
+<!-- CHART: hi/lo lines + precip bars -->
+<div class="chart-wrap">
+  <canvas id="chart" class="main-chart" height="180"></canvas>
+</div>
+
+<!-- CALENDAR ROW -->
+<div class="cal-strip" id="calStrip">
+  <div class="cal-cell" style="grid-column:1/8;color:#eee;font-size:10px;padding:4px 6px">events</div>
+</div>
+
+<div class="status-bar">
+  <span><span class="dot" id="liveDot"></span><span id="statusText">Connecting…</span></span>
+  <span id="fcSource" style="color:#bbb"></span>
+  <span>Refresh in <span id="nextRefresh">60</span>s</span>
+</div>
+
+<script>
+// ── ECOWITT (current conditions) ──────────────────────────────
+// Replace these with your actual EcoWitt keys and MAC address
+const ECO_APP_KEY = 'YOUR_ECOWITT_APP_KEY';
+const ECO_API_KEY = 'YOUR_ECOWITT_API_KEY';
+const ECO_MAC     = 'YOUR_STATION_MAC';
+const ECO_URL     = `https://api.ecowitt.net/api/v3/device/real_time?application_key=${ECO_APP_KEY}&api_key=${ECO_API_KEY}&mac=${ECO_MAC}&call_back=all&temp_unitid=1&pressure_unitid=3&wind_speed_unitid=7&rainfall_unitid=12&solar_irradiance_unitid=16`;
+
+// ── WEATHER UNDERGROUND (fallback current observations) ───────
+const WU_KEY     = 'b6a053665de6468ca053665de6068c2e';
+const STATION_ID = 'IKASLO6';
+const WU_OBS_URL = `https://api.weather.com/v2/pws/observations/current?stationId=${STATION_ID}&format=json&units=m&apiKey=${WU_KEY}`;
+const WU_7D_URL  = `https://api.weather.com/v2/pws/dailysummary/7day?stationId=${STATION_ID}&format=json&units=m&apiKey=${WU_KEY}`;
+
+// ── OPEN-METEO (7-day forecast — free, no key needed) ─────────
+const LAT = 49.912, LON = -116.908;
+const FORECAST_URL = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,weathercode&timezone=America%2FVancouver&forecast_days=7`;
+
+let pressureLog  = [];
+let forecastData = null;
+
+/* ── UTILS ── */
+function degToCompass(d) {
+  if (d==null) return '—';
+  return ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'][Math.round(d/22.5)%16];
+}
+function fmt(v,d=1){ return (v==null||isNaN(v))? '—': Number(v).toFixed(d); }
+function ordinal(n) {
+  const s=['th','st','nd','rd'], v=n%100;
+  return n+(s[(v-20)%10]||s[v]||s[0]);
+}
+
+// WMO weather code → emoji icon
+function wmoIcon(code) {
+  if (code==null) return '🌤';
+  if ([95,96,99].includes(code))       return '⛈';
+  if ([71,73,75,77,85,86].includes(code)) return '❄';
+  if ([51,53,55,61,63,65,66,67,80,81,82].includes(code)) return '🌧';
+  if ([45,48].includes(code))          return '🌫';
+  if ([2,3].includes(code))            return '☁';
+  if ([1].includes(code))              return '⛅';
+  if ([0].includes(code))              return '☀';
+  return '🌤';
+}
+// WU phrase → emoji (fallback)
+function phraseIcon(phrase) {
+  if (!phrase) return '🌤';
+  const p = phrase.toLowerCase();
+  if (p.includes('thunder'))                       return '⛈';
+  if (p.includes('snow')&&p.includes('rain'))      return '🌨';
+  if (p.includes('rain')||p.includes('shower'))    return '🌧';
+  if (p.includes('snow')||p.includes('flurr'))     return '❄';
+  if (p.includes('fog'))                           return '🌫';
+  if (p.includes('cloud')&&p.includes('part'))     return '⛅';
+  if (p.includes('cloud')||p.includes('overcast')) return '☁';
+  if (p.includes('clear')||p.includes('sunny'))    return '☀';
+  return '🌤';
+}
+
+/* ── MOON ── */
+function getMoonPhase(date) {
+  const knownNew = new Date('2025-01-29T00:00:00Z');
+  const synodic  = 29.53058867;
+  return (((((date-knownNew)/86400000)%synodic)+synodic)%synodic)/synodic;
+}
+function moonPhaseName(p) {
+  if (p<0.0625||p>=0.9375) return 'New Moon';
+  if (p<0.1875) return 'Wax Crescent';
+  if (p<0.3125) return '1st Quarter';
+  if (p<0.4375) return 'Wax Gibbous';
+  if (p<0.5625) return 'Full Moon';
+  if (p<0.6875) return 'Wan Gibbous';
+  if (p<0.8125) return 'Last Quarter';
+  return 'Wan Crescent';
+}
+function drawMoonCanvas(phase) {
+  const canvas = document.getElementById('moonCanvas');
+  const rect = canvas.getBoundingClientRect();
+  const size = Math.round(rect.width)||30;
+  canvas.width=canvas.height=size;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,size,size);
+  const cx=size/2,cy=size/2,r=size/2-1;
+  const litFrac=phase<=0.5?phase*2:(1-phase)*2;
+  const termRx=r*Math.abs(Math.cos(phase*2*Math.PI));
+  ctx.fillStyle='#e0e0e0';
+  ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fill();
+  ctx.save();
+  ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.clip();
+  if(phase<0.5){
+    ctx.fillStyle='#111';
+    ctx.beginPath();ctx.moveTo(cx,cy-r);ctx.arc(cx,cy,r,-Math.PI/2,Math.PI/2,false);ctx.closePath();ctx.fill();
+    if(litFrac<0.5){
+      ctx.fillStyle='#e0e0e0';
+      ctx.beginPath();ctx.ellipse(cx,cy,termRx,r,0,-Math.PI/2,Math.PI/2,false);ctx.ellipse(cx,cy,termRx,r,0,Math.PI/2,-Math.PI/2,true);ctx.closePath();ctx.fill();
+    }else{
+      ctx.fillStyle='#111';
+      ctx.beginPath();ctx.ellipse(cx,cy,termRx,r,0,Math.PI/2,-Math.PI/2,false);ctx.ellipse(cx,cy,termRx,r,0,-Math.PI/2,Math.PI/2,true);ctx.closePath();ctx.fill();
+    }
+  }else{
+    ctx.fillStyle='#111';
+    ctx.beginPath();ctx.moveTo(cx,cy-r);ctx.arc(cx,cy,r,-Math.PI/2,Math.PI/2,true);ctx.closePath();ctx.fill();
+    if(litFrac<0.5){
+      ctx.fillStyle='#e0e0e0';
+      ctx.beginPath();ctx.ellipse(cx,cy,termRx,r,0,Math.PI/2,-Math.PI/2,false);ctx.ellipse(cx,cy,termRx,r,0,-Math.PI/2,Math.PI/2,true);ctx.closePath();ctx.fill();
+    }else{
+      ctx.fillStyle='#111';
+      ctx.beginPath();ctx.ellipse(cx,cy,termRx,r,0,-Math.PI/2,Math.PI/2,false);ctx.ellipse(cx,cy,termRx,r,0,Math.PI/2,-Math.PI/2,true);ctx.closePath();ctx.fill();
+    }
+  }
+  ctx.restore();
+  ctx.strokeStyle='#bbb';ctx.lineWidth=0.5;
+  ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();
+}
+function updateMoon() {
+  const phase=getMoonPhase(new Date());
+  drawMoonCanvas(phase);
+  document.getElementById('moonLbl').textContent=moonPhaseName(phase);
+}
+
+/* ── PRESSURE TREND ── */
+function calcTrend(hPa) {
+  if(pressureLog.length<3) return 'steady';
+  const old=pressureLog[Math.max(0,pressureLog.length-10)].v;
+  const d=hPa-old;
+  return d>0.5?'rising':d<-0.5?'falling':'steady';
+}
+
+/* ── LOAD OBSERVATIONS (EcoWitt preferred, WU fallback) ── */
+async function loadObs() {
+  let used='wu';
+  let obs=null, m=null;
+
+  // Try EcoWitt first
+  if (ECO_APP_KEY !== 'YOUR_ECOWITT_APP_KEY') {
+    try {
+      const res = await fetch(ECO_URL);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.code===0 && data.data) {
+          used='ecowitt';
+          const d=data.data;
+          const now=new Date();
+          document.getElementById('obsTime').textContent=
+            now.toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'})+' · '+
+            now.toLocaleDateString('en-CA',{weekday:'short',month:'short',day:'numeric'});
+          document.getElementById('tempC').textContent=fmt(d.outdoor?.temperature?.value,1);
+          document.getElementById('heatIndex').textContent=fmt(d.outdoor?.feels_like?.value,1);
+          document.getElementById('dewpt').textContent=fmt(d.outdoor?.dew_point?.value,1);
+          document.getElementById('humidity').textContent=fmt(d.outdoor?.humidity?.value,0);
+          const hPa=parseFloat(d.pressure?.relative?.value);
+          document.getElementById('pressure').textContent=fmt(hPa,1);
+          pressureLog.push({t:Date.now()/1000,v:hPa});
+          if(pressureLog.length>300) pressureLog.shift();
+          const trend=calcTrend(hPa);
+          document.getElementById('trendPill').textContent=trend==='rising'?'↑ Rising':trend==='falling'?'↓ Falling':'→ Steady';
+          document.getElementById('windSpeed').textContent=fmt(d.wind?.wind_speed?.value,0);
+          document.getElementById('windDir').textContent=degToCompass(d.wind?.wind_direction?.value);
+          document.getElementById('windGust').textContent=fmt(d.wind?.wind_gust?.value,0);
+          document.getElementById('precipRate').textContent=fmt(d.rainfall?.rain_rate?.value,2);
+          document.getElementById('precipTotal').textContent=fmt(d.rainfall?.daily?.value,1);
+          document.getElementById('precip24h').textContent=fmt(d.rainfall?.daily?.value,1);
+          document.getElementById('precip30d').textContent=fmt(d.rainfall?.weekly?.value,1);
+          document.getElementById('uv').textContent=fmt(d.solar_and_uvi?.uvi?.value,0);
+          document.getElementById('solar').textContent=fmt(d.solar_and_uvi?.solar?.value,0);
+          return;
+        }
+      }
+    } catch(e){ console.warn('EcoWitt failed, falling back to WU', e); }
+  }
+
+  // WU fallback
+  const res=await fetch(WU_OBS_URL);
+  if(!res.ok) throw new Error(`WU HTTP ${res.status}`);
+  const data=await res.json();
+  obs=data.observations[0]; m=obs.metric;
+  const d=new Date(obs.epoch*1000);
+  document.getElementById('obsTime').textContent=
+    d.toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'})+' · '+
+    d.toLocaleDateString('en-CA',{weekday:'short',month:'short',day:'numeric'});
+  document.getElementById('tempC').textContent=fmt(m.temp,1);
+  document.getElementById('heatIndex').textContent=fmt(m.heatIndex??m.temp,1);
+  document.getElementById('dewpt').textContent=fmt(m.dewpt,1);
+  document.getElementById('humidity').textContent=obs.humidity;
+  const hPa=parseFloat(m.pressure);
+  document.getElementById('pressure').textContent=fmt(hPa,1);
+  pressureLog.push({t:obs.epoch,v:hPa});
+  if(pressureLog.length>300) pressureLog.shift();
+  const trend=calcTrend(hPa);
+  document.getElementById('trendPill').textContent=trend==='rising'?'↑ Rising':trend==='falling'?'↓ Falling':'→ Steady';
+  document.getElementById('windSpeed').textContent=fmt(m.windSpeed,0);
+  document.getElementById('windDir').textContent=degToCompass(obs.winddir);
+  document.getElementById('windGust').textContent=fmt(m.windGust,0);
+  document.getElementById('precipRate').textContent=fmt(m.precipRate,2);
+  document.getElementById('precipTotal').textContent=fmt(m.precipTotal,1);
+  document.getElementById('uv').textContent=obs.uv??'—';
+  document.getElementById('solar').textContent=obs.solarRadiation??'—';
+
+  // WU 7-day history for precip totals
+  try {
+    const hr=await fetch(WU_7D_URL);
+    if(hr.ok){
+      const hd=await hr.json();
+      const sums=hd.summaries||[];
+      let sum7=0; sums.forEach(s=>{sum7+=parseFloat(s.metric?.precipTotal??0)||0;});
+      const p24=sums[sums.length-1]?.metric?.precipTotal??null;
+      document.getElementById('precip24h').textContent=p24!=null?Number(p24).toFixed(1):'—';
+      document.getElementById('precip30d').textContent=sum7>0?sum7.toFixed(1):'—';
+    }
+  } catch(e){}
+}
+
+/* ── LOAD FORECAST (Open-Meteo — free, no key) ── */
+async function loadForecast() {
+  const res = await fetch(FORECAST_URL);
+  if (!res.ok) throw new Error(`Open-Meteo ${res.status}`);
+  const data = await res.json();
+  forecastData = data;
+
+  document.getElementById('fcSource').textContent='forecast: open-meteo.com';
+
+  const daily  = data.daily;
+  const days   = Math.min((daily.time||[]).length, 7);
+  const today  = new Date();
+  const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+  // Build forecast strip
+  const strip = document.getElementById('fcStrip');
+  strip.innerHTML='';
+  for (let i=0; i<days; i++) {
+    const fcDate = new Date(daily.time[i]+'T12:00:00');
+    const dow    = DAYS[fcDate.getDay()].slice(0,3).toUpperCase();
+    const date   = ordinal(fcDate.getDate());
+    const hi     = daily.temperature_2m_max[i];
+    const lo     = daily.temperature_2m_min[i];
+    const pop    = daily.precipitation_probability_max[i];
+    const mm     = daily.precipitation_sum[i];
+    const code   = daily.weathercode[i];
+    const icon   = wmoIcon(code);
+
+    const col=document.createElement('div');
+    col.className='fc-col'+(i===0?' today':'');
+    col.innerHTML=`
+      <div class="fc-day-name">${dow}</div>
+      <div class="fc-day-date">${date}</div>
+      <div class="fc-icon">${icon}</div>
+      <div class="fc-hilo">
+        <span class="fc-hi">${hi!=null?Math.round(hi)+'°':'—'}</span>
+        <span class="fc-lo">${lo!=null?Math.round(lo)+'°':'—'}</span>
+      </div>
+      ${pop!=null&&pop>0?`<div class="fc-pop">${pop}%</div>`:''}
+      ${mm!=null&&mm>0?`<div class="fc-mm">${Number(mm).toFixed(1)}mm</div>`:''}
+    `;
+    strip.appendChild(col);
+  }
+
+  // Build calendar row
+  const cal=document.getElementById('calStrip');
+  cal.innerHTML='';
+  for (let i=0; i<days; i++) {
+    const cell=document.createElement('div');
+    cell.className='cal-cell';
+    cell.id='cal-'+i;
+    cell.textContent='events';
+    cal.appendChild(cell);
+  }
+
+  // Draw chart after a frame so layout is complete
+  requestAnimationFrame(()=>drawChart(daily, days));
+}
+
+/* ── CHART ── */
+function drawChart(daily, days) {
+  const canvas=document.getElementById('chart');
+  const W=canvas.parentElement.getBoundingClientRect().width||800;
+  const H=Math.max(160,Math.round(W*0.22));
+  canvas.width=W; canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  if(!daily||days<2) return;
+
+  const highs=[], lows=[], precips=[];
+  for(let i=0;i<days;i++){
+    highs.push(daily.temperature_2m_max[i]??null);
+    lows.push(daily.temperature_2m_min[i]??null);
+    precips.push(daily.precipitation_sum[i]??0);
+  }
+
+  const PT=20, PB=10;
+  const cH=H-PT-PB;
+  const colW=W/days;
+
+  const allT=[...highs,...lows].filter(v=>v!=null);
+  if(!allT.length) return;
+  const tMin=Math.floor(Math.min(...allT)-2);
+  const tMax=Math.ceil(Math.max(...allT)+2);
+  const tRng=tMax-tMin||1;
+  const pMax=Math.max(...precips,2);
+  const barMaxH=cH*0.28;
+
+  const xPos=i=>colW*i+colW/2;
+  const yTemp=v=>PT+(1-(v-tMin)/tRng)*cH;
+  const fs=Math.max(7,W*0.014);
+
+  // Horizontal temp gridlines
+  const step=tRng<=10?2:5;
+  ctx.lineWidth=1;
+  for(let t=Math.ceil(tMin/step)*step;t<=tMax;t+=step){
+    ctx.strokeStyle='#f0f0f0';
+    ctx.beginPath();ctx.moveTo(0,yTemp(t));ctx.lineTo(W,yTemp(t));ctx.stroke();
+  }
+  if(tMin<=0&&tMax>=0){
+    ctx.strokeStyle='#ddd';ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.moveTo(0,yTemp(0));ctx.lineTo(W,yTemp(0));ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Vertical column separators (matching strip above)
+  ctx.strokeStyle='#eee';
+  for(let i=1;i<days;i++){
+    ctx.beginPath();ctx.moveTo(colW*i,0);ctx.lineTo(colW*i,H);ctx.stroke();
+  }
+
+  // Precip bars at bottom of chart
+  const barW=Math.max(6,colW*0.28);
+  for(let i=0;i<days;i++){
+    const bH=(precips[i]/pMax)*barMaxH;
+    if(bH>0.5){
+      const x=xPos(i);
+      ctx.fillStyle='#d0d0d0';
+      ctx.fillRect(x-barW/2,H-PB-bH,barW,bH);
+      if(precips[i]>=0.5){
+        ctx.fillStyle='#aaa';
+        ctx.font=`${Math.max(6,fs*0.78)}px 'Courier New',monospace`;
+        ctx.textAlign='center';
+        ctx.fillText(precips[i].toFixed(1)+'mm',x,H-PB-bH-3);
+      }
+    }
+  }
+  // Precip scale (right edge)
+  ctx.fillStyle='#bbb';ctx.textAlign='right';
+  ctx.font=`${Math.max(6,fs*0.78)}px 'Courier New',monospace`;
+  ctx.fillText(pMax.toFixed(0)+'mm',W-4,H-PB-barMaxH+8);
+
+  // Band fill hi→lo
+  ctx.beginPath();
+  let moved=false;
+  for(let i=0;i<days;i++){
+    if(highs[i]==null) continue;
+    moved?ctx.lineTo(xPos(i),yTemp(highs[i])):ctx.moveTo(xPos(i),yTemp(highs[i]));
+    moved=true;
+  }
+  for(let i=days-1;i>=0;i--){
+    if(lows[i]==null) continue;
+    ctx.lineTo(xPos(i),yTemp(lows[i]));
+  }
+  ctx.closePath();
+  ctx.fillStyle='rgba(0,0,0,0.06)';ctx.fill();
+
+  // High line
+  ctx.beginPath();ctx.strokeStyle='#000';ctx.lineWidth=2;
+  let s=false;
+  for(let i=0;i<days;i++){
+    if(highs[i]==null) continue;
+    if(!s){ctx.moveTo(xPos(i),yTemp(highs[i]));s=true;}
+    else ctx.lineTo(xPos(i),yTemp(highs[i]));
+  }
+  ctx.stroke();
+
+  // Low line (dashed)
+  ctx.beginPath();ctx.strokeStyle='#888';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+  s=false;
+  for(let i=0;i<days;i++){
+    if(lows[i]==null) continue;
+    if(!s){ctx.moveTo(xPos(i),yTemp(lows[i]));s=true;}
+    else ctx.lineTo(xPos(i),yTemp(lows[i]));
+  }
+  ctx.stroke();ctx.setLineDash([]);
+
+  // Dots + hi/lo temperature labels
+  for(let i=0;i<days;i++){
+    const x=xPos(i);
+    if(highs[i]!=null){
+      const y=yTemp(highs[i]);
+      ctx.fillStyle='#000';
+      ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fill();
+      ctx.font=`bold ${fs}px 'Courier New',monospace`;
+      ctx.textAlign='center';ctx.fillText(Math.round(highs[i])+'°',x,y-5);
+    }
+    if(lows[i]!=null){
+      const y=yTemp(lows[i]);
+      ctx.fillStyle='#888';
+      ctx.beginPath();ctx.arc(x,y,2.5,0,Math.PI*2);ctx.fill();
+      ctx.font=`${fs}px 'Courier New',monospace`;
+      ctx.textAlign='center';ctx.fillText(Math.round(lows[i])+'°',x,y+11);
+    }
+  }
+
+  // Left temp axis
+  ctx.textAlign='left';ctx.fillStyle='#ccc';
+  ctx.font=`${Math.max(6,fs*0.85)}px 'Courier New',monospace`;
+  for(let t=Math.ceil(tMin/step)*step;t<=tMax;t+=step)
+    ctx.fillText(t+'°',3,yTemp(t)+3);
+
+  // Legend
+  ctx.textAlign='left';
+  ctx.font=`${Math.max(6,fs*0.88)}px 'Courier New',monospace`;
+  ctx.fillStyle='#000';ctx.fillText('— Hi',colW*0+3,12);
+  ctx.fillStyle='#888';ctx.fillText('- Lo',colW*0+38,12);
+  ctx.fillStyle='#bbb';ctx.fillText('▮ Rain',colW*0+70,12);
+}
+
+window.addEventListener('resize',()=>{
+  if(forecastData) requestAnimationFrame(()=>drawChart(forecastData.daily,Math.min((forecastData.daily?.time||[]).length,7)));
+  updateMoon();
+});
+
+async function refresh() {
+  try {
+    await loadObs();
+    document.getElementById('liveDot').className='dot';
+    document.getElementById('statusText').textContent='Live';
+  } catch(e) {
+    console.error(e);
+    document.getElementById('liveDot').className='dot off';
+    document.getElementById('statusText').textContent='Offline';
+  }
+}
+
+let countdown=60;
+setInterval(()=>{
+  countdown--;
+  document.getElementById('nextRefresh').textContent=countdown;
+  if(countdown<=0){countdown=60;refresh();}
+},1000);
+
+(async()=>{
+  await Promise.allSettled([refresh(), loadForecast()]);
+  updateMoon();
+})();
+</script>
+</body>
+</html>

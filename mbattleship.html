@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiplication Battleship: Tactical Commander</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #34495e;
+            --accent: #3498db;
+            --hit: #ff4757;
+            --miss: #95a5a6;
+            --ship: #2ed573;
+            --blast: #e74c3c;
+            --advanced: #8e44ad;
+            --bg-color: #f0f2f5;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            display: flex;
+            justify-content: center;
+            background-color: var(--bg-color);
+            padding: 20px;
+            margin: 0;
+            transition: background-color 0.2s ease;
+        }
+
+        body.sink-flash { background-color: #ff4757 !important; }
+
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            width: fit-content;
+        }
+
+        /* Jiggle Animation */
+        @keyframes jiggle {
+            0% { transform: translate(0,0); }
+            25% { transform: translate(2px, 2px); }
+            50% { transform: translate(-2px, -2px); }
+            75% { transform: translate(2px, -2px); }
+            100% { transform: translate(0,0); }
+        }
+
+        .jiggle { animation: jiggle 0.2s ease-in-out infinite; }
+
+        .main-nav {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .nav-btn { background-color: var(--primary); color: white; height: 40px; display: flex; align-items: center; }
+        .nav-btn:hover { background-color: var(--secondary); }
+
+        .gear-btn { padding: 8px 12px !important; }
+        .gear-icon {
+            width: 20px; height: 20px;
+            background: #fff; position: relative;
+            border-radius: 50%; border: 3px solid #fff;
+            box-sizing: border-box;
+        }
+        .gear-icon::after, .gear-icon::before {
+            content: ""; position: absolute;
+            top: 50%; left: 50%; width: 24px; height: 3px;
+            background: #fff; margin: -1.5px 0 0 -12px;
+        }
+        .gear-icon::after { transform: rotate(90deg); }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(13, 44px);
+            gap: 1px;
+            background-color: #d1d1d1;
+            border: 2px solid var(--primary);
+            margin: 10px auto;
+        }
+
+        .cell {
+            width: 44px; height: 44px;
+            display: flex; align-items: center; justify-content: center;
+            background-color: #ffffff; font-size: 0.85rem;
+            cursor: crosshair; user-select: none;
+            transition: background 0.1s;
+        }
+
+        .header { background-color: var(--primary); color: white; font-weight: bold; cursor: default; }
+
+        .advanced-mode .cell:not(.header), 
+        .blast-mode .cell:not(.header) { color: transparent; }
+        .advanced-mode .cell.hit, .advanced-mode .cell.miss,
+        .blast-mode .cell.hit, .blast-mode .cell.miss { color: white; }
+
+        .battleship { background-color: #fff; }
+        .show-ships .battleship { background-color: var(--ship) !important; color: white; }
+        .hit { background-color: var(--hit) !important; color: white !important; font-weight: bold; }
+        .miss { background-color: var(--miss) !important; color: white !important; }
+
+        .pulse-found { background-color: var(--hit) !important; }
+        .pulse-empty { background-color: #3498db !important; }
+
+        .modal {
+            display: none; position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 2000;
+            justify-content: center; align-items: center;
+        }
+
+        .modal-content {
+            background: white; padding: 30px; border-radius: 12px;
+            width: 360px; text-align: left; position: relative;
+        }
+
+        .close-modal { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: #95a5a6; }
+        .modal-footer-btn { width: 100%; margin-top: 10px; }
+
+        .admin-option { margin-bottom: 20px; }
+        .admin-option label { display: block; font-weight: bold; margin-bottom: 5px; }
+
+        #toggle-blast { background-color: #c0392b; color: white; }
+        #toggle-blast.active { background-color: var(--blast); border: 2px solid #fff; }
+        #toggle-advanced { background-color: #7f8c8d; color: white; }
+        #toggle-advanced.active { background-color: var(--advanced); }
+
+        #tactical-question { font-size: 2.8rem; text-align: center; margin: 15px 0; font-weight: bold; color: var(--primary); }
+        #answer-input { width: 100%; padding: 12px; font-size: 1.3rem; margin-bottom: 15px; text-align: center; border: 2px solid #ddd; border-radius: 8px; }
+        .tactical-btns { display: flex; gap: 10px; }
+        .submit-btn { background-color: var(--ship); color: white; flex: 2; }
+
+        #streak-hud { display: none; margin-bottom: 10px; font-weight: bold; color: var(--advanced); font-size: 1.1rem; }
+        .stats-container { display: flex; justify-content: center; gap: 10px; margin-top: 15px; }
+        .stat-box { font-size: 0.9rem; font-weight: bold; padding: 10px; background: #ecf0f1; border-radius: 8px; min-width: 90px; }
+        .announcement { height: 20px; margin-top: 10px; color: var(--hit); font-weight: bold; }
+
+        .win-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 3000;
+            justify-content: center; align-items: center; flex-direction: column; color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="win-overlay" class="win-overlay">
+        <h2 style="font-size: 4rem; color: var(--ship);">VICTORY!</h2>
+        <p style="font-size: 1.5rem">Mission Time: <span id="final-time">00:00</span></p>
+        <button onclick="init()" style="background: var(--ship); color: white;">Restart Campaign</button>
+    </div>
+
+    <div id="tactical-modal" class="modal">
+        <div class="modal-content">
+            <h2 style="margin:0;">Targeting Computer</h2>
+            <div id="tactical-question">-- × --</div>
+            <input type="number" id="answer-input" placeholder="Product?">
+            <div class="tactical-btns">
+                <button class="submit-btn" id="submit-answer">Fire!</button>
+                <button class="nav-btn" style="background:#95a5a6; flex:1;" onclick="closeModals()">Abort</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="admin-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModals()">&times;</span>
+            <h2>Settings</h2>
+            
+            <div class="admin-option">
+                <label>Fleet Size: <span id="fleet-val">6</span> Ships</label>
+                <input type="range" id="fleet-slider" min="3" max="8" value="6" style="width:100%;">
+            </div>
+
+            <button id="toggle-blast" class="modal-footer-btn active">Blast Radius: ON</button>
+            
+            <div id="blast-timer-option" class="admin-option" style="margin-top:10px;">
+                <label>Pulse Duration: <span id="pulse-val">250</span>ms</label>
+                <input type="range" id="pulse-slider" min="166" max="500" value="250" step="10" style="width:100%;">
+            </div>
+
+            <button id="toggle-advanced" class="modal-footer-btn">Advanced Mode: OFF</button>
+            <button id="toggle-visibility" class="modal-footer-btn" style="background: var(--accent); color:white;">Show Ships (Cheat)</button>
+            <button id="reset-game" class="modal-footer-btn" style="background: #e67e22; color:white;">Reset Grid</button>
+        </div>
+    </div>
+
+    <div id="rules-modal" class="modal">
+        <div class="modal-content" style="width:400px;">
+            <span class="close-modal" onclick="closeModals()">&times;</span>
+            <h2>Intelligence Briefing</h2>
+            <ul style="line-height:1.6; padding-left:20px;">
+                <li><b>Blast Radius (Default):</b> Correct answers cause surrounding tiles to jiggle and reveal hidden ship segments!</li>
+                <li><b>Sinking Ships:</b> Fully sinking a vessel triggers a red background alert.</li>
+                <li><b>Tactical Grid:</b> Coordinates are hidden in special modes to test your mental math.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>Multiplication Battleship</h1>
+        
+        <div class="main-nav">
+            <button class="nav-btn gear-btn" onclick="openModal('admin-modal')"><div class="gear-icon"></div></button>
+            <button class="nav-btn" onclick="openModal('rules-modal')">Rules</button>
+        </div>
+
+        <div id="streak-hud">🔥 Streak: <span id="streak-count">0</span>/3</div>
+
+        <div id="grid-container" class="grid-container"></div>
+
+        <div class="stats-container">
+            <div class="stat-box">Time: <span id="timer">00:00</span></div>
+            <div class="stat-box">Hits: <span id="hit-count">0</span>/<span id="total-target">0</span></div>
+            <div class="stat-box">Ships: <span id="ships-left">0</span></div>
+        </div>
+        <div id="announcement" class="announcement"></div>
+    </div>
+
+    <script>
+        const grid = document.getElementById('grid-container');
+        const fleetSlider = document.getElementById('fleet-slider');
+        const pulseSlider = document.getElementById('pulse-slider');
+        const pulseValText = document.getElementById('pulse-val');
+        const blastTimerOption = document.getElementById('blast-timer-option');
+        const showShipsBtn = document.getElementById('toggle-visibility');
+        const streakHud = document.getElementById('streak-hud');
+        const streakCount = document.getElementById('streak-count');
+        const timerText = document.getElementById('timer');
+        const hitText = document.getElementById('hit-count');
+        const shipText = document.getElementById('ships-left');
+        const targetText = document.getElementById('total-target');
+        const announce = document.getElementById('announcement');
+        const answerInput = document.getElementById('answer-input');
+
+        let size = 12, ships = [], used = new Set();
+        let gameActive = false, timerInterval, startTime, firstClick = false;
+        let advanced = false, blast = true, streak = 0, pendingCell = null;
+        let totalHits = 0, totalSegments = 0, shipsRemaining = 0;
+        let cheatTimeout = null, cheatInterval = null;
+
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModals() { 
+            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+            answerInput.value = '';
+        }
+
+        function init() {
+            closeModals();
+            clearInterval(timerInterval);
+            clearCheat();
+            grid.innerHTML = ''; used.clear(); ships = [];
+            gameActive = true; firstClick = false; streak = 0; totalHits = 0;
+            document.getElementById('win-overlay').style.display = 'none';
+            announce.innerText = ''; timerText.innerText = '00:00';
+            hitText.innerText = '0'; streakCount.innerText = '0';
+
+            const fSize = parseInt(fleetSlider.value);
+            document.getElementById('fleet-val').innerText = fSize;
+
+            for(let i=0; i<=size; i++) {
+                const c = document.createElement('div');
+                c.className = 'cell header';
+                c.innerText = i === 0 ? '×' : i;
+                grid.appendChild(c);
+            }
+
+            for(let r=1; r<=size; r++) {
+                const rh = document.createElement('div');
+                rh.className = 'cell header'; rh.innerText = r;
+                grid.appendChild(rh);
+                for(let c=1; c<=size; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.innerText = r * c;
+                    cell.dataset.r = r; cell.dataset.c = c;
+                    cell.onclick = () => handleCellClick(cell);
+                    grid.appendChild(cell);
+                }
+            }
+
+            const fleetPlan = [5, 4, 3, 3, 2];
+            while(fleetPlan.length < fSize) fleetPlan.push(2);
+            while(fleetPlan.length > fSize) fleetPlan.pop();
+            
+            totalSegments = fleetPlan.reduce((a,b) => a+b, 0);
+            targetText.innerText = totalSegments;
+            shipsRemaining = fSize;
+            shipText.innerText = shipsRemaining;
+
+            fleetPlan.sort((a,b) => b-a).forEach(len => placeShip(len));
+            applyStyles();
+        }
+
+        function placeShip(len) {
+            let placed = false;
+            while(!placed) {
+                const horiz = Math.random() > 0.5;
+                const r = Math.floor(Math.random() * size) + 1;
+                const c = Math.floor(Math.random() * size) + 1;
+                if(canPlace(r, c, len, horiz)) {
+                    const coords = [];
+                    for(let i=0; i<len; i++) {
+                        const currR = horiz ? r : r+i;
+                        const currC = horiz ? c+i : c;
+                        const cell = getCell(currR, currC);
+                        cell.classList.add('battleship');
+                        used.add(`${currR},${currC}`);
+                        coords.push(`${currR},${currC}`);
+                    }
+                    ships.push({coords, hits: 0, sunk: false});
+                    placed = true;
+                }
+            }
+        }
+
+        function canPlace(r, c, len, horiz) {
+            for(let i=0; i<len; i++) {
+                const currR = horiz ? r : r+i;
+                const currC = horiz ? c+i : c;
+                if(currR > size || currC > size) return false;
+                for(let dr=-1; dr<=1; dr++) {
+                    for(let dc=-1; dc<=1; dc++) {
+                        if(used.has(`${currR+dr},${currC+dc}`)) return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        function getCell(r, c) {
+            return Array.from(grid.children).find(el => el.dataset.r == r && el.dataset.c == c);
+        }
+
+        function handleCellClick(cell) {
+            if(!gameActive || cell.classList.contains('hit') || cell.classList.contains('miss')) return;
+            if(advanced || blast) {
+                pendingCell = cell;
+                document.getElementById('tactical-question').innerText = `${cell.dataset.r} × ${cell.dataset.c}`;
+                openModal('tactical-modal');
+                setTimeout(() => answerInput.focus(), 100);
+            } else {
+                processMove(cell);
+            }
+        }
+
+        document.getElementById('submit-answer').onclick = () => {
+            const val = parseInt(answerInput.value);
+            const correct = pendingCell.dataset.r * pendingCell.dataset.c;
+            if(val === correct) {
+                if(blast) triggerBlast(pendingCell);
+                else if(advanced) {
+                    streak++;
+                    if(streak >= 3) { triggerStreak(pendingCell); streak = 0; }
+                    streakCount.innerText = streak;
+                }
+                processMove(pendingCell);
+                closeModals();
+            } else {
+                alert("Calculation Error!");
+                streak = 0; streakCount.innerText = 0;
+            }
+        };
+
+        function triggerBlast(origin) {
+            const r = parseInt(origin.dataset.r), c = parseInt(origin.dataset.c);
+            const pulseDuration = parseInt(pulseSlider.value);
+            for(let dr=-1; dr<=1; dr++) {
+                for(let dc=-1; dc<=1; dc++) {
+                    const t = getCell(r+dr, c+dc);
+                    if(t && !t.classList.contains('hit') && !t.classList.contains('miss') && !t.classList.contains('header')) {
+                        t.classList.add('jiggle'); // ADD JIGGLE
+                        t.classList.add(t.classList.contains('battleship') ? 'pulse-found' : 'pulse-empty');
+                        setTimeout(() => {
+                            t.classList.remove('jiggle', 'pulse-found', 'pulse-empty');
+                        }, pulseDuration);
+                    }
+                }
+            }
+        }
+
+        function triggerStreak(origin) {
+            const r = parseInt(origin.dataset.r), c = parseInt(origin.dataset.c);
+            const potential = [];
+            for(let dr=-1; dr<=1; dr++) {
+                for(let dc=-1; dc<=1; dc++) {
+                    const t = getCell(r+dr, c+dc);
+                    if(t && !t.classList.contains('hit') && !t.classList.contains('miss') && !t.classList.contains('battleship') && !t.classList.contains('header')) {
+                        potential.push(t);
+                    }
+                }
+            }
+            if(potential.length > 0) {
+                potential[Math.floor(Math.random() * potential.length)].classList.add('miss');
+                announce.innerText = "Streak Bonus: Scanner revealed water!";
+            }
+        }
+
+        function flashBackground() {
+            document.body.classList.add('sink-flash');
+            setTimeout(() => {
+                document.body.classList.remove('sink-flash');
+            }, 1000);
+        }
+
+        function processMove(cell) {
+            if(!firstClick) {
+                firstClick = true; startTime = Date.now();
+                timerInterval = setInterval(updateTimer, 1000);
+            }
+
+            if(cell.classList.contains('battleship')) {
+                cell.classList.add('hit');
+                totalHits++; hitText.innerText = totalHits;
+                const ship = ships.find(s => s.coords.includes(`${cell.dataset.r},${cell.dataset.c}`));
+                ship.hits++;
+                if(ship.hits === ship.coords.length) {
+                    shipsRemaining--; shipText.innerText = shipsRemaining;
+                    announce.innerText = `Sunk: ${ship.coords.length}-blocker!`;
+                    flashBackground();
+                }
+            } else {
+                cell.classList.add('miss');
+            }
+
+            if(shipsRemaining === 0) {
+                gameActive = false; clearInterval(timerInterval);
+                document.getElementById('final-time').innerText = timerText.innerText;
+                setTimeout(() => document.getElementById('win-overlay').style.display = 'flex', 500);
+            }
+        }
+
+        function updateTimer() {
+            const sec = Math.floor((Date.now() - startTime) / 1000);
+            timerText.innerText = `${Math.floor(sec/60).toString().padStart(2,'0')}:${(sec%60).toString().padStart(2,'0')}`;
+        }
+
+        function applyStyles() {
+            grid.classList.toggle('advanced-mode', advanced);
+            grid.classList.toggle('blast-mode', blast);
+            streakHud.style.display = (advanced && !blast) ? 'block' : 'none';
+            blastTimerOption.style.display = blast ? 'block' : 'none';
+        }
+
+        function clearCheat() {
+            clearTimeout(cheatTimeout);
+            clearInterval(cheatInterval);
+            grid.classList.remove('show-ships');
+            showShipsBtn.innerText = "Show Ships (Cheat)";
+        }
+
+        showShipsBtn.onclick = () => {
+            if (grid.classList.contains('show-ships')) {
+                clearCheat();
+                return;
+            }
+
+            grid.classList.add('show-ships');
+
+            if (advanced || blast) {
+                let timeLeft = 10;
+                showShipsBtn.innerText = `Hiding in ${timeLeft}s...`;
+                
+                cheatInterval = setInterval(() => {
+                    timeLeft--;
+                    showShipsBtn.innerText = `Hiding in ${timeLeft}s...`;
+                }, 1000);
+
+                cheatTimeout = setTimeout(() => {
+                    clearCheat();
+                }, 10000);
+            } else {
+                showShipsBtn.innerText = "Hide Ships";
+            }
+        };
+
+        document.getElementById('toggle-blast').onclick = function() {
+            blast = !blast; this.classList.toggle('active');
+            this.innerText = `Blast Radius: ${blast ? 'ON' : 'OFF'}`;
+            if(blast) { advanced = false; document.getElementById('toggle-advanced').classList.remove('active'); document.getElementById('toggle-advanced').innerText = 'Advanced Mode: OFF'; }
+            clearCheat();
+            applyStyles();
+        };
+
+        document.getElementById('toggle-advanced').onclick = function() {
+            advanced = !advanced; this.classList.toggle('active');
+            this.innerText = `Advanced Mode: ${advanced ? 'ON' : 'OFF'}`;
+            if(advanced) { blast = false; document.getElementById('toggle-blast').classList.remove('active'); document.getElementById('toggle-blast').innerText = 'Blast Radius: OFF'; }
+            clearCheat();
+            applyStyles();
+        };
+
+        pulseSlider.oninput = function() { pulseValText.innerText = this.value; };
+        document.getElementById('reset-game').onclick = init;
+        answerInput.onkeyup = (e) => { if(e.key === 'Enter') document.getElementById('submit-answer').click(); };
+
+        init();
+    </script>
+</body>
+</html>

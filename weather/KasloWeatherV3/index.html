@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knotwork</title>
+    <style>
+        :root {
+            --bg-color: #cccc99;
+            --btn-bg: #2c3e50;
+            --btn-hover: #34495e;
+            --text-color: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 20px;
+            width: 90%;
+            max-width: 800px;
+        }
+
+        .nav-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 120px;
+            background-color: var(--btn-bg);
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .nav-button:hover {
+            background-color: var(--btn-hover);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Hides button if it contains no text */
+        .nav-button:empty {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="grid-container">
+        <a href="blackhole.html" target="_blank" rel="noopener noreferrer" class="nav-button">Black Hole</a>
+        <a href="mbattleship.html" target="_blank" rel="noopener noreferrer" class="nav-button">Battleship</a>
+        <a href="nebula.html" target="_blank" rel="noopener noreferrer" class="nav-button"></a>
+        
+        <a href="login.php" target="_blank" rel="noopener noreferrer" class="nav-button">Weather</a>
+        <a href="cipher.html" target="_blank" rel="noopener noreferrer" class="nav-button"></a>
+        <a href="titan.html" target="_blank" rel="noopener noreferrer" class="nav-button"></a>
+
+        <a href="hidden.html" target="_blank" rel="noopener noreferrer" class="nav-button"></a>
+        <a href="hidden.html" target="_blank" rel="noopener noreferrer" class="nav-button"></a>
+        
+        <a href="settings.html" target="_blank" rel="noopener noreferrer" class="nav-button"></a>
+    </div>
+
+</body>
+</html>

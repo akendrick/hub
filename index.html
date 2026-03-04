@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Knotwork</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:      #c8c87a;
+      --bg-dark: #b0b060;
+      --ink:     #1a1a14;
+      --card:    #1e2318;
+      --card-hv: #2a3020;
+      --accent:  #e8e050;
+      --dim:     rgba(255,255,255,0.07);
+      --border:  rgba(0,0,0,0.18);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { height: 100%; }
+
+    body {
+      font-family: 'DM Mono', monospace;
+      background-color: var(--bg);
+      background-image:
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 39px,
+          rgba(0,0,0,0.04) 39px,
+          rgba(0,0,0,0.04) 40px
+        ),
+        repeating-linear-gradient(
+          90deg,
+          transparent,
+          transparent 39px,
+          rgba(0,0,0,0.04) 39px,
+          rgba(0,0,0,0.04) 40px
+        );
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .wordmark {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(28px, 5vw, 48px);
+      letter-spacing: 0.18em;
+      color: var(--ink);
+      margin-bottom: 32px;
+      opacity: 0.6;
+      user-select: none;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      width: min(520px, 100%);
+    }
+
+    .btn {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100px;
+      background: var(--card);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.35), inset 0 1px 0 var(--dim);
+      transition: background 0.18s, transform 0.18s, box-shadow 0.18s;
+      overflow: hidden;
+      outline: none;
+    }
+
+    /* Hover lift */
+    .btn:hover {
+      background: var(--card-hv);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4), inset 0 1px 0 var(--dim);
+    }
+
+    .btn:active { transform: translateY(0); box-shadow: 0 2px 8px rgba(0,0,0,0.35); }
+
+    /* Accent bar at bottom on hover */
+    .btn::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--accent);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.22s ease;
+    }
+    .btn:hover::after { transform: scaleX(1); }
+
+    /* Settings — special accent colour */
+    .btn.settings { border-color: rgba(232,224,80,0.2); }
+    .btn.settings .btn-label { color: var(--accent); }
+
+    .btn-icon {
+      font-size: 26px;
+      line-height: 1;
+      margin-bottom: 7px;
+      filter: grayscale(0.3);
+      transition: transform 0.2s;
+    }
+    .btn:hover .btn-icon { transform: scale(1.15); }
+
+    .btn-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.75);
+      white-space: nowrap;
+    }
+
+    /* Empty / hidden slot */
+    .btn:empty,
+    .btn.empty {
+      background: rgba(0,0,0,0.07);
+      border-color: rgba(0,0,0,0.06);
+      pointer-events: none;
+      box-shadow: none;
+    }
+    .btn.empty::after { display: none; }
+
+    /* Entrance animation */
+    .btn {
+      animation: rise 0.38s ease both;
+    }
+    .btn:nth-child(1) { animation-delay: 0.04s; }
+    .btn:nth-child(2) { animation-delay: 0.08s; }
+    .btn:nth-child(3) { animation-delay: 0.12s; }
+    .btn:nth-child(4) { animation-delay: 0.16s; }
+    .btn:nth-child(5) { animation-delay: 0.20s; }
+    .btn:nth-child(6) { animation-delay: 0.24s; }
+    .btn:nth-child(7) { animation-delay: 0.28s; }
+    .btn:nth-child(8) { animation-delay: 0.32s; }
+    .btn:nth-child(9) { animation-delay: 0.36s; }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 400px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="wordmark">KNOTWORK</div>
+
+  <nav class="grid">
+
+    <a href="blackhole.html" target="_blank" rel="noopener" class="btn">
+      <span class="btn-icon">⚫</span>
+      <span class="btn-label">Black Hole</span>
+    </a>
+
+    <a href="mbattleship.html" target="_blank" rel="noopener" class="btn">
+      <span class="btn-icon">🚢</span>
+      <span class="btn-label">Battleship</span>
+    </a>
+
+    <a href="nebula.html" target="_blank" rel="noopener" class="btn empty">
+      <!-- reserved -->
+    </a>
+
+    <a href="login.php" target="_blank" rel="noopener" class="btn">
+      <span class="btn-icon">⛅</span>
+      <span class="btn-label">Weather</span>
+    </a>
+
+    <a href="cipher.html" target="_blank" rel="noopener" class="btn empty">
+      <!-- reserved -->
+    </a>
+
+    <a href="titan.html" target="_blank" rel="noopener" class="btn empty">
+      <!-- reserved -->
+    </a>
+
+    <a href="hidden.html" target="_blank" rel="noopener" class="btn empty">
+      <!-- reserved -->
+    </a>
+
+    <a href="hidden.html" target="_blank" rel="noopener" class="btn empty">
+      <!-- reserved -->
+    </a>
+
+    <a href="settings.php" target="_blank" rel="noopener" class="btn settings">
+      <span class="btn-icon">⚙</span>
+      <span class="btn-label">Settings</span>
+    </a>
+
+  </nav>
+
+</body>
+</html>

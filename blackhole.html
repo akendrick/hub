@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2-Player Counting Pyramid</title>
+    <style>
+        /* CSS STYLES */
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            padding-top: 40px;
+            margin: 0;
+        }
+
+        #pyramid-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .row { 
+            display: flex; 
+            gap: 10px; 
+        }
+
+        .circle {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background-color: #fff;
+            border: 2px solid #444;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 900;
+            font-size: 1.6rem;
+            transition: transform 0.1s, background-color 0.3s;
+            user-select: none;
+        }
+
+        .circle:hover { 
+            transform: scale(1.05); 
+        }
+
+        #results {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            text-align: center;
+            min-width: 240px;
+        }
+
+        #results p { 
+            margin: 8px 0; 
+            font-weight: bold; 
+            font-size: 1.1rem; 
+        }
+
+        #red-total { color: #e74c3c; font-size: 1.4rem; }
+        #blue-total { color: #3498db; font-size: 1.4rem; }
+
+        #reset-btn {
+            padding: 12px 40px;
+            font-weight: bold;
+            color: white;
+            background-color: #2c3e50;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        #reset-btn:hover {
+            background-color: #34495e;
+        }
+
+        /* Animation for circles contributing to the final score */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); box-shadow: 0 0 20px rgba(0,0,0,0.2); }
+            100% { transform: scale(1); }
+        }
+
+        .highlight {
+            animation: pulse 0.8s infinite ease-in-out;
+            z-index: 10;
+            border: 3px solid #000 !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="pyramid-container"></div>
+    
+    <div id="results">
+        <p>Red Adjacent Total: <span id="red-total">0</span></p>
+        <p>Blue Adjacent Total: <span id="blue-total">0</span></p>
+    </div>
+
+    <button id="reset-btn">Reset Game</button>
+
+    <script>
+        /* JAVASCRIPT LOGIC */
+        const container = document.getElementById('pyramid-container');
+        const resetBtn = document.getElementById('reset-btn');
+        const redDisplay = document.getElementById('red-total');
+        const blueDisplay = document.getElementById('blue-total');
+
+        const ROW_COUNT = 6; // Results in 21 circles
+        const START_VAL = 10;
+
+        let redCount = START_VAL;
+        let blueCount = START_VAL;
+        let isRedTurn = true;
+
+        function handleCircleClick(event) {
+            const circle = event.target;
+            const currentColor = isRedTurn ? 'red' : 'blue';
+
+            // Set background color and store for scoring
+            circle.style.backgroundColor = currentColor;
+            circle.style.borderColor = 'transparent';
+            circle.dataset.color = currentColor;
+
+            // Handle numbering countdown
+            if (isRedTurn && redCount >= 1) {
+                circle.textContent = redCount;
+                redCount--;
+            } else if (!isRedTurn && blueCount >= 1) {
+                circle.textContent = blueCount;
+                blueCount--;
+            }
+
+            circle.style.cursor = 'default';
+
+            // Check if we just finished Blue's 10th turn (20th circle total)
+            if (!isRedTurn) {
+                const allCircles = Array.from(document.querySelectorAll('.circle'));
+                const remaining = allCircles.filter(c => !c.style.backgroundColor);
+
+                // Identify the last remaining circle (the 21st)
+                if (remaining.length === 1) {
+                    const blackCircle = remaining[0];
+                    blackCircle.style.backgroundColor = 'black';
+                    blackCircle.dataset.color = 'black';
+                    blackCircle.style.pointerEvents = 'none';
+                    
+                    // Delay calculation slightly so user sees the black circle appear
+                    setTimeout(() => calculateResults(blackCircle), 400);
+                }
+            }
+
+            // Toggle turn
+            isRedTurn = !isRedTurn;
+        }
+
+        function calculateResults(blackCircle) {
+            const rows = Array.from(document.querySelectorAll('.row'));
+            let bRowIdx, bColIdx;
+
+            // Locate the black circle's row and column position
+            rows.forEach((row, rIdx) => {
+                const cIdx = Array.from(row.children).indexOf(blackCircle);
+                if (cIdx !== -1) { 
+                    bRowIdx = rIdx; 
+                    bColIdx = cIdx; 
+                }
+            });
+
+            // Pyramid Adjacency Logic (Hexagonal Grid Style)
+            // Checks: Left, Right, Top-Left, Top-Right, Bottom-Left, Bottom-Right
+            const neighbors = [
+                { r: bRowIdx, c: bColIdx - 1 }, { r: bRowIdx, c: bColIdx + 1 },
+                { r: bRowIdx - 1, c: bColIdx - 1 }, { r: bRowIdx - 1, c: bColIdx },
+                { r: bRowIdx + 1, c: bColIdx }, { r: bRowIdx + 1, c: bColIdx + 1 }
+            ];
+
+            let redSum = 0;
+            let blueSum = 0;
+
+            neighbors.forEach(pos => {
+                if (rows[pos.r] && rows[pos.r].children[pos.c]) {
+                    const n = rows[pos.r].children[pos.c];
+                    const val = parseInt(n.textContent) || 0;
+                    
+                    // Highlight the contributing neighbors
+                    n.classList.add('highlight');
+
+                    if (n.dataset.color === 'red') redSum += val;
+                    if (n.dataset.color === 'blue') blueSum += val;
+                }
+            });
+
+            // Update scoreboard UI
+            redDisplay.textContent = redSum;
+            blueDisplay.textContent = blueSum;
+
+            // Determine winner (Lowest Score Wins)
+            let winMsg = "";
+            if (redSum < blueSum) {
+                winMsg = `RED Wins with the lowest score!\n\nRed Total: ${redSum}\nBlue Total: ${blueSum}`;
+            } else if (blueSum < redSum) {
+                winMsg = `BLUE Wins with the lowest score!\n\nBlue Total: ${blueSum}\nRed Total: ${redSum}`;
+            } else {
+                winMsg = `It's a Tie!\n\nBoth players scored ${redSum}`;
+            }
+            
+            alert(winMsg);
+        }
+
+        function initGame() {
+            // Reset everything to start state
+            container.innerHTML = '';
+            redCount = START_VAL;
+            blueCount = START_VAL;
+            isRedTurn = true;
+            redDisplay.textContent = '0';
+            blueDisplay.textContent = '0';
+
+            // Generate the 6-row pyramid
+            for (let i = 1; i <= ROW_COUNT; i++) {
+                const row = document.createElement('div');
+                row.className = 'row';
+                for (let j = 0; j < i; j++) {
+                    const circle = document.createElement('div');
+                    circle.className = 'circle';
+                    // Use { once: true } to prevent multiple clicks on the same circle
+                    circle.addEventListener('click', handleCircleClick, { once: true });
+                    row.appendChild(circle);
+                }
+                container.appendChild(row);
+            }
+        }
+
+        // Event listener for the Reset button
+        resetBtn.addEventListener('click', initGame);
+
+        // Start the game for the first time
+        initGame();
+    </script>
+</body>
+</html>
+

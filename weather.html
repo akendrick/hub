@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaslo Weather — IKASLO6</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #0b0f18;
+    --surface: #131926;
+    --card:    #182030;
+    --border:  #243044;
+    --accent:  #7dd3fc;
+    --cold:    #bae6fd;
+    --warm:    #fdba74;
+    --snow:    #ddeeff;
+    --muted:   #4f6480;
+    --green:   #6ee7b7;
+    --rain:    #60a5fa;
+    --danger:  #f87171;
+    --purple:  #c084fc;
+    --text:    #c4d4ec;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+  }
+  .mountain-bg {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 280px;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+  }
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 36px 28px 100px;
+  }
+
+  /* HEADER */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    animation: fadeDown 0.5s ease both;
+  }
+  .station-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 1.05rem;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .station-sub { font-size: 0.72rem; color: var(--muted); letter-spacing: 2px; margin-top: 5px; }
+  .header-right { text-align: right; }
+  .obs-time { font-size: 0.68rem; color: var(--muted); letter-spacing: 1px; line-height: 1.8; }
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    margin-top: 7px; padding: 4px 12px; border-radius: 20px;
+    font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; font-weight: 500;
+  }
+  .status-live { background: rgba(110,231,183,0.1); border: 1px solid rgba(110,231,183,0.25); color: var(--green); }
+  .status-error { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.25); color: var(--danger); }
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+
+  /* GRID */
+  .grid-main { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; margin-bottom: 16px; animation: fadeUp 0.5s ease 0.1s both; }
+  .grid-row  { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px; animation: fadeUp 0.5s ease 0.2s both; }
+  .grid-forecast { animation: fadeUp 0.5s ease 0.3s both; }
+
+  /* CARDS */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 26px 30px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card-glow::before {
+    content: '';
+    position: absolute; top: -50px; left: -50px;
+    width: 200px; height: 200px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(125,211,252,0.09), transparent 65%);
+    pointer-events: none;
+  }
+  .label { font-family: 'Barlow Condensed', sans-serif; font-size: 0.65rem; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+
+  /* TEMP HERO */
+  .temp-card { background: linear-gradient(145deg, #1a2e48 0%, #182030 100%); border-color: #274060; }
+  .big-temp { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: clamp(5rem, 10vw, 8rem); line-height: 0.9; color: var(--cold); letter-spacing: -2px; text-shadow: 0 0 80px rgba(125,211,252,0.2); }
+  .big-temp .deg { font-size: 0.42em; vertical-align: super; color: var(--accent); }
+  .feels-like { margin-top: 10px; font-size: 0.8rem; color: var(--muted); }
+  .feels-like span { color: var(--text); }
+  .temp-meta { display: flex; flex-wrap: wrap; gap: 14px 24px; margin-top: 16px; font-size: 0.78rem; color: var(--muted); border-top: 1px solid var(--border); padding-top: 14px; }
+  .temp-meta strong { color: var(--text); font-weight: 500; display: block; margin-bottom: 2px; }
+
+  /* PRESSURE */
+  .pressure-num { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 3.4rem; line-height: 1; color: var(--snow); }
+  .pressure-unit { font-size: 1rem; color: var(--muted); margin-left: 3px; font-weight: 300; }
+  .trend-pill { display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; padding: 5px 14px; border-radius: 20px; font-family: 'Barlow Condensed', sans-serif; font-size: 0.75rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; }
+  .trend-falling { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); color: var(--danger); }
+  .trend-rising  { background: rgba(110,231,183,0.1); border: 1px solid rgba(110,231,183,0.3); color: var(--green); }
+  .trend-steady  { background: rgba(79,96,128,0.2);  border: 1px solid var(--border); color: var(--muted); }
+  .pressure-note { margin-top: 12px; font-size: 0.73rem; color: var(--muted); line-height: 1.6; }
+
+  /* STAT CARDS */
+  .stat-num { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 2.8rem; line-height: 1; margin-top: 4px; }
+  .stat-unit { font-size: 0.95rem; color: var(--muted); margin-left: 2px; font-weight: 300; }
+  .stat-note { margin-top: 10px; font-size: 0.72rem; color: var(--muted); line-height: 1.6; }
+  .c-rain   { color: var(--rain); }
+  .c-purple { color: var(--purple); }
+  .c-warm   { color: var(--warm); }
+  .mini-bar-bg { margin-top: 12px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .mini-bar-fill { height: 100%; border-radius: 2px; transition: width 1.2s ease; }
+  .bar-rain { background: linear-gradient(90deg, var(--rain), var(--accent)); }
+  .bar-hum  { background: linear-gradient(90deg, var(--purple), #e879f9); }
+
+  /* SECTION */
+  .section-label { font-family: 'Barlow Condensed', sans-serif; font-size: 0.65rem; letter-spacing: 4px; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; display: flex; align-items: center; gap: 12px; }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* FORECAST */
+  .forecast-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+  .fc-day { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 10px; text-align: center; transition: border-color 0.2s, transform 0.2s; }
+  .fc-day:hover { border-color: rgba(125,211,252,0.4); transform: translateY(-3px); }
+  .fc-name { font-family: 'Barlow Condensed', sans-serif; font-size: 0.68rem; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+  .fc-icon { font-size: 1.9rem; margin: 9px 0; display: block; }
+  .fc-high { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.5rem; color: var(--warm); }
+  .fc-low  { font-family: 'Barlow Condensed', sans-serif; font-size: 1.1rem; color: var(--cold); margin-top: 3px; }
+  .fc-desc { font-size: 0.62rem; color: var(--muted); margin-top: 7px; line-height: 1.4; }
+  .fc-pop  { font-size: 0.65rem; color: var(--rain); margin-top: 5px; }
+
+  /* LOADING */
+  .loading-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; transition: opacity 0.5s ease; }
+  .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+  .loader-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 1.5rem; letter-spacing: 6px; color: var(--accent); margin-bottom: 24px; text-transform: uppercase; }
+  .spinner { width: 40px; height: 40px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  .loading-sub { margin-top: 16px; font-size: 0.72rem; color: var(--muted); letter-spacing: 2px; }
+
+  /* ERROR */
+  .error-banner { display: none; align-items: center; gap: 10px; background: rgba(248,113,113,0.07); border: 1px solid rgba(248,113,113,0.2); border-radius: 10px; padding: 12px 18px; margin-bottom: 20px; font-size: 0.78rem; color: #fca5a5; }
+  .error-banner.show { display: flex; }
+
+  /* FOOTER */
+  footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 0.67rem; color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; animation: fadeUp 0.5s ease 0.4s both; }
+
+  /* ANIMATIONS */
+  @keyframes fadeDown { from { opacity:0; transform:translateY(-14px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeUp   { from { opacity:0; transform:translateY(18px);  } to { opacity:1; transform:translateY(0); } }
+  @keyframes pulse    { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+  @keyframes spin     { to { transform: rotate(360deg); } }
+
+  @media (max-width: 860px) {
+    .grid-main { grid-template-columns: 1fr; }
+    .grid-row  { grid-template-columns: 1fr 1fr; }
+    .forecast-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 520px) {
+    .forecast-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<svg class="mountain-bg" viewBox="0 0 1440 280" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax slice">
+  <path fill="#111827" d="M0,280 L0,200 L70,140 L150,175 L230,95 L340,30 L410,70 L470,45 L550,100 L610,55 L690,12 L755,55 L815,32 L895,88 L955,58 L1035,108 L1115,68 L1195,115 L1275,85 L1355,130 L1440,105 L1440,280 Z"/>
+  <path fill="#0d1117" d="M0,280 L0,240 L110,195 L190,215 L295,162 L390,195 L490,168 L570,185 L650,150 L730,172 L835,138 L915,168 L1015,142 L1095,170 L1195,155 L1295,178 L1440,160 L1440,280 Z"/>
+</svg>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loader-title">IKASLO6</div>
+  <div class="spinner"></div>
+  <div class="loading-sub">Fetching live station data…</div>
+</div>
+
+<div class="wrapper">
+  <header>
+    <div>
+      <div class="station-title">Kaslo Weather Station</div>
+      <div class="station-sub">IKASLO6 · 49.91°N 116.92°W · 605 ft · Kaslo, BC</div>
+    </div>
+    <div class="header-right">
+      <div class="obs-time" id="obsTime">—</div>
+      <div class="status-badge status-live" id="statusBadge">
+        <div class="live-dot"></div> Live
+      </div>
+    </div>
+  </header>
+
+  <div class="error-banner" id="errorBanner">
+    ⚠️ <span id="errorMsg">Could not load station data.</span>
+  </div>
+
+  <div class="grid-main">
+    <div class="card temp-card card-glow">
+      <div class="label">Current Temperature</div>
+      <div class="big-temp"><span id="tempC">—</span><span class="deg">°C</span></div>
+      <div class="feels-like">Feels like <span id="heatIndex">—</span>°C &nbsp;·&nbsp; Dew point <span id="dewpt">—</span>°C</div>
+      <div class="temp-meta">
+        <div><strong id="windSpeed">—</strong>Wind km/h</div>
+        <div><strong id="windDir">—</strong>Direction</div>
+        <div><strong id="windGust">—</strong>Gust km/h</div>
+        <div><strong id="humidity">—</strong>Humidity %</div>
+        <div><strong id="uv">—</strong>UV Index</div>
+        <div><strong id="solar">—</strong>Solar W/m²</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="label">Barometric Pressure</div>
+      <div class="pressure-num"><span id="pressure">—</span><span class="pressure-unit">hPa</span></div>
+      <div id="trendPill" class="trend-pill trend-steady">→ Steady</div>
+      <div class="pressure-note" id="pressureNote">Loading…</div>
+    </div>
+  </div>
+
+  <div class="grid-row">
+    <div class="card">
+      <div class="label">Precip Rate</div>
+      <div class="stat-num c-rain"><span id="precipRate">—</span><span class="stat-unit">mm/hr</span></div>
+      <div class="stat-note">Current rainfall intensity</div>
+    </div>
+
+    <div class="card">
+      <div class="label">Rainfall · Today</div>
+      <div class="stat-num c-rain"><span id="precipTotal">—</span><span class="stat-unit">mm</span></div>
+      <div class="mini-bar-bg"><div class="mini-bar-fill bar-rain" id="rainBar" style="width:0%"></div></div>
+      <div class="stat-note" id="precipNote">Accumulated today</div>
+    </div>
+
+    <div class="card">
+      <div class="label">Humidity</div>
+      <div class="stat-num c-purple"><span id="humidityLarge">—</span><span class="stat-unit">%</span></div>
+      <div class="mini-bar-bg"><div class="mini-bar-fill bar-hum" id="humBar" style="width:0%"></div></div>
+      <div class="stat-note">Relative humidity</div>
+    </div>
+
+    <div class="card">
+      <div class="label">Wind</div>
+      <div class="stat-num c-warm"><span id="windLarge">—</span><span class="stat-unit">km/h</span></div>
+      <div class="stat-note">From <span id="windDirLarge">—</span> · Gust <span id="windGustLarge">—</span> km/h</div>
+    </div>
+  </div>
+
+  <div class="grid-forecast">
+    <div class="section-label">5-Day Forecast · Kaslo Area</div>
+    <div class="forecast-grid" id="forecastGrid">
+      <!-- filled by JS -->
+    </div>
+  </div>
+
+  <footer>
+    <span>Weather Underground PWS · IKASLO6 · Kaslo, BC, Canada</span>
+    <span>Auto-refresh in <span id="nextRefresh">60</span>s</span>
+  </footer>
+</div>
+
+<script>
+const API_KEY    = 'b6a053665de6468ca053665de6068c2e';
+const STATION_ID = 'IKASLO6';
+const LAT        = 49.912;
+const LON        = -116.908;
+
+const OBS_URL      = `https://api.weather.com/v2/pws/observations/current?stationId=${STATION_ID}&format=json&units=m&apiKey=${API_KEY}`;
+const FORECAST_URL = `https://api.weather.com/v3/wx/forecast/daily/5day?geocode=${LAT},${LON}&format=json&units=m&language=en-US&apiKey=${API_KEY}`;
+
+let pressureHistory = [];
+
+function degToCompass(deg) {
+  if (deg == null) return '—';
+  const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+  return dirs[Math.round(deg / 22.5) % 16];
+}
+
+function fmt(v, d = 1) {
+  return (v == null || v === '') ? '—' : Number(v).toFixed(d);
+}
+
+function weatherIcon(phrase) {
+  if (!phrase) return '🌡️';
+  const p = phrase.toLowerCase();
+  if (p.includes('thunder'))                       return '⛈️';
+  if (p.includes('snow') && p.includes('rain'))    return '🌨️';
+  if (p.includes('heavy rain'))                    return '🌧️';
+  if (p.includes('rain') || p.includes('shower'))  return '🌦️';
+  if (p.includes('drizzle'))                       return '🌦️';
+  if (p.includes('snow') || p.includes('flurr'))   return '❄️';
+  if (p.includes('fog') || p.includes('mist'))     return '🌫️';
+  if (p.includes('cloud') && p.includes('part'))   return '⛅';
+  if (p.includes('cloud') || p.includes('overcast'))return '☁️';
+  if (p.includes('clear') || p.includes('sunny'))  return '☀️';
+  return '🌤️';
+}
+
+function calcTrend(hPa) {
+  pressureHistory.push(hPa);
+  if (pressureHistory.length > 10) pressureHistory.shift();
+  if (pressureHistory.length < 3) return 'steady';
+  const diff = hPa - pressureHistory[0];
+  if (diff > 0.3)  return 'rising';
+  if (diff < -0.3) return 'falling';
+  return 'steady';
+}
+
+function applyTrend(trend) {
+  const pill = document.getElementById('trendPill');
+  const note = document.getElementById('pressureNote');
+  pill.className = 'trend-pill';
+  if (trend === 'rising') {
+    pill.classList.add('trend-rising');
+    pill.innerHTML = '↑ Rising';
+    note.textContent = 'Rising pressure — improving conditions likely.';
+  } else if (trend === 'falling') {
+    pill.classList.add('trend-falling');
+    pill.innerHTML = '↓ Falling';
+    note.textContent = 'Falling pressure — watch for incoming weather.';
+  } else {
+    pill.classList.add('trend-steady');
+    pill.innerHTML = '→ Steady';
+    note.textContent = 'Pressure holding steady — settled conditions.';
+  }
+}
+
+async function loadObs() {
+  const res  = await fetch(OBS_URL);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  const obs  = data.observations[0];
+  const m    = obs.metric;
+
+  const d = new Date(obs.epoch * 1000);
+  document.getElementById('obsTime').textContent =
+    `Updated ${d.toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'})} · ${d.toLocaleDateString('en-CA',{weekday:'short',month:'short',day:'numeric'})}`;
+
+  document.getElementById('tempC').textContent    = fmt(m.temp);
+  document.getElementById('heatIndex').textContent= fmt(m.heatIndex ?? m.temp);
+  document.getElementById('dewpt').textContent    = fmt(m.dewpt);
+
+  const hPa = parseFloat(m.pressure);
+  document.getElementById('pressure').textContent = fmt(hPa, 1);
+  applyTrend(calcTrend(hPa));
+
+  const wspd = fmt(m.windSpeed, 0);
+  const wgst = fmt(m.windGust,  0);
+  const wdir = degToCompass(obs.winddir);
+  document.getElementById('windSpeed').textContent    = wspd;
+  document.getElementById('windDir').textContent      = wdir;
+  document.getElementById('windGust').textContent     = wgst;
+  document.getElementById('windLarge').textContent    = wspd;
+  document.getElementById('windDirLarge').textContent = wdir;
+  document.getElementById('windGustLarge').textContent= wgst;
+
+  const hum = obs.humidity;
+  document.getElementById('humidity').textContent     = hum + '%';
+  document.getElementById('humidityLarge').textContent= hum;
+  document.getElementById('humBar').style.width       = Math.min(hum, 100) + '%';
+
+  const rate  = fmt(m.precipRate,  2);
+  const total = fmt(m.precipTotal, 1);
+  document.getElementById('precipRate').textContent   = rate;
+  document.getElementById('precipTotal').textContent  = total;
+  document.getElementById('rainBar').style.width      = Math.min((parseFloat(m.precipTotal || 0) / 25) * 100, 100) + '%';
+  document.getElementById('precipNote').textContent   =
+    parseFloat(m.precipTotal) > 0 ? `${total} mm accumulated today` : 'No rain recorded today';
+
+  document.getElementById('uv').textContent    = obs.uv    ?? '—';
+  document.getElementById('solar').textContent = obs.solarRadiation ?? '—';
+}
+
+async function loadForecast() {
+  const res  = await fetch(FORECAST_URL);
+  if (!res.ok) throw new Error(`Forecast ${res.status}`);
+  const data = await res.json();
+  const grid = document.getElementById('forecastGrid');
+  grid.innerHTML = '';
+
+  const days = Math.min((data.dayOfWeek || []).length, 6);
+  for (let i = 0; i < days; i++) {
+    const dow    = (data.dayOfWeek[i] || '').slice(0, 3);
+    const hi     = data.temperatureMax[i];
+    const lo     = data.temperatureMin[i];
+    const narr   = data.narrative ? data.narrative[i] : '';
+    const phrase = (data.daypart?.wxPhraseLong?.[i * 2]) || narr || '';
+    const pop    = data.daypart?.precipChance?.[i * 2] ?? data.precipChance?.[i];
+
+    const card = document.createElement('div');
+    card.className = 'fc-day';
+    card.innerHTML = `
+      <div class="fc-name">${dow}</div>
+      <span class="fc-icon">${weatherIcon(phrase)}</span>
+      <div class="fc-high">${hi != null ? hi + '°' : '—'}</div>
+      <div class="fc-low">${lo  != null ? lo  + '°' : '—'}</div>
+      ${pop != null ? `<div class="fc-pop">💧 ${pop}%</div>` : ''}
+      <div class="fc-desc">${phrase ? phrase.slice(0, 38) : ''}</div>
+    `;
+    grid.appendChild(card);
+  }
+}
+
+async function refresh() {
+  try {
+    await loadObs();
+    document.getElementById('errorBanner').classList.remove('show');
+    const b = document.getElementById('statusBadge');
+    b.className = 'status-badge status-live';
+    b.innerHTML = '<div class="live-dot"></div> Live';
+  } catch (e) {
+    console.error(e);
+    document.getElementById('errorBanner').classList.add('show');
+    document.getElementById('errorMsg').textContent = 'Station error: ' + e.message;
+    const b = document.getElementById('statusBadge');
+    b.className = 'status-badge status-error';
+    b.textContent = 'Offline';
+  }
+}
+
+let countdown = 60;
+setInterval(() => {
+  countdown--;
+  document.getElementById('nextRefresh').textContent = countdown;
+  if (countdown <= 0) { countdown = 60; refresh(); }
+}, 1000);
+
+(async () => {
+  await Promise.allSettled([refresh(), loadForecast()]);
+  const o = document.getElementById('loadingOverlay');
+  o.classList.add('hidden');
+  setTimeout(() => o.remove(), 600);
+})();
+</script>
+</body>
+</html>
