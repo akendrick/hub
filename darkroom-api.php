@@ -9,10 +9,29 @@
  */
 declare(strict_types=1);
 
-// Always return JSON, even on fatal errors
+// ── Output JSON for ALL errors including fatal/shutdown ───────
+// Use HTTP 200 for application errors so the server never intercepts
+// the response body (some hosts swallow 4xx/5xx bodies entirely).
+ob_start();
+
+register_shutdown_function(function(): void {
+    $err = error_get_last();
+    if ($err && in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) {
+        ob_end_clean();
+        if (!headers_sent()) {
+            http_response_code(200);
+            header('Content-Type: application/json; charset=utf-8');
+        }
+        echo json_encode(['ok' => false, 'error' => 'PHP fatal: '.$err['message'].' in '.$err['file'].' line '.$err['line']]);
+    } else {
+        ob_end_flush();
+    }
+});
+
 set_exception_handler(function(Throwable $e): void {
+    ob_end_clean();
     if (!headers_sent()) {
-        http_response_code(500);
+        http_response_code(200);
         header('Content-Type: application/json; charset=utf-8');
     }
     echo json_encode(['ok' => false, 'error' => get_class($e).': '.$e->getMessage()]);
@@ -23,9 +42,9 @@ require __DIR__ . '/auth.php';
 auth_require_api();
 
 if (!file_exists(__DIR__ . '/db.php')) {
-    http_response_code(500);
+    http_response_code(200);
     header('Content-Type: application/json; charset=utf-8');
-    echo json_encode(['ok' => false, 'error' => 'db.php missing — upload it to the server']);
+    echo json_encode(['ok' => false, 'error' => 'db.php not found on server — upload it']);
     exit;
 }
 require __DIR__ . '/db.php';
@@ -41,12 +60,14 @@ if (in_array($method, ['POST','PUT','PATCH'], true))
     $body = (array)(json_decode((string)file_get_contents('php://input'), true) ?? []);
 
 // ── Helpers ───────────────────────────────────────────────────
-function ok(mixed $d): never  { echo json_encode(['ok'=>true,'data'=>$d],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES); exit; }
-function err(string $m,int $c=400): never { http_response_code($c); echo json_encode(['ok'=>false,'error'=>$m]); exit; }
-function nf(?mixed $v): ?float  { return ($v!==null&&$v!=='') ? (float)$v : null; }
-function ni(?mixed $v): ?int    { return ($v!==null&&$v!=='') ? (int)$v  : null; }
-function ns(?mixed $v): ?string { $s=trim((string)($v??'')); return $s!=='' ? $s : null; }
-function nb(mixed  $v): int     { return (int)(bool)$v; }
+// All errors return HTTP 200 with ok:false so the server never
+// intercepts and swallows the response body.
+function ok(mixed $d): void  { echo json_encode(['ok'=>true,'data'=>$d],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES); exit; }
+function err(string $m, int $c=200): void { echo json_encode(['ok'=>false,'error'=>$m]); exit; }
+function nf(mixed $v): ?float  { return ($v!==null&&$v!=='') ? (float)$v : null; }
+function ni(mixed $v): ?int    { return ($v!==null&&$v!=='') ? (int)$v  : null; }
+function ns(mixed $v): ?string { $s=trim((string)($v??'')); return $s!=='' ? $s : null; }
+function nb(mixed $v): int     { return (int)(bool)$v; }
 
 function patch_row(string $table, int $id, array $body, array $fields): void {
     $sets=[]; $vals=[];
@@ -72,10 +93,10 @@ try {
         'photo'           => r_photo($method,$id,$body),
         default           => err('Unknown resource',404),
     };
-} catch (PDOException $e) { err('Database error: '.$e->getMessage(),500); }
+} catch (PDOException $e) { err('Database error: '.$e->getMessage()); }
 
 // ── Lookup tables ─────────────────────────────────────────────
-function r_lookup(string $m,?int $id,array $body,string $t): never {
+function r_lookup(string $m,?int $id,array $body,string $t): void {
     if (!in_array($t,['chemistry_types','negative_types'],true)) err('Forbidden',403);
     $pdo=db();
     if ($m==='GET')         { ok($pdo->query("SELECT * FROM `$t` ORDER BY name")->fetchAll()); }
@@ -86,7 +107,7 @@ function r_lookup(string $m,?int $id,array $body,string $t): never {
 }
 
 // ── Chemistry ─────────────────────────────────────────────────
-function r_chemistry(string $m,?int $id,array $body): never {
+function r_chemistry(string $m,?int $id,array $body): void {
     $pdo=db();
     if ($m==='GET') {
         if ($id) {
@@ -121,7 +142,7 @@ function r_chemistry(string $m,?int $id,array $body): never {
 }
 
 // ── Paper ─────────────────────────────────────────────────────
-function r_paper(string $m,?int $id,array $body): never {
+function r_paper(string $m,?int $id,array $body): void {
     $pdo=db();
     $sel="SELECT p.*,CONCAT_WS(' ',ct.name,c.date_created) AS treatment_label FROM paper p LEFT JOIN chemistry c ON c.id=p.treatment_chemistry_id LEFT JOIN chemistry_types ct ON ct.id=c.type_id";
     if ($m==='GET') {
@@ -139,7 +160,7 @@ function r_paper(string $m,?int $id,array $body): never {
 }
 
 // ── Support Paper ─────────────────────────────────────────────
-function r_support_paper(string $m,?int $id,array $body): never {
+function r_support_paper(string $m,?int $id,array $body): void {
     $pdo=db();
     $sel="SELECT sp.*,p.manufacturer,p.label,p.weight,p.hot_press,CONCAT_WS(' ',p.manufacturer,p.label) AS paper_label FROM support_paper sp JOIN paper p ON p.id=sp.paper_id";
     if ($m==='GET') {
@@ -158,7 +179,7 @@ function r_support_paper(string $m,?int $id,array $body): never {
 }
 
 // ── Carbon Tissue ─────────────────────────────────────────────
-function r_carbon_tissue(string $m,?int $id,array $body): never {
+function r_carbon_tissue(string $m,?int $id,array $body): void {
     $pdo=db();
     $sel="SELECT ct.*,cty.name AS chem_type FROM carbon_tissue ct LEFT JOIN chemistry c ON c.id=ct.chemistry_id LEFT JOIN chemistry_types cty ON cty.id=c.type_id";
     if ($m==='GET') {
@@ -177,7 +198,7 @@ function r_carbon_tissue(string $m,?int $id,array $body): never {
 }
 
 // ── Negative ──────────────────────────────────────────────────
-function r_negative(string $m,?int $id,array $body): never {
+function r_negative(string $m,?int $id,array $body): void {
     $pdo=db();
     $sel="SELECT n.*,nt.name AS type_name FROM negative n LEFT JOIN negative_types nt ON nt.id=n.type_id";
     if ($m==='GET') {
@@ -196,7 +217,7 @@ function r_negative(string $m,?int $id,array $body): never {
 }
 
 // ── Exposure ──────────────────────────────────────────────────
-function r_exposure(string $m,?int $id,array $body): never {
+function r_exposure(string $m,?int $id,array $body): void {
     $pdo=db();
     $sel="SELECT e.*,nt.name AS neg_type,n.date_created AS neg_date FROM exposure e LEFT JOIN negative n ON n.id=e.negative_id LEFT JOIN negative_types nt ON nt.id=n.type_id";
 
@@ -233,7 +254,7 @@ function _save_times(PDO $pdo,int $eid,array $times): void {
 }
 
 // ── Photo ─────────────────────────────────────────────────────
-function r_photo(string $m,?int $id,array $body): never {
+function r_photo(string $m,?int $id,array $body): void {
     $pdo=db();
     $sel="SELECT ph.*,gct.name AS gelatin_type,CONCAT_WS(' ',p.manufacturer,p.label) AS paper_label,e.date_exposed AS exposure_date FROM photo ph LEFT JOIN chemistry gc ON gc.id=ph.gelatin_chemistry_id LEFT JOIN chemistry_types gct ON gct.id=gc.type_id LEFT JOIN paper p ON p.id=ph.paper_id LEFT JOIN exposure e ON e.id=ph.exposure_id";
 

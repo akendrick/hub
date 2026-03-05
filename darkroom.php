@@ -86,7 +86,8 @@ textarea{resize:vertical;min-height:58px}
 .opt-input{flex:1;font-size:12px;padding:5px 8px}
 .opts-add{display:flex;gap:8px}
 .opts-add input{flex:1}
-.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.2);border-top-color:#e8e050;border-radius:50%;animation:spin .7s linear infinite}
+.global-error{background:rgba(200,50,50,.9);color:#fff;padding:12px 20px;border-radius:5px;margin-bottom:18px;font-size:12px;line-height:1.5;display:none}
+.global-error strong{display:block;font-size:13px;margin-bottom:4px}
 @keyframes spin{to{transform:rotate(360deg)}}
 @media(max-width:680px){.tab-btn{font-size:11px;padding:7px 10px}.form-grid{grid-template-columns:1fr}.opts-grid{grid-template-columns:1fr}}
 </style>
@@ -96,6 +97,11 @@ textarea{resize:vertical;min-height:58px}
 <div class="page-hdr">
   <a href="index.html">&#8592; KNOTWORK</a>
   <h1 class="page-title">DARKROOM</h1>
+</div>
+
+<div id="global-error" class="global-error">
+  <strong>&#9888; API Error</strong>
+  <span id="global-error-msg"></span>
 </div>
 
 <div class="tabs" id="tab-bar">
@@ -375,6 +381,13 @@ const TODAY = new Date().toISOString().split('T')[0];
 const S = { chemistryTypes:[], negativeTypes:[], chemistry:[], paper:[], support_paper:[], carbon_tissue:[], negative:[], exposure:[], photo:[] };
 const editId = { chemistry:null, paper:null, support_paper:null, carbon_tissue:null, negative:null, exposure:null, photo:null };
 
+function showGlobalError(msg) {
+  const el = document.getElementById('global-error');
+  const msgEl = document.getElementById('global-error-msg');
+  if (el && msgEl) { msgEl.textContent = msg; el.style.display = 'block'; }
+  console.error('Darkroom API error:', msg);
+}
+
 // ── API ──────────────────────────────────────────────────────────────────────
 async function api(res, {method='GET',id=null,body=null}={}) {
   let url = 'darkroom-api.php?res='+res;
@@ -382,7 +395,10 @@ async function api(res, {method='GET',id=null,body=null}={}) {
   const init = {method, headers:{'Content-Type':'application/json'}};
   if (body) init.body = JSON.stringify(body);
   const r = await fetch(url, init);
-  const j = await r.json();
+  let j;
+  try { j = await r.json(); } catch(e) {
+    throw new Error(`Server error ${r.status} — response was not JSON. Check server logs or that db.php is uploaded with the correct password.`);
+  }
   if (!j.ok) throw new Error(j.error||'API error');
   return j.data;
 }
@@ -417,7 +433,7 @@ async function init() {
     [S.chemistryTypes,S.negativeTypes] = await Promise.all([api('chemistry_types'),api('negative_types')]);
     populateSelect('c-type_id',S.chemistryTypes,'id','name');
     populateSelect('n-type_id',S.negativeTypes,'id','name');
-  } catch(ex){ console.error('Lookup load',ex); }
+  } catch(ex){ showGlobalError(ex.message); return; }
   await loadTab('chemistry');
 }
 
@@ -486,7 +502,7 @@ async function loadTab(name) {
         [S.chemistryTypes,S.negativeTypes] = await Promise.all([api('chemistry_types'),api('negative_types')]);
         renderOptions(); break;
     }
-  } catch(ex){ console.error('loadTab',name,ex); }
+  } catch(ex){ showGlobalError(ex.message); }
 }
 
 // ── Form open / close ─────────────────────────────────────────────────────────
