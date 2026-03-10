@@ -98,13 +98,13 @@ function r_chemistry(string $m,?int $id,array $b): void {
 // ── Paper ──────────────────────────────────────────────────────
 function r_paper(string $m,?int $id,array $b): void {
     $pdo=db();
-    $q="SELECT p.*,CONCAT_WS(' ',ct.name,c.date_created) AS treatment_label FROM paper p LEFT JOIN chemistry c ON c.id=p.treatment_chemistry_id LEFT JOIN chemistry_types ct ON ct.id=c.type_id";
+    $q="SELECT p.* FROM paper p";
     if($m==='GET'){
         if($id){$st=$pdo->prepare($q." WHERE p.id=?");$st->execute([$id]);ok($st->fetch()?:err('Not found'));}
         ok($pdo->query($q." ORDER BY p.id DESC")->fetchAll());
     }
-    if($m==='POST'){$pdo->prepare("INSERT INTO paper(manufacturer,label,weight,hot_press,treatment_chemistry_id,notes)VALUES(?,?,?,?,?,?)")->execute([ns($b['manufacturer']??null),ns($b['label']??null),nf($b['weight']??null),nb($b['hot_press']??false),ni($b['treatment_chemistry_id']??null),ns($b['notes']??null)]);ok(['id'=>(int)$pdo->lastInsertId()]);}
-    if($m==='PATCH'&&$id){prow('paper',$id,$b,['manufacturer'=>'s','label'=>'s','weight'=>'f','hot_press'=>'b','treatment_chemistry_id'=>'i','notes'=>'s']);ok(['updated'=>$id]);}
+    if($m==='POST'){$pdo->prepare("INSERT INTO paper(manufacturer,label,weight,hot_press,notes)VALUES(?,?,?,?,?)")->execute([ns($b['manufacturer']??null),ns($b['label']??null),nf($b['weight']??null),nb($b['hot_press']??false),ns($b['notes']??null)]);ok(['id'=>(int)$pdo->lastInsertId()]);}
+    if($m==='PATCH'&&$id){prow('paper',$id,$b,['manufacturer'=>'s','label'=>'s','weight'=>'f','hot_press'=>'b','notes'=>'s']);ok(['updated'=>$id]);}
     if($m==='DELETE'&&$id){$pdo->prepare("DELETE FROM paper WHERE id=?")->execute([$id]);ok(['deleted'=>$id]);}
     err('Method not allowed');
 }
@@ -112,13 +112,13 @@ function r_paper(string $m,?int $id,array $b): void {
 // ── Support Paper ──────────────────────────────────────────────
 function r_sp(string $m,?int $id,array $b): void {
     $pdo=db();
-    $q="SELECT sp.*,p.manufacturer,p.label,p.weight,p.hot_press,CONCAT_WS(' ',p.manufacturer,p.label) AS paper_label FROM support_paper sp JOIN paper p ON p.id=sp.paper_id";
+    $q="SELECT sp.*,p.manufacturer,p.label,p.weight,p.hot_press,CONCAT_WS(' ',p.manufacturer,p.label) AS paper_label,CONCAT_WS(' ',ct.name,c.date_created) AS treatment_label FROM support_paper sp JOIN paper p ON p.id=sp.paper_id LEFT JOIN chemistry c ON c.id=sp.treatment_chemistry_id LEFT JOIN chemistry_types ct ON ct.id=c.type_id";
     if($m==='GET'){
         if($id){$st=$pdo->prepare($q." WHERE sp.id=?");$st->execute([$id]);ok($st->fetch()?:err('Not found'));}
         ok($pdo->query($q." ORDER BY sp.mark ASC,sp.id DESC")->fetchAll());
     }
-    if($m==='POST'){if(empty($b['paper_id']))err('paper_id required');$pdo->prepare("INSERT INTO support_paper(paper_id,mark,notes)VALUES(?,?,?)")->execute([ni($b['paper_id']),ns($b['mark']??null)??'',ns($b['notes']??null)]);ok(['id'=>(int)$pdo->lastInsertId()]);}
-    if($m==='PATCH'&&$id){prow('support_paper',$id,$b,['paper_id'=>'i','mark'=>'s','notes'=>'s']);ok(['updated'=>$id]);}
+    if($m==='POST'){if(empty($b['paper_id']))err('paper_id required');$pdo->prepare("INSERT INTO support_paper(paper_id,mark,treatment_chemistry_id,notes)VALUES(?,?,?,?)")->execute([ni($b['paper_id']),ns($b['mark']??null)??'',ni($b['treatment_chemistry_id']??null),ns($b['notes']??null)]);ok(['id'=>(int)$pdo->lastInsertId()]);}
+    if($m==='PATCH'&&$id){prow('support_paper',$id,$b,['paper_id'=>'i','mark'=>'s','treatment_chemistry_id'=>'i','notes'=>'s']);ok(['updated'=>$id]);}
     if($m==='DELETE'&&$id){$pdo->prepare("DELETE FROM support_paper WHERE id=?")->execute([$id]);ok(['deleted'=>$id]);}
     err('Method not allowed');
 }

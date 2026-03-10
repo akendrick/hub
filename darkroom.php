@@ -178,7 +178,6 @@ textarea{resize:vertical;min-height:58px}
 
 <div class="tabs">
   <button class="tab-btn active" onclick="switchTab('photo')">Photos</button>
-  <button class="tab-btn" onclick="switchTab('support_paper')">Support Paper</button>
   <button class="tab-btn" onclick="switchTab('carbon_tissue')">Carbon Tissue</button>
   <button class="tab-btn" onclick="switchTab('negative')">Negatives</button>
   <button class="tab-btn" onclick="switchTab('options')">&#9881; Options</button>
@@ -283,35 +282,6 @@ textarea{resize:vertical;min-height:58px}
   <div class="photo-grid" id="photo-grid"><div class="empty-state" style="grid-column:1/-1">Loading…</div></div>
 </div>
 
-<!-- SUPPORT PAPER -->
-<div id="tab-support_paper" class="tab-pane" style="display:none">
-  <div class="toolbar">
-    <span class="section-label">Prepared support sheets with field marks</span>
-    <button class="btn btn-accent" onclick="openForm('support_paper')">+ New Support Paper</button>
-  </div>
-  <div class="form-panel" id="form-support_paper">
-    <div class="panel-header"><div class="panel-title" id="form-support_paper-title">New Support Paper</div></div>
-    <div class="fsec fsec-photo">
-      <div class="form-grid">
-        <div class="form-group"><label class="fld">Base Paper *</label><select id="sp-paper_id"><option value="">-- select paper --</option></select></div>
-        <div class="form-group"><label class="fld">ID / Mark</label><input type="text" id="sp-mark" placeholder="e.g. A1, B3" maxlength="20" style="text-transform:uppercase"></div>
-        <div class="form-group wide"><label class="fld">Notes</label><textarea id="sp-notes" rows="2" placeholder="Sizing, preparation notes…"></textarea></div>
-      </div>
-    </div>
-    <div class="form-footer">
-      <button class="btn btn-accent" id="sp-save-btn" onclick="submitSupportPaper()">Save</button>
-      <button class="btn btn-ghost" onclick="closeForm('support_paper')">Cancel</button>
-      <span class="form-msg" id="sp-msg"></span>
-    </div>
-  </div>
-  <div class="card">
-    <table class="data-table" id="tbl-support_paper">
-      <thead><tr><th>#</th><th>Mark</th><th>Base Paper</th><th>Weight</th><th>HP</th><th>Notes</th><th></th></tr></thead>
-      <tbody><tr><td colspan="7" class="empty-state">Loading…</td></tr></tbody>
-    </table>
-  </div>
-</div>
-
 <!-- CARBON TISSUE -->
 <div id="tab-carbon_tissue" class="tab-pane" style="display:none">
   <div class="toolbar">
@@ -378,6 +348,66 @@ textarea{resize:vertical;min-height:58px}
 <div id="tab-options" class="tab-pane" style="display:none">
   <div class="toolbar"><span class="section-label">Manage dropdown options &amp; recent records</span></div>
   <div class="opts-grid">
+
+    <!-- Chemistry -->
+    <div class="opts-sec" style="grid-column:1/-1">
+      <h3>Chemistry</h3>
+      <div class="form-panel" id="form-chemistry" style="margin-bottom:14px">
+        <div class="panel-header"><div class="panel-title" id="form-chemistry-title">New Chemistry</div></div>
+        <div class="fsec fsec-photo">
+          <div class="form-grid">
+            <div class="form-group"><label class="fld">Date Created *</label><input type="date" id="chem-date_created"></div>
+            <div class="form-group"><label class="fld">Type</label><select id="chem-type_id"><option value="">-- select --</option></select></div>
+            <div class="form-group"><label class="fld">% Solution</label><input type="number" id="chem-percent_solution" step="0.1" min="0" max="100" placeholder="e.g. 10.0"></div>
+            <div class="form-group"><label class="fld">Created From (Chemistry #)</label><input type="number" id="chem-created_from_id" min="1" placeholder="Parent ID (optional)"></div>
+            <div class="form-group wide"><label class="fld">Notes</label><textarea id="chem-notes" rows="2" placeholder="Batch notes…"></textarea></div>
+          </div>
+        </div>
+        <div class="form-footer">
+          <button class="btn btn-accent" id="chem-save-btn" onclick="submitChemistry()">Save</button>
+          <button class="btn btn-ghost" onclick="closeForm('chemistry')">Cancel</button>
+          <span class="form-msg" id="chem-msg"></span>
+        </div>
+      </div>
+      <div class="toolbar" style="margin-bottom:8px">
+        <span></span>
+        <button class="btn btn-accent btn-small" onclick="openForm('chemistry')">+ New Chemistry</button>
+      </div>
+      <table class="data-table" id="tbl-chemistry">
+        <thead><tr><th>#</th><th>Date</th><th>Type</th><th>%</th><th>From</th><th>Notes</th><th></th></tr></thead>
+        <tbody><tr><td colspan="7" class="empty-state">Loading…</td></tr></tbody>
+      </table>
+      <button class="opts-more" id="opts-chemistry-more" onclick="loadMoreChemistry()" style="display:none">Load more ↓</button>
+    </div>
+
+    <!-- Support Paper -->
+    <div class="opts-sec" style="grid-column:1/-1">
+      <h3>Support Paper</h3>
+      <div class="form-panel" id="form-support_paper" style="margin-bottom:14px">
+        <div class="panel-header"><div class="panel-title" id="form-support_paper-title">New Support Paper</div></div>
+        <div class="fsec fsec-photo">
+          <div class="form-grid">
+            <div class="form-group"><label class="fld">Base Paper *</label><select id="sp-paper_id"><option value="">-- select paper --</option></select></div>
+            <div class="form-group"><label class="fld">ID / Mark</label><input type="text" id="sp-mark" placeholder="e.g. A1, B3" maxlength="20" style="text-transform:uppercase"></div>
+            <div class="form-group wide"><label class="fld">Notes</label><textarea id="sp-notes" rows="2" placeholder="Sizing, preparation notes…"></textarea></div>
+          </div>
+        </div>
+        <div class="form-footer">
+          <button class="btn btn-accent" id="sp-save-btn" onclick="submitSupportPaper()">Save</button>
+          <button class="btn btn-ghost" onclick="closeForm('support_paper')">Cancel</button>
+          <span class="form-msg" id="sp-msg"></span>
+        </div>
+      </div>
+      <div class="toolbar" style="margin-bottom:8px">
+        <span></span>
+        <button class="btn btn-accent btn-small" onclick="openForm('support_paper')">+ New Support Paper</button>
+      </div>
+      <table class="data-table" id="tbl-support_paper">
+        <thead><tr><th>#</th><th>Mark</th><th>Base Paper</th><th>Weight</th><th>HP</th><th>Notes</th><th></th></tr></thead>
+        <tbody><tr><td colspan="7" class="empty-state">Loading…</td></tr></tbody>
+      </table>
+    </div>
+
     <!-- Chemistry Types -->
     <div class="opts-sec">
       <h3>Chemistry Types</h3>
@@ -386,12 +416,8 @@ textarea{resize:vertical;min-height:58px}
         <input type="text" id="new-chemistry-type" placeholder="New type…" onkeydown="if(event.key==='Enter')addOption('chemistry_types')">
         <button class="btn btn-accent btn-small" onclick="addOption('chemistry_types')">Add</button>
       </div>
-      <div class="opts-recents">
-        <div class="opts-recents-hdr">Recent Chemistry</div>
-        <div id="opts-chemistry-list"></div>
-        <button class="opts-more" id="opts-chemistry-more" onclick="loadMoreChemistry()" style="display:none">Load more ↓</button>
-      </div>
     </div>
+
     <!-- Negative Types -->
     <div class="opts-sec">
       <h3>Negative Types</h3>
@@ -400,12 +426,15 @@ textarea{resize:vertical;min-height:58px}
         <input type="text" id="new-negative-type" placeholder="New type…" onkeydown="if(event.key==='Enter')addOption('negative_types')">
         <button class="btn btn-accent btn-small" onclick="addOption('negative_types')">Add</button>
       </div>
-      <div class="opts-recents">
-        <div class="opts-recents-hdr">Recent Paper</div>
-        <div id="opts-paper-list"></div>
-        <button class="opts-more" id="opts-paper-more" onclick="loadMorePaper()" style="display:none">Load more ↓</button>
-      </div>
     </div>
+
+    <!-- Recent Paper -->
+    <div class="opts-sec">
+      <h3>Paper</h3>
+      <div id="opts-paper-list"></div>
+      <button class="opts-more" id="opts-paper-more" onclick="loadMorePaper()" style="display:none">Load more ↓</button>
+    </div>
+
   </div>
 </div>
 
@@ -431,9 +460,9 @@ const TODAY = new Date().toISOString().split('T')[0];
 const S = {
   chemistryTypes:[], negativeTypes:[], chemistry:[], paper:[],
   support_paper:[], carbon_tissue:[], negative:[], photo:[],
-  chemistryPage:0, paperPage:0
+  chemistryPage:0, paperPage:0, chemistryShowAll:false, paperShowAll:false
 };
-const editId = { support_paper:null, carbon_tissue:null, negative:null, photo:null };
+const editId = { support_paper:null, carbon_tissue:null, negative:null, photo:null, chemistry:null };
 let layerCount = 0;
 
 // ── API ──────────────────────────────────────────────────────
@@ -464,11 +493,10 @@ function switchTab(t){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+t).style.display='';
   event.currentTarget.classList.add('active');
-  if(t==='photo')       loadPhotos();
-  if(t==='support_paper') loadSupportPaper();
-  if(t==='carbon_tissue') loadCarbonTissue();
-  if(t==='negative')    loadNegatives();
-  if(t==='options')     renderOptions();
+  if(t==='photo')          loadPhotos();
+  if(t==='carbon_tissue')  loadCarbonTissue();
+  if(t==='negative')       loadNegatives();
+  if(t==='options')        loadOptions();
 }
 
 // ── Init ──────────────────────────────────────────────────────
@@ -481,6 +509,17 @@ async function init(){
       ]);
     populateAllDropdowns();
     renderPhotos();
+  }catch(ex){showGlobalError(ex.message);}
+}
+
+async function loadOptions(){
+  try{
+    [S.chemistry, S.support_paper, S.paper] = await Promise.all([
+      api('chemistry'), api('support_paper'), api('paper')
+    ]);
+    populateSel('sp-paper_id', S.paper, p=>`${esc(p.manufacturer||'')} ${esc(p.label||'')}`.trim()||`#${p.id}`);
+    populateSel('chem-type_id', S.chemistryTypes, t=>esc(t.name), true);
+    renderOptions();
   }catch(ex){showGlobalError(ex.message);}
 }
 
@@ -767,7 +806,7 @@ async function deletePhoto(id){
 
 // ── Support Paper ────────────────────────────────────────────
 function openForm(tab,data=null){
-  document.getElementById('form-'+tab).classList.add('open','');
+  document.getElementById('form-'+tab).classList.add('open');
   if(data) document.getElementById('form-'+tab).classList.add('editing');
   else document.getElementById('form-'+tab).classList.remove('editing');
 }
@@ -850,9 +889,10 @@ function renderNegative(){
 // ── Options Tab ───────────────────────────────────────────────
 const OPTS_PAGE = 10;
 function renderOptions(){
-  renderOptList('chemistry_types',S.chemistryTypes);
-  renderOptList('negative_types',S.negativeTypes);
-  renderOptsRecent('opts-chemistry-list','opts-chemistry-more',S.chemistry,c=>`#${c.id} ${c.type_name||''} ${c.date_created}${c.percent_solution?' '+c.percent_solution+'%':''}`);
+  renderOptList('chemistry_types', S.chemistryTypes);
+  renderOptList('negative_types',  S.negativeTypes);
+  renderChemistry();
+  renderSupportPaper();
   renderOptsRecent('opts-paper-list','opts-paper-more',S.paper,p=>`#${p.id} ${p.manufacturer||''} ${p.label||''} ${p.weight?p.weight+'gsm':''}`);
 }
 function renderOptList(t,arr){
@@ -866,16 +906,55 @@ function renderOptsRecent(listId,moreId,arr,labelFn){
   const btn=document.getElementById(moreId);
   if(btn) btn.style.display=arr.length>OPTS_PAGE?'':'none';
 }
-function loadMoreChemistry(){
-  const el=document.getElementById('opts-chemistry-list');
-  el.innerHTML=S.chemistry.map(c=>`<div class="opts-item">#${c.id} ${esc(c.type_name||'')} ${c.date_created}${c.percent_solution?' '+c.percent_solution+'%':''}</div>`).join('');
-  document.getElementById('opts-chemistry-more').style.display='none';
+
+// Chemistry table render
+function renderChemistry(){
+  const tb=document.querySelector('#tbl-chemistry tbody'); if(!tb) return;
+  const rows = S.chemistryShowAll ? S.chemistry : S.chemistry.slice(0,OPTS_PAGE);
+  if(!rows.length){tb.innerHTML='<tr><td colspan="7" class="empty-state">No chemistry records yet</td></tr>';
+    document.getElementById('opts-chemistry-more').style.display='none'; return;}
+  tb.innerHTML=rows.map(r=>`<tr>
+    <td style="color:rgba(255,255,255,.35)">${r.id}</td>
+    <td>${esc(r.date_created)}</td>
+    <td>${r.type_name?`<span class="badge">${esc(r.type_name)}</span>`:'--'}</td>
+    <td>${r.percent_solution!=null?r.percent_solution+'%':'--'}</td>
+    <td>${r.created_from_ids?`<span class="badge-g">#${esc(r.created_from_ids)}</span>`:'--'}</td>
+    <td style="color:rgba(255,255,255,.5);max-width:220px">${esc(r.notes||'--')}</td>
+    <td>${acts('chemistry',r.id)}</td></tr>`).join('');
+  const moreBtn=document.getElementById('opts-chemistry-more');
+  if(moreBtn) moreBtn.style.display=(!S.chemistryShowAll&&S.chemistry.length>OPTS_PAGE)?'':'none';
 }
+function loadMoreChemistry(){ S.chemistryShowAll=true; renderChemistry(); }
 function loadMorePaper(){
-  const el=document.getElementById('opts-paper-list');
+  const el=document.getElementById('opts-paper-list'); if(!el) return;
   el.innerHTML=S.paper.map(p=>`<div class="opts-item">#${p.id} ${esc(p.manufacturer||'')} ${esc(p.label||'')} ${p.weight?p.weight+'gsm':''}</div>`).join('');
   document.getElementById('opts-paper-more').style.display='none';
 }
+
+// Chemistry form
+async function submitChemistry(){
+  const msg=document.getElementById('chem-msg'); msg.className='form-msg'; msg.textContent='Saving…';
+  const dateVal=document.getElementById('chem-date_created').value;
+  if(!dateVal){msg.className='form-msg err';msg.textContent='Date required';return;}
+  const body={
+    date_created: dateVal,
+    type_id:      parseInt(document.getElementById('chem-type_id').value)||null,
+    percent_solution: parseFloat(document.getElementById('chem-percent_solution').value)||null,
+    created_from_id:  parseInt(document.getElementById('chem-created_from_id').value)||null,
+    notes:        document.getElementById('chem-notes').value||null
+  };
+  try{
+    if(editId.chemistry) await api('chemistry',{method:'PATCH',id:editId.chemistry,body});
+    else await api('chemistry',{method:'POST',body});
+    msg.className='form-msg ok'; msg.textContent='Saved!';
+    closeForm('chemistry');
+    S.chemistry=await api('chemistry');
+    // refresh layer dropdowns in photo form in case chemistry is used elsewhere
+    renderChemistry();
+    populateSel('ct-chemistry_id', S.chemistry, c=>`#${c.id} ${esc(c.type_name||'')} ${c.date_created}`, true);
+  }catch(ex){msg.className='form-msg err';msg.textContent=ex.message;}
+}
+
 async function addOption(t){
   const inp=document.getElementById(t==='chemistry_types'?'new-chemistry-type':'new-negative-type');
   const name=inp.value.trim(); if(!name) return;
@@ -902,6 +981,13 @@ async function editRecord(tab,id){
   editId[tab]=id;
   if(tab==='photo'){openPhotoForm({...data,editing:true});return;}
   const map={
+    chemistry:()=>{
+      document.getElementById('chem-date_created').value=data.date_created||'';
+      document.getElementById('chem-type_id').value=data.type_id||'';
+      document.getElementById('chem-percent_solution').value=data.percent_solution||'';
+      document.getElementById('chem-created_from_id').value=data.created_from_ids||'';
+      document.getElementById('chem-notes').value=data.notes||'';
+    },
     support_paper:()=>{
       document.getElementById('sp-paper_id').value=data.paper_id||'';
       document.getElementById('sp-mark').value=data.mark||'';
@@ -931,6 +1017,7 @@ async function deleteRecord(tab,id,label){
   try{
     await api(tab,{method:'DELETE',id});
     S[tab]=S[tab].filter(r=>r.id!==id);
+    if(tab==='chemistry')     renderChemistry();
     if(tab==='support_paper') renderSupportPaper();
     if(tab==='carbon_tissue') renderCarbonTissue();
     if(tab==='negative')      renderNegative();
