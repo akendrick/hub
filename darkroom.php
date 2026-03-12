@@ -147,7 +147,7 @@ textarea{resize:vertical;min-height:58px}
 .detail-v{font-size:12px;color:rgba(255,255,255,.8)}
 .detail-actions{padding:6px 12px 12px;display:flex;gap:8px}
 /* Options tab */
-.opts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
+.opts-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
 .opts-sec{background:#252b1c;border-radius:6px;border:1px solid rgba(255,255,255,.08);padding:18px}
 .opts-sec h3{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.14em;color:#e8e050;margin-bottom:14px}
 .opts-list{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
@@ -182,7 +182,7 @@ textarea{resize:vertical;min-height:58px}
   <a href="index.html">&#8592; KNOTWORK</a>
   <h1 class="page-title">DARKROOM</h1>
 </div>
-<div id="global-error" class="global-error"><strong>&#9888; API Error</strong><span id="global-error-msg"></span></div>
+<div id="global-error" class="global-error"><strong>&#9888; API Error</strong><span id="global-error-msg"></span><button onclick="this.parentElement.style.display='none'" style="margin-left:12px;background:none;border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:11px">dismiss</button></div>
 
 <div class="tabs">
   <button class="tab-btn active" onclick="switchTab('photo')">Photos</button>
@@ -457,7 +457,7 @@ textarea{resize:vertical;min-height:58px}
   <div class="toolbar"><span class="section-label">Manage dropdown options &amp; records</span></div>
   <div class="opts-grid">
 
-    <!-- ── Paper ─────────────────────────────────────── -->
+    <!-- ── Paper (full width) ────────────────────────── -->
     <div class="opts-sec" style="grid-column:1/-1">
       <div class="toolbar" style="margin-bottom:14px">
         <h3 style="margin:0">Paper</h3>
@@ -489,20 +489,7 @@ textarea{resize:vertical;min-height:58px}
       <button class="opts-more" id="opts-paper-more" onclick="loadMorePaper()" style="display:none">Load more ↓</button>
     </div>
 
-    <!-- ── Chemistry Types ───────────────────────────── -->
-    <div class="opts-sec">
-      <div class="toolbar" style="margin-bottom:14px">
-        <h3 style="margin:0">Chemistry Types</h3>
-        <button class="btn btn-accent btn-small" onclick="focusNewOptInput('chemistry_types')" title="Add chemistry type" style="font-size:16px;padding:4px 10px">＋</button>
-      </div>
-      <div class="opts-list" id="opt-chemistry_types"></div>
-      <div class="opts-add" style="margin-top:10px">
-        <input type="text" id="new-chemistry-type" placeholder="New type name…" onkeydown="if(event.key==='Enter')addOption('chemistry_types')">
-        <button class="btn btn-accent btn-small" onclick="addOption('chemistry_types')">Add</button>
-      </div>
-    </div>
-
-    <!-- ── Negative Types ───────────────────────────── -->
+    <!-- ── Negative Types (top-left) ─────────────────── -->
     <div class="opts-sec">
       <div class="toolbar" style="margin-bottom:14px">
         <h3 style="margin:0">Negative Types</h3>
@@ -515,7 +502,40 @@ textarea{resize:vertical;min-height:58px}
       </div>
     </div>
 
-    <!-- ── Finishing Types ──────────────────────────── -->
+    <!-- ── Chemistry Types (top-right) ──────────────── -->
+    <div class="opts-sec">
+      <div class="toolbar" style="margin-bottom:14px">
+        <h3 style="margin:0">Chemistry Types</h3>
+        <button class="btn btn-accent btn-small" onclick="focusNewOptInput('chemistry_types')" title="Add chemistry type" style="font-size:16px;padding:4px 10px">＋</button>
+      </div>
+      <div class="opts-list" id="opt-chemistry_types"></div>
+      <div class="opts-add" style="margin-top:10px">
+        <input type="text" id="new-chemistry-type" placeholder="New type name…" onkeydown="if(event.key==='Enter')addOption('chemistry_types')">
+        <button class="btn btn-accent btn-small" onclick="addOption('chemistry_types')">Add</button>
+      </div>
+    </div>
+
+    <!-- ── Process Types (bottom-left) ──────────────── -->
+    <div class="opts-sec">
+      <div class="toolbar" style="margin-bottom:14px">
+        <h3 style="margin:0">Process Types</h3>
+        <button class="btn btn-accent btn-small" onclick="focusNewOptInput('photo_types')" title="Add process type" style="font-size:16px;padding:4px 10px">＋</button>
+      </div>
+      <div class="opts-list" id="opt-photo_types"></div>
+      <div class="opts-add" style="margin-top:10px;display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center">
+        <input type="text" id="new-photo-type" placeholder="New process name…" onkeydown="if(event.key==='Enter')addOption('photo_types')">
+        <select id="new-pt-dev_mode" style="background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.15);border-radius:3px;color:#fff;font-family:'DM Mono',monospace;font-size:11px;padding:4px 6px">
+          <option value="simple">Simple</option>
+          <option value="carbon">Carbon</option>
+        </select>
+        <div class="checkbox-row" style="padding:0;white-space:nowrap">
+          <input type="checkbox" id="new-pt-has_layers"><label for="new-pt-has_layers" style="font-size:11px">Layers</label>
+        </div>
+        <button class="btn btn-accent btn-small" onclick="addOption('photo_types')">Add</button>
+      </div>
+    </div>
+
+    <!-- ── Finishing Types (bottom-right) ───────────── -->
     <div class="opts-sec">
       <div class="toolbar" style="margin-bottom:14px">
         <h3 style="margin:0">Finishing Types</h3>
@@ -525,26 +545,6 @@ textarea{resize:vertical;min-height:58px}
       <div class="opts-add" style="margin-top:10px">
         <input type="text" id="new-finishing-type" placeholder="New type name…" onkeydown="if(event.key==='Enter')addOption('finishing_types')">
         <button class="btn btn-accent btn-small" onclick="addOption('finishing_types')">Add</button>
-      </div>
-    </div>
-
-    <!-- ── Process Types ────────────────────────────── -->
-    <div class="opts-sec" style="grid-column:1/-1">
-      <div class="toolbar" style="margin-bottom:14px">
-        <h3 style="margin:0">Process Types</h3>
-        <button class="btn btn-accent btn-small" onclick="focusNewOptInput('photo_types')" title="Add process type" style="font-size:16px;padding:4px 10px">＋</button>
-      </div>
-      <div class="opts-list" id="opt-photo_types"></div>
-      <div class="opts-add" style="margin-top:10px;display:grid;grid-template-columns:1fr auto auto auto auto;gap:8px;align-items:center">
-        <input type="text" id="new-photo-type" placeholder="New process name…" onkeydown="if(event.key==='Enter')addOption('photo_types')">
-        <select id="new-pt-dev_mode" style="min-width:110px">
-          <option value="simple">Simple dev</option>
-          <option value="carbon">Carbon dev</option>
-        </select>
-        <div class="checkbox-row" style="padding:0;white-space:nowrap">
-          <input type="checkbox" id="new-pt-has_layers"><label for="new-pt-has_layers" style="font-size:11px">Layers</label>
-        </div>
-        <button class="btn btn-accent btn-small" onclick="addOption('photo_types')">Add</button>
       </div>
     </div>
 
@@ -579,7 +579,12 @@ const editId = { photo_types:null, support_paper:null, carbon_tissue:null, negat
 let layerCount = 0;
 
 // ── API ──────────────────────────────────────────────────────
-function showGlobalError(msg){ const el=document.getElementById('global-error'); document.getElementById('global-error-msg').textContent=msg; el.style.display='block'; }
+function showGlobalError(msg,res=''){
+  const el=document.getElementById('global-error');
+  const label = res ? ` [${res}] ` : ' ';
+  document.getElementById('global-error-msg').textContent = label+msg;
+  el.style.display='block';
+}
 async function api(res,{method='GET',id=null,body=null,timeout=12000}={}){
   let url='darkroom-api.php?res='+res; if(id) url+='&id='+id;
   const ctrl=new AbortController();
@@ -629,26 +634,25 @@ function switchTab(t){
 // ── Init ──────────────────────────────────────────────────────
 async function init(){
   try{
-    // Only load what the Photos tab needs on first render (5 requests)
-    [S.photoTypes,S.chemistryTypes,S.negativeTypes,S.finishingTypes,S.photo]=
+    // Only load what the Photos tab needs on first render
+    [S.photoTypes,S.chemistryTypes,S.negativeTypes,S.photo]=
       await Promise.all([
-        api('photo_types'),api('chemistry_types'),api('negative_types'),api('finishing_types'),api('photo')
+        api('photo_types'),api('chemistry_types'),api('negative_types'),api('photo')
       ]);
     populateSel('ph-photo_type_id', S.photoTypes, pt=>esc(pt.name), false);
     populateSel('n-type_id', S.negativeTypes, t=>esc(t.name), true);
     renderPhotos();
-    // Defer secondary data — loaded lazily when their tabs open or photo form opens
-    api('chemistry').then(d=>{ S.chemistry=d; populateChemSelects(); });
-    api('paper').then(d=>{ S.paper=d; });
-    api('carbon_tissue').then(d=>{ S.carbon_tissue=d; });
-    api('negative').then(d=>{ S.negative=d; });
+    // Defer secondary data
+    api('chemistry').then(d=>{ S.chemistry=d; populateChemSelects(); }).catch(ex=>showGlobalError(ex.message,'chemistry'));
+    api('paper').then(d=>{ S.paper=d; }).catch(ex=>showGlobalError(ex.message,'paper'));
+    api('carbon_tissue').then(d=>{ S.carbon_tissue=d; }).catch(ex=>showGlobalError(ex.message,'carbon_tissue'));
+    api('negative').then(d=>{ S.negative=d; }).catch(ex=>showGlobalError(ex.message,'negative'));
   }catch(ex){showGlobalError(ex.message);}
 }
 
 async function loadLayers(){
   try{
     [S.carbon_tissue,S.negative] = await Promise.all([api('carbon_tissue'),api('negative')]);
-    // support_paper fetched alone to avoid connection contention
     S.support_paper = await api('support_paper');
     populateSel('sp-paper_id', S.paper, p=>`${esc(p.manufacturer||'')} ${esc(p.label||'')}`.trim()||`#${p.id}`);
     populateSel('sp-treatment_chemistry_id', S.chemistry, c=>esc(chemLabel(c)), true);
@@ -656,7 +660,7 @@ async function loadLayers(){
     renderSupportPaper();
     renderCarbonTissue();
     renderNegative();
-  }catch(ex){showGlobalError(ex.message);}
+  }catch(ex){showGlobalError(ex.message,'layers');}
 }
 
 async function loadChemistryTab(){
@@ -665,22 +669,29 @@ async function loadChemistryTab(){
     populateSel('chem-type_id', S.chemistryTypes, t=>esc(t.name), true);
     populateChemSelects();
     renderChemistry();
-  }catch(ex){showGlobalError(ex.message);}
+  }catch(ex){showGlobalError(ex.message,'chemistry');}
 }
 
 async function loadOptions(){
   try{
-    [S.photoTypes,S.chemistryTypes,S.negativeTypes,S.finishingTypes,S.paper] = await Promise.all([
-      api('photo_types'),api('chemistry_types'),api('negative_types'),api('finishing_types'),api('paper')
-    ]);
+    // Fetch paper and photo_types (not yet loaded); chemistry/negative types already in S from init
+    const [pt, p] = await Promise.all([api('photo_types'), api('paper')]);
+    S.photoTypes = pt; S.paper = p;
+    // Render immediately with what we have — finishing_types may still be loading
     renderOptions();
-  }catch(ex){showGlobalError(ex.message);}
+    // Fetch finishing_types independently so a failure doesn't block the rest
+    if(!S.finishingTypes.length){
+      api('finishing_types')
+        .then(d=>{ S.finishingTypes=d; renderOptList('finishing_types', S.finishingTypes); })
+        .catch(ex=>showGlobalError(ex.message,'finishing_types'));
+    }
+  }catch(ex){showGlobalError(ex.message,'options');}
 }
 
-async function loadPhotos(){ try{S.photo=await api('photo');renderPhotos();}catch(ex){showGlobalError(ex.message);} }
-async function loadSupportPaper(){ try{S.support_paper=await api('support_paper');renderSupportPaper();populateLayerDropdownsAll();}catch(ex){showGlobalError(ex.message);} }
-async function loadCarbonTissue(){ try{S.carbon_tissue=await api('carbon_tissue');renderCarbonTissue();}catch(ex){showGlobalError(ex.message);} }
-async function loadNegatives(){ try{S.negative=await api('negative');renderNegative();}catch(ex){showGlobalError(ex.message);} }
+async function loadPhotos(){ try{S.photo=await api('photo');renderPhotos();}catch(ex){showGlobalError(ex.message,'photo');} }
+async function loadSupportPaper(){ try{S.support_paper=await api('support_paper');renderSupportPaper();populateLayerDropdownsAll();}catch(ex){showGlobalError(ex.message,'support_paper');} }
+async function loadCarbonTissue(){ try{S.carbon_tissue=await api('carbon_tissue');renderCarbonTissue();}catch(ex){showGlobalError(ex.message,'carbon_tissue');} }
+async function loadNegatives(){ try{S.negative=await api('negative');renderNegative();}catch(ex){showGlobalError(ex.message,'negative');} }
 
 // ── Dropdowns ─────────────────────────────────────────────────
 function populateSel(id, arr, labelFn, addNone=false){
