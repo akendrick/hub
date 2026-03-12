@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IKASLO6 · Kaslo BC</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 960px; height: 680px;
+  overflow: hidden;
+  background: #fff; color: #000;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+body { padding: 10px; display: flex; flex-direction: column; gap: 0; }
+
+/* ── HEADER BAR ── */
+.hdr {
+  display: flex; align-items: center; gap: 10px;
+  border-bottom: 2px solid #000;
+  padding-bottom: 5px; margin-bottom: 8px;
+  flex-shrink: 0;
+}
+.hdr-left { font-weight: 700; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; flex-shrink: 0; }
+.hdr-meta {
+  flex: 1; display: flex; align-items: center; gap: 16px;
+  padding: 0 14px;
+  border-left: 1px solid #ddd; border-right: 1px solid #ddd;
+}
+.hdr-meta-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: #888; white-space: nowrap; }
+.hdr-meta-item b { color: #222; font-weight: 600; }
+.dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #000; animation: blink 2s infinite; flex-shrink: 0; }
+.dot.off { background: #bbb; animation: none; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+.hdr-right { font-size: 11px; color: #555; flex-shrink: 0; }
+
+/* ═══════════════════════════════════════════════
+   MAIN BODY — two rows
+   Row A: hero panel (left) + todo (right)   ~230px
+   Row B: 7-col day labels                    ~28px
+   Row C: hi/lo chart                        ~130px
+   Row D: forecast detail strip               ~90px
+   Row E: calendar row                        ~80px
+   gap between each: 0 (borders handle it)
+   total: 10+30+8+230+28+130+90+80+10 = 616 → fits 680
+═══════════════════════════════════════════════ */
+
+/* ── ROW A: HERO + TODO ── */
+.main-panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border: 2px solid #000;
+  border-bottom: 3px solid #000;   /* heavy line above 7-day */
+  height: 232px;
+  flex-shrink: 0;
+}
+
+/* LEFT — current conditions hero */
+.hero-panel {
+  display: flex; flex-direction: column;
+  border-right: 3px solid #000;    /* heavy divider between panels */
+  padding: 10px 12px 8px;
+  overflow: hidden;
+}
+
+/* Top section: big temp left, sidebar right */
+.hero-top {
+  display: flex; align-items: flex-start;
+  gap: 10px; flex: 1;
+}
+.hero-temp-wrap { display: flex; flex-direction: column; align-items: flex-start; }
+.hero-temp {
+  font-size: 108px; font-weight: 800;
+  line-height: 0.88; letter-spacing: -5px; color: #000;
+}
+.hero-temp-unit { font-size: 34px; font-weight: 300; color: #555; vertical-align: super; letter-spacing: 0; }
+
+/* feels / humidity stacked below temp label */
+.hero-sub {
+  display: flex; flex-direction: column; gap: 5px; padding-top: 8px;
+}
+.hero-feels { font-size: 11px; color: #777; }
+.hero-feels b { color: #000; font-weight: 700; font-size: 13px; }
+
+/* RIGHT SIDEBAR inside hero: weather icon + moon + indoor temp */
+.hero-side {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px; margin-left: auto; padding-top: 2px; flex-shrink: 0;
+}
+/* icon row: current wx icon beside moon */
+.hero-side-icons {
+  display: flex; align-items: center; gap: 6px;
+}
+.hero-wx-icon { font-size: 30px; line-height: 1; }
+.moon-wrap { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.moon-wrap canvas { display: block; width: 28px; height: 28px; }
+.moon-lbl { font-size: 7px; color: #aaa; letter-spacing: 0.5px; text-transform: uppercase; text-align: center; }
+
+/* Indoor temp block below icons */
+.hero-indoor {
+  display: flex; flex-direction: column; align-items: center;
+  border-top: 1px solid #eee; padding-top: 5px; width: 100%;
+  margin-top: 2px;
+}
+.hero-indoor-lbl { font-size: 7px; color: #bbb; text-transform: uppercase; letter-spacing: 1px; }
+.hero-indoor-val { font-size: 18px; font-weight: 700; color: #555; line-height: 1.1; }
+.hero-indoor-sub { font-size: 9px; color: #bbb; }
+
+/* ── 4 mini-stats below the outdoor temp ── */
+.hero-stats {
+  display: grid; grid-template-columns: repeat(4,1fr);
+  border-top: 1px solid #eee;
+  margin-top: auto; padding-top: 0;
+}
+.hstat {
+  padding: 5px 6px;
+  border-right: 1px solid #eee;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.hstat:last-child { border-right: none; }
+.hstat-lbl { font-size: 7px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: #bbb; margin-bottom: 1px; }
+.hstat-val { font-size: 15px; font-weight: 700; line-height: 1; white-space: nowrap; }
+.hstat-unit { font-size: 9px; font-weight: 400; color: #888; margin-left: 1px; }
+.hstat-sub { font-size: 9px; color: #888; margin-top: 1px; white-space: nowrap; }
+.hstat-trend { display: inline-block; font-size: 7px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; border: 1px solid #000; padding: 1px 3px; margin-top: 2px; align-self: flex-start; }
+.hstat-precip-row { display: flex; gap: 6px; margin-top: 1px; }
+.hph-lbl { font-size: 7px; color: #bbb; letter-spacing: 0.8px; text-transform: uppercase; }
+.hph-val { font-size: 11px; font-weight: 700; }
+.hph-unit { font-size: 7px; color: #aaa; }
+
+/* RIGHT panel — todo only */
+.right-panel {
+  display: flex; flex-direction: column;
+}
+
+/* TODO placeholder */
+.todo-panel {
+  flex: 1;
+  display: flex; flex-direction: column;
+  padding: 10px 12px;
+  gap: 6px;
+  overflow-y: auto;
+}
+.todo-header {
+  font-size: 9px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: #bbb;
+  border-bottom: 1px solid #f0f0f0; padding-bottom: 5px;
+  margin-bottom: 2px;
+}
+.todo-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 12px; color: #333; line-height: 1.4;
+  padding: 4px 0; border-bottom: 1px solid #f7f7f7;
+}
+.todo-check {
+  width: 14px; height: 14px; border: 1.5px solid #ccc;
+  border-radius: 3px; flex-shrink: 0; margin-top: 1px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.15s;
+}
+.todo-check.done { background: #000; border-color: #000; }
+.todo-check.done::after { content: '✓'; color: #fff; font-size: 9px; font-weight: 700; }
+.todo-text { flex: 1; }
+.todo-text.done { text-decoration: line-through; color: #bbb; }
+.todo-add {
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 4px;
+}
+.todo-add input {
+  flex: 1; border: none; border-bottom: 1px solid #ddd;
+  font-size: 11px; padding: 3px 0; outline: none;
+  font-family: inherit; color: #333;
+  background: transparent;
+}
+.todo-add input::placeholder { color: #ccc; }
+.todo-add button {
+  font-size: 16px; color: #bbb; background: none; border: none;
+  cursor: pointer; padding: 0 2px; line-height: 1;
+}
+.todo-add button:hover { color: #000; }
+
+/* ── ROW B: DAY LABELS (pinned above chart) ── */
+.day-label-strip {
+  display: grid; grid-template-columns: repeat(7,1fr);
+  border-left: 2px solid #000; border-right: 2px solid #000;
+  border-bottom: 1px solid #ddd;
+  flex-shrink: 0;
+}
+.day-label-col {
+  display: flex; flex-direction: row; align-items: center; justify-content: center;
+  padding: 5px 4px;
+  border-right: 1px solid #eee;
+  gap: 5px;
+}
+.day-label-col:last-child { border-right: none; }
+.day-label-col.today { background: #f7f7f7; }
+/* Weekend: white text on black */
+.day-label-col.weekend { background: #000; border-right-color: #222; }
+.day-label-col.weekend .dl-name { color: #fff; }
+.day-label-col.weekend .dl-date { color: #888; }
+/* today + weekend combined */
+.day-label-col.today.weekend { background: #222; }
+.dl-name { font-size: 13px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: #000; }
+.dl-date { font-size: 10px; color: #aaa; font-weight: 400; }
+
+/* ── ROW C: CHART ── */
+.chart-wrap {
+  border-left: 2px solid #000; border-right: 2px solid #000;
+  flex-shrink: 0;
+}
+canvas.main-chart { width: 100% !important; display: block; }
+
+/* ── ROW D: FORECAST DETAIL STRIP (icon + hi/lo + precip) ── */
+.fc-strip {
+  display: grid; grid-template-columns: repeat(7,1fr);
+  border: 2px solid #000; border-top: none;
+  flex-shrink: 0;
+}
+.fc-col {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 5px 3px 6px;
+  border-right: 1px solid #eee; gap: 2px;
+}
+.fc-col:last-child { border-right: none; }
+.fc-col.today { background: #f7f7f7; }
+.fc-col.weekend { background: #000; border-right-color: #222; }
+.fc-col.weekend .fc-hi { color: #fff; }
+.fc-col.weekend .fc-lo { color: #777; }
+.fc-col.weekend .fc-mm-big { color: #ccc; }
+.fc-col.weekend .fc-pop-big { color: #888; }
+.fc-col.today.weekend { background: #222; }
+.fc-mid { display: flex; align-items: center; gap: 5px; }
+.fc-icon { font-size: 30px; line-height: 1; }
+.fc-precip-side { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; }
+.fc-mm-big { font-size: 11px; font-weight: 700; color: #444; white-space: nowrap; }
+.fc-pop-big { font-size: 10px; color: #888; white-space: nowrap; }
+.fc-hilo { display: flex; gap: 5px; align-items: baseline; }
+.fc-hi { font-size: 15px; font-weight: 700; color: #000; }
+.fc-lo { font-size: 12px; font-weight: 400; color: #888; }
+
+/* ── ROW E: CALENDAR ── */
+.cal-strip {
+  display: grid; grid-template-columns: repeat(7,1fr);
+  border-left: 2px solid #000; border-right: 2px solid #000; border-bottom: 2px solid #000;
+  flex: 1; min-height: 0;
+}
+.cal-cell {
+  border-right: 1px solid #eee;
+  padding: 4px 5px;
+  display: flex; flex-direction: column; gap: 3px;
+  overflow: hidden;
+}
+.cal-cell:last-child { border-right: none; }
+.cal-cell.holiday { background: #000; border-right-color: #222; }
+.cal-cell.holiday .cal-holiday-label {
+  font-size: 8px; font-weight: 700; color: #fff;
+  letter-spacing: 0.5px; text-transform: uppercase; opacity: 0.85; line-height: 1.3;
+}
+.cal-cell.holiday .cal-empty  { color: #444; }
+.cal-cell.holiday .cal-event  { background: #1a1a1a; border-left-color: #fff; color: #fff; }
+.cal-cell.holiday .cal-event-time { color: #999; }
+.cal-empty { font-size: 9px; color: #ddd; letter-spacing: 0.5px; text-transform: uppercase; }
+.cal-event {
+  font-size: 9px; font-weight: 500; color: #222;
+  background: #f4f4f4; border-left: 2px solid #000;
+  padding: 2px 4px; border-radius: 1px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3;
+}
+.cal-event-time { font-size: 8px; color: #888; font-weight: 400; display: block; }
+.cal-loading { font-size: 9px; color: #bbb; font-style: italic; }
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<div class="hdr">
+  <div class="hdr-left">IKASLO6 · Kaslo BC</div>
+  <div class="hdr-meta">
+    <div class="hdr-meta-item"><span class="dot" id="liveDot"></span><b id="statusText">—</b></div>
+    <div class="hdr-meta-item" id="fcSource">—</div>
+    <div class="hdr-meta-item">↺ <b><span id="nextRefresh">60</span>s</b></div>
+  </div>
+  <div class="hdr-right" id="obsTime">—</div>
+</div>
+
+<!-- ── ROW A: HERO + RIGHT PANEL ── -->
+<div class="main-panels">
+
+  <!-- LEFT: big temp + 4 stats below -->
+  <div class="hero-panel">
+    <div class="hero-top">
+
+      <!-- Big outdoor temp -->
+      <div class="hero-temp-wrap">
+        <div class="hero-temp"><span id="tempC">—</span><span class="hero-temp-unit">°</span></div>
+      </div>
+
+      <!-- Feels like / humidity / dew + today forecast beside temp -->
+      <div class="hero-sub">
+        <div class="hero-feels">Feels <b id="heatIndex">—</b>°</div>
+        <div class="hero-feels">Hum <b id="humidity">—</b>%</div>
+        <div class="hero-feels">Dew <b id="dewpt">—</b>°</div>
+        <div class="hero-feels" style="margin-top:5px;border-top:1px solid #eee;padding-top:5px">
+          Hi <b id="todayHi">—</b>  Lo <b id="todayLo">—</b>
+        </div>
+        <div class="hero-feels" id="todayPrecip" style="color:#555;font-size:11px"></div>
+        <div class="hero-feels" id="todayDesc" style="font-size:10px;color:#aaa;text-transform:uppercase;letter-spacing:0.4px"></div>
+      </div>
+
+      <!-- Right sidebar: wx icon + moon + indoor -->
+      <div class="hero-side">
+        <div class="hero-side-icons">
+          <div class="hero-wx-icon" id="todayIcon">—</div>
+          <div class="moon-wrap">
+            <canvas id="moonCanvas"></canvas>
+            <div class="moon-lbl" id="moonLbl">—</div>
+          </div>
+        </div>
+        <!-- Indoor temp -->
+        <div class="hero-indoor">
+          <div class="hero-indoor-lbl">Indoor</div>
+          <div class="hero-indoor-val"><span id="indoorTempC">—</span>°</div>
+          <div class="hero-indoor-sub">Hum <span id="indoorHum">—</span>%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 mini-stats: UV · Pressure · Wind · Precip -->
+    <div class="hero-stats">
+      <div class="hstat">
+        <div class="hstat-lbl">UV / Solar</div>
+        <div class="hstat-val"><span id="uv">—</span></div>
+        <div class="hstat-sub"><span id="solar">—</span> W/m²</div>
+      </div>
+      <div class="hstat">
+        <div class="hstat-lbl">Pressure</div>
+        <div class="hstat-val"><span id="pressure">—</span><span class="hstat-unit">hPa</span></div>
+        <div class="hstat-trend" id="trendPill">—</div>
+      </div>
+      <div class="hstat">
+        <div class="hstat-lbl">Wind</div>
+        <div class="hstat-val"><span id="windSpeed">—</span><span class="hstat-unit">km/h</span></div>
+        <div class="hstat-sub"><span id="windDir">—</span> · <span id="windGust">—</span> gust</div>
+      </div>
+      <div class="hstat">
+        <div class="hstat-lbl">Precip</div>
+        <div class="hstat-val"><span id="precipTotal">—</span><span class="hstat-unit">mm</span></div>
+        <div class="hstat-sub">Rate <span id="precipRate">—</span>/hr</div>
+        <div class="hstat-precip-row">
+          <div><div class="hph-lbl">24h</div><span class="hph-val" id="precip24h">—</span><span class="hph-unit">mm</span></div>
+          <div><div class="hph-lbl">7d</div><span class="hph-val" id="precip30d">—</span><span class="hph-unit">mm</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: to-do only (stats moved to left hero panel) -->
+  <div class="right-panel">
+
+    <!-- TO-DO LIST -->
+    <div class="todo-panel" id="todoPanel">
+      <div class="todo-header">To Do</div>
+      <div id="todoList"></div>
+      <div class="todo-add">
+        <input type="text" id="todoInput" placeholder="Add item…" maxlength="80">
+        <button onclick="addTodo()">＋</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── ROW B: DAY LABELS ── -->
+<div class="day-label-strip" id="dayLabelStrip">
+  <div class="day-label-col" style="grid-column:1/8;text-align:center;padding:6px;color:#ccc;font-size:10px">Loading…</div>
+</div>
+
+<!-- ── ROW C: HI/LO CHART ── -->
+<div class="chart-wrap">
+  <canvas id="chart" class="main-chart" height="120"></canvas>
+</div>
+
+<!-- ── ROW D: FORECAST DETAIL STRIP ── -->
+<div class="fc-strip" id="fcStrip">
+  <div style="grid-column:1/8;text-align:center;padding:8px;color:#bbb;font-size:10px">Loading forecast…</div>
+</div>
+
+<!-- ── ROW E: CALENDAR ── -->
+<div class="cal-strip" id="calStrip">
+  <div class="cal-cell" style="grid-column:1/8"><span class="cal-loading">Loading calendar…</span></div>
+</div>
+
+<script>
+const LAT = 49.912;
+const LON = -116.910;
+const WU_API_KEY = "b6a053665de6468ca053665de6068c2e";
+
+const proxy = url => "ical-proxy.php?url=" + encodeURIComponent(url);
+
+function updateCurrent(data) {
+  document.getElementById("temp").textContent =
+    Math.round(data.temperature) + "°C";
+  document.getElementById("wind").textContent =
+    "Wind: " + Math.round(data.windSpeed) + " km/h";
+  document.getElementById("humidity").textContent =
+    "Humidity: " + data.relativeHumidity + "%";
+  document.getElementById("condition").textContent =
+    data.wxPhraseLong || "Conditions unavailable";
+}
+
+function fetchWU() {
+  const url =
+    `https://api.weather.com/v3/wx/conditions/current?` +
+    `apiKey=${WU_API_KEY}&format=json&language=en-CA&` +
+    `geocode=${LAT},${LON}&units=m`;
+
+  fetch(proxy(url))
+    .then(r => r.json())
+    .then(updateCurrent)
+    .catch(fetchOpenMeteo);
+}
+
+function fetchOpenMeteo() {
+  const url =
+    `https://api.open-meteo.com/v1/forecast?` +
+    `latitude=${LAT}&longitude=${LON}&current_weather=true`;
+
+  fetch(proxy(url))
+    .then(r => r.json())
+    .then(data => {
+      updateCurrent({
+        temperature: data.current_weather.temperature,
+        windSpeed: data.current_weather.windspeed,
+        relativeHumidity: "--",
+        wxPhraseLong: "Open-Meteo fallback"
+      });
+    })
+    .catch(() => {
+      document.getElementById("condition").textContent =
+        "Weather unavailable";
+    });
+}
+
+function fetchForecast() {
+  const url =
+    `https://api.open-meteo.com/v1/forecast?` +
+    `latitude=${LAT}&longitude=${LON}&daily=temperature_2m_max,temperature_2m_min&timezone=auto`;
+
+  fetch(proxy(url))
+    .then(r => r.json())
+    .then(data => {
+      const container = document.getElementById("forecast");
+      container.innerHTML = "";
+      data.daily.time.slice(0,5).forEach((date, i) => {
+        const div = document.createElement("div");
+        div.textContent =
+          date.slice(5) + "  " +
+          Math.round(data.daily.temperature_2m_max[i]) + "° / " +
+          Math.round(data.daily.temperature_2m_min[i]) + "°";
+        container.appendChild(div);
+      });
+    })
+    .catch(() => {
+      document.getElementById("forecast").textContent =
+        "Forecast unavailable";
+    });
+}
+
+function refresh() {
+  fetchWU();
+  fetchForecast();
+}
+
+refresh();
+setInterval(refresh, 600000); // 10 minutes
+</script>
+
+</body>
+</html>

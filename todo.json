@@ -2,11 +2,11 @@
     {
         "id": "imma5m8j3ca2f",
         "text": "412 Availability",
-        "priority": 1,
+        "priority": 3,
         "tags": [
             "AMBO"
         ],
-        "due": null,
+        "due": "2026-03-14",
         "recurWeekday": null,
         "recurDay": null,
         "done": false,
@@ -47,9 +47,10 @@
         "due": "2026-03-04",
         "recurWeekday": null,
         "recurDay": null,
-        "done": false,
+        "done": true,
         "created": "2026-03-01",
-        "notes": null
+        "notes": null,
+        "doneAt": "2026-03-10T02:14:54.057Z"
     },
     {
         "id": "imm8nm0dr0cyw",
@@ -154,7 +155,7 @@
     {
         "id": "td_69a6607c5ca1f1.71174956",
         "text": "Plan Scavenger Hunt",
-        "done": false,
+        "done": true,
         "priority": 1,
         "created": "2026-03-02T20:15:56-08:00",
         "due": null,
@@ -176,13 +177,57 @@
         "recurDay": null
     },
     {
-        "id": "td_69a7819206c152.72137500",
-        "text": "Fire practice",
-        "done": false,
+        "id": "td_69a890aa3aa4b7.67988598",
+        "text": "House sitting@ Keri 10am",
+        "done": true,
         "priority": 2,
-        "created": "2026-03-03T16:49:22-08:00",
+        "created": "2026-03-04T12:06:02-08:00",
+        "due": "2026-03-07",
+        "notes": null,
+        "tags": [
+            "HOME"
+        ],
+        "recurWeekday": null,
+        "recurDay": null,
+        "doneAt": "2026-03-10T02:15:12.315Z"
+    },
+    {
+        "id": "td_69a9ed8e419338.06943672",
+        "text": "Share PLRF W\/ Sarah",
+        "done": false,
+        "priority": 3,
+        "created": "2026-03-05T12:54:38-08:00",
         "due": null,
         "notes": null,
+        "tags": [
+            "HW"
+        ],
+        "recurWeekday": null,
+        "recurDay": null
+    },
+    {
+        "id": "td_69a9edb4c7ff77.08862900",
+        "text": "Book pool and Buses",
+        "done": true,
+        "priority": 1,
+        "created": "2026-03-05T12:55:16-08:00",
+        "due": "2026-03-12",
+        "notes": null,
+        "tags": [
+            "HW"
+        ],
+        "recurWeekday": null,
+        "recurDay": null,
+        "doneAt": "2026-03-10T02:15:04.368Z"
+    },
+    {
+        "id": "td_69ad99bed8d9d5.02654549",
+        "text": "Because news tickets",
+        "done": false,
+        "priority": 1,
+        "created": "2026-03-08T08:46:06-07:00",
+        "due": "2026-03-09",
+        "notes": "Box Office at 604-251-1363",
         "tags": [],
         "recurWeekday": null,
         "recurDay": null
