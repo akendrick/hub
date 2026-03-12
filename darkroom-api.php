@@ -91,7 +91,7 @@ function r_photo_types(string $m, ?int $id, array $b): void {
 }
 
 function r_lu(string $m, ?int $id, array $b, string $t): void {
-    if (!in_array($t,['chemistry_types','negative_types'],true)) err('Forbidden');
+    if (!in_array($t,['chemistry_types','negative_types','finishing_types'],true)) err('Forbidden');
     $pdo = db();
     if ($m==='GET')         { ok($pdo->query("SELECT * FROM `$t` ORDER BY name")->fetchAll()); }
     if ($m==='POST')        { $n=ns($b['name']??null); if(!$n) err('name required'); $pdo->prepare("INSERT INTO `$t`(name)VALUES(?)")->execute([$n]); ok(['id'=>(int)$pdo->lastInsertId(),'name'=>$n]); }
