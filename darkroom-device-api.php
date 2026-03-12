@@ -70,6 +70,7 @@ try {
         'photo_types'     => r_photo_types($method,$id,$body),
         'chemistry_types' => r_lu($method,$id,$body,'chemistry_types'),
         'negative_types'  => r_lu($method,$id,$body,'negative_types'),
+        'finishing_types' => r_lu($method,$id,$body,'finishing_types'),
         'chemistry'       => r_chemistry($method,$id,$body),
         'paper'           => r_paper($method,$id,$body),
         'support_paper'   => r_sp($method,$id,$body),
@@ -172,10 +173,12 @@ function r_paper(string $m, ?int $id, array $b): void {
 // ─────────────────────────────────────────────────────────────
 function r_sp(string $m, ?int $id, array $b): void {
     $pdo = db();
-    $q = "SELECT sp.*, p.manufacturer, p.label, p.weight, p.hot_press,
-          CONCAT_WS(' ',p.manufacturer,p.label) AS paper_label,
-          CONCAT_WS(' ',ct.name,c.date_created) AS treatment_label
-          FROM support_paper sp JOIN paper p ON p.id=sp.paper_id
+    $q = "SELECT sp.*,
+          p.manufacturer, p.label, p.weight, p.hot_press,
+          IFNULL(CONCAT_WS(' ',NULLIF(p.manufacturer,''),NULLIF(p.label,'')), '') AS paper_label,
+          IFNULL(CONCAT_WS(' ',ct.name,c.date_created), '') AS treatment_label
+          FROM support_paper sp
+          LEFT JOIN paper p ON p.id=sp.paper_id
           LEFT JOIN chemistry c ON c.id=sp.treatment_chemistry_id
           LEFT JOIN chemistry_types ct ON ct.id=c.type_id";
     if ($m==='GET') {

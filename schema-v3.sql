@@ -22,6 +22,7 @@ DROP TABLE IF EXISTS chemistry;
 DROP TABLE IF EXISTS negative;
 DROP TABLE IF EXISTS negative_types;
 DROP TABLE IF EXISTS chemistry_types;
+DROP TABLE IF EXISTS finishing_types;
 
 -- Also drop any old tables from pre-v2 if they exist
 DROP TABLE IF EXISTS photo_sensitizer;
@@ -47,6 +48,15 @@ CREATE TABLE negative_types (
 
 INSERT INTO negative_types (name) VALUES
   ('Inkjet'), ('Laser'), ('Waxed Paper'), ('Glass');
+
+CREATE TABLE IF NOT EXISTS finishing_types (
+  id   INT          AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL UNIQUE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT IGNORE INTO finishing_types (name) VALUES
+  ('Clearing Bath'), ('Fixative'), ('Toner'), ('Bleach'),
+  ('Stop Bath'), ('Wash'), ('Hypo Clear'), ('Selenium');
 
 -- ── Photo Types ───────────────────────────────────────────────
 -- Controls which form sections are shown for a given process.
