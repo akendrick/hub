@@ -82,15 +82,24 @@ body {
 .hero-wx-icon-big { font-size: 141px; line-height: 1; }
 .hero-wx-desc { font-size: 9px; color: #555; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; }
 .hero-wx-precip { font-size: 10px; color: #555; text-align: center; margin-top: 3px; }
-/* Feels / Hum / Dew — all on ONE horizontal line */
+/* Feels / Hi-Lo */
 .hero-feels-row {
   display: flex; flex-wrap: wrap; gap: 10px 18px;
-  padding: 5px 0 4px;
-  border-top: 1px solid #eee; border-bottom: 1px solid #eee;
-  margin: 5px 0;
+  padding: 5px 0 3px;
+  border-top: 1px solid #eee;
+  margin: 5px 0 0;
 }
 .hero-feels { font-size: 13px; color: #777; white-space: nowrap; }
 .hero-feels b { color: #000; font-weight: 700; font-size: 16px; }
+.hero-precip-row {
+  display: flex; flex-wrap: wrap; gap: 10px 18px;
+  padding: 3px 0 4px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 5px;
+}
+.hero-precip-item { font-size: 13px; color: #777; white-space: nowrap; }
+.hero-precip-item b { color: #000; font-weight: 700; font-size: 16px; }
+.hero-precip-unit { color: inherit; font-size: inherit; }
 /* 1×4 mini-stats grid — bottom of COL1 (single horizontal row) */
 .hero-stats {
   display: grid; grid-template-columns: repeat(4,1fr);

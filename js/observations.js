@@ -122,6 +122,7 @@ async function loadObs() {
     const json = JSON.parse(text);
     if (json.code !== 0 || !json.data) throw new Error('EcoWitt API: ' + (json.msg || 'code ' + json.code));
     const d = json.data;
+    const rain = d.rainfall_piezo ?? d.rainfall ?? null;
     const _ecoParams = {
       temp:        d.outdoor?.temperature?.value,
       heatIndex:   d.outdoor?.feels_like?.value,
@@ -133,10 +134,10 @@ async function loadObs() {
       windSpeed:   d.wind?.wind_speed?.value,
       windDir:     d.wind?.wind_direction?.value,
       windGust:    d.wind?.wind_gust?.value,
-      precipRate:  d.rainfall?.rain_rate?.value,
-      precipTotal: d.rainfall?.daily?.value,
-      precip24h:   d.rainfall?.daily?.value,
-      precip30d:   d.rainfall?.weekly?.value,
+      precipRate:  rain?.rain_rate?.value,
+      precipTotal: rain?.daily?.value,
+      precip24h:   rain?.daily?.value,
+      precip30d:   rain?.weekly?.value,
       uv:          d.solar_and_uvi?.uvi?.value,
       solar:       d.solar_and_uvi?.solar?.value,
       epoch:       Math.floor(Date.now()/1000),
@@ -195,4 +196,3 @@ async function loadObs() {
     throw e;
   }
 }
-

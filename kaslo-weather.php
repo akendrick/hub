@@ -2,6 +2,11 @@
 // ── Auth + inline cache injection ─────────────────────────────────────────
 require_once __DIR__ . '/auth.php';
 
+// Keep the HTML shell fresh so stylesheet/version changes are re-fetched.
+header('Cache-Control: no-store, no-cache, must-revalidate');
+header('Pragma: no-cache');
+header('Expires: 0');
+
 // Page-render auth: session only.
 // Remote devices use device-api.php with a long-lived API key instead.
 $_kw_session_authed = auth_is_logged_in();
@@ -24,6 +29,8 @@ function kw_read_cache(string $k): string {
 $_kw_fc  = kw_read_cache('forecast');
 $_kw_ic  = kw_read_cache('ical');
 $_kw_obs = kw_read_cache('obs');
+$_kw_css_path = __DIR__ . '/css/kaslo-weather.css';
+$_kw_css_ver  = is_file($_kw_css_path) ? (string) filemtime($_kw_css_path) : (string) time();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -31,7 +38,7 @@ $_kw_obs = kw_read_cache('obs');
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IKASLO6 · Kaslo BC</title>
-<link rel="stylesheet" href="/css/kaslo-weather.css?v=1772585514">
+<link rel="stylesheet" href="/css/kaslo-weather.css?v=<?= htmlspecialchars($_kw_css_ver, ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body>
 
@@ -67,17 +74,20 @@ $_kw_obs = kw_read_cache('obs');
         <div class="hero-icon-block">
           <div class="hero-wx-icon-big" id="todayIcon">—</div>
           <div class="hero-wx-desc" id="todayDesc"></div>
-          <div class="hero-wx-precip" id="todayPrecip"></div>
         </div>
       </div>
-      <!-- Feels / Hum / Dew / Hi-Lo — all on one line -->
+      <!-- Feels / Hi-Lo -->
       <div class="hero-feels-row">
         <span class="hero-feels">Feels <b id="heatIndex">—</b>°</span>
-        <span class="hero-feels">Hum <b id="humidity">—</b>%</span>
-        <span class="hero-feels">Dew <b id="dewpt">—</b>°</span>
         <span class="hero-feels">Hi <b id="todayHi">—</b> · Lo <b id="todayLo">—</b></span>
       </div>
-      <!-- 2×2 mini-stats: UV · Pressure · Wind · Precip -->
+      <div class="hero-precip-row">
+        <span class="hero-precip-item">Precip Rate <b id="precipRate">0.00</b><span class="hero-precip-unit"> mm/hr</span></span>
+        <span class="hero-precip-item">Daily <b id="precip24h">0</b><span class="hero-precip-unit"> mm</span></span>
+        <span class="hero-precip-item">Weekly <b id="precip30d">0</b><span class="hero-precip-unit"> mm</span></span>
+        <span id="precipTotal" style="display:none"></span>
+      </div>
+      <!-- 1×4 mini-stats: UV · Pressure · Wind · Humidity/Dew -->
       <div class="hero-stats">
         <div class="hstat">
           <div class="hstat-lbl">UV / Solar</div>
@@ -95,11 +105,9 @@ $_kw_obs = kw_read_cache('obs');
           <div class="hstat-sub"><span id="windDir">—</span> · <span id="windGust">—</span> gust</div>
         </div>
         <div class="hstat">
-          <div class="hstat-lbl">Precip 24h</div>
-          <div class="hstat-val" style="font-size:15px"><span id="precip24h">0</span><span class="hstat-unit">mm</span></div>
-          <div class="hstat-sub" style="font-size:7px">Rate <span id="precipRate">0.00</span><span class="hstat-unit">/hr</span></div>
-          <div class="hstat-sub" style="font-size:7px">7d <span id="precip30d">0</span><span class="hstat-unit">mm</span></div>
-          <span id="precipTotal" style="display:none"></span>
+          <div class="hstat-lbl">Humidity / Dew</div>
+          <div class="hstat-val" style="font-size:15px"><span id="humidity">—</span><span class="hstat-unit">%</span></div>
+          <div class="hstat-sub" style="font-size:7px">Dew <span id="dewpt">—</span><span class="hstat-unit">°</span></div>
         </div>
       </div>
     </div>
@@ -1105,6 +1113,7 @@ async function loadObs() {
     const json = JSON.parse(text);
     if (json.code !== 0 || !json.data) throw new Error('EcoWitt API: ' + (json.msg || 'code ' + json.code));
     const d = json.data;
+    const rain = d.rainfall_piezo ?? d.rainfall ?? null;
     const _ecoParams = {
       temp:        d.outdoor?.temperature?.value,
       heatIndex:   d.outdoor?.feels_like?.value,
@@ -1116,10 +1125,10 @@ async function loadObs() {
       windSpeed:   d.wind?.wind_speed?.value,
       windDir:     d.wind?.wind_direction?.value,
       windGust:    d.wind?.wind_gust?.value,
-      precipRate:  d.rainfall?.rain_rate?.value,
-      precipTotal: d.rainfall?.daily?.value,
-      precip24h:   d.rainfall?.daily?.value,
-      precip30d:   d.rainfall?.weekly?.value,
+      precipRate:  rain?.rain_rate?.value,
+      precipTotal: rain?.daily?.value,
+      precip24h:   rain?.daily?.value,
+      precip30d:   rain?.weekly?.value,
       uv:          d.solar_and_uvi?.uvi?.value,
       solar:       d.solar_and_uvi?.solar?.value,
       epoch:       Math.floor(Date.now()/1000),
