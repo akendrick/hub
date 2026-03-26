@@ -84,6 +84,7 @@ INSERT INTO photo_types (name, has_layers, dev_mode) VALUES
 
 CREATE TABLE chemistry (
   id               INT           AUTO_INCREMENT PRIMARY KEY,
+  label            VARCHAR(255)  NULL,
   date_created     DATE          NOT NULL,
   type_id          INT           NULL,
   percent_solution DECIMAL(6,3)  NULL,
@@ -195,6 +196,7 @@ CREATE TABLE photo (
   develop_notes     TEXT         NULL,
   -- Image & notes
   image_path        VARCHAR(500) NULL,
+  thumb_path        VARCHAR(500) NULL,
   notes             TEXT         NULL,
   created_at        TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
   updated_at        TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

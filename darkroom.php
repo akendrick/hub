@@ -604,6 +604,9 @@ async function uploadImage(photoId, file){
   const fd=new FormData(); fd.append('image',file);
   const r=await fetch('darkroom-api.php?res=photo_image&id='+photoId,{method:'POST',body:fd});
   const j=await r.json(); if(!j.ok) throw new Error(j.error||'Upload failed');
+  // Update local photo state so grid re-renders without a full reload
+  const p=S.photo.find(x=>x.id===photoId);
+  if(p){ p.image_path=j.data.image_path; p.thumb_path=j.data.thumb_path; }
   return j.data.image_path;
 }
 function esc(s){ const d=document.createElement('div'); d.textContent=s??''; return d.innerHTML; }
@@ -1091,9 +1094,11 @@ function renderPhotos(){
   if(!S.photo.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1">No photos yet — click + New Photo</div>';return;}
   grid.innerHTML=S.photo.map(p=>`
     <div class="photo-card" onclick="openDetailModal(${p.id})">
-      ${p.image_path
-        ?`<img class="photo-thumb" src="${esc(p.image_path)}" alt="${esc(p.title||'Photo')}" loading="lazy">`
-        :`<div class="photo-thumb-placeholder">&#128247;</div>`}
+      ${p.thumb_path
+        ?`<img class="photo-thumb" src="${esc(p.thumb_path)}" alt="${esc(p.title||'Photo')}" loading="lazy">`
+        :p.image_path
+          ?`<img class="photo-thumb" src="${esc(p.image_path)}" alt="${esc(p.title||'Photo')}" loading="lazy">`
+          :`<div class="photo-thumb-placeholder">&#128247;</div>`}
       <div class="photo-card-body">
         <div class="photo-card-title">${esc(p.title||'Untitled #'+p.id)}</div>
         <div class="photo-card-meta"><span>${esc(p.date_exposed||'—')}</span><span>${esc(p.photo_size||'')}</span></div>

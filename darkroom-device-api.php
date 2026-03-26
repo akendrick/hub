@@ -392,8 +392,8 @@ function r_photo(string $m, ?int $id, array $b): void {
     }
 
     if ($m==='DELETE'&&$id) {
-        $row = $pdo->prepare("SELECT image_path FROM photo WHERE id=?"); $row->execute([$id]);
-        if ($r = $row->fetch()) _del_image($r['image_path']);
+        $row = $pdo->prepare("SELECT image_path, thumb_path FROM photo WHERE id=?"); $row->execute([$id]);
+        if ($r = $row->fetch()) { _del_image($r['image_path']); _del_image($r['thumb_path']); }
         $pdo->prepare("DELETE FROM photo WHERE id=?")->execute([$id]);
         ok(['deleted' => $id]);
     }
@@ -442,18 +442,63 @@ function r_photo_image(string $m, ?int $id): void {
     $f = $_FILES['image'];
     if ($f['error'] !== UPLOAD_ERR_OK) err('Upload error code: '.$f['error']);
     $mime = mime_content_type($f['tmp_name']);
-    if (!in_array($mime,['image/jpeg','image/png','image/webp'],true)) err('Only JPEG/PNG/WEBP accepted');
-    $ext  = match($mime) { 'image/png'=>'png','image/webp'=>'webp',default=>'jpg' };
+    if (!in_array($mime,['image/jpeg','image/png','image/webp','image/heic','image/heif'],true)) err('Only JPEG/PNG/WEBP/HEIC accepted');
+
+    $src = match($mime) {
+        'image/png'  => imagecreatefrompng($f['tmp_name']),
+        'image/webp' => imagecreatefromwebp($f['tmp_name']),
+        default      => @imagecreatefromjpeg($f['tmp_name']),
+    };
+    if (!$src) err('Could not decode image — try JPEG or PNG');
+
+    // Auto-rotate JPEG based on EXIF
+    if (function_exists('exif_read_data') && $mime === 'image/jpeg') {
+        $exif = @exif_read_data($f['tmp_name']);
+        $ori  = $exif['Orientation'] ?? 1;
+        $src  = match((int)$ori) {
+            3 => imagerotate($src, 180, 0),
+            6 => imagerotate($src,  -90, 0),
+            8 => imagerotate($src,   90, 0),
+            default => $src,
+        };
+    }
+
     $dir  = __DIR__.'/uploads/darkroom/';
     if (!is_dir($dir)) mkdir($dir, 0755, true);
-    $name = 'photo-'.$id.'-'.time().'.'.$ext;
-    $pdo  = db();
-    $old  = $pdo->prepare("SELECT image_path FROM photo WHERE id=?"); $old->execute([$id]);
-    if ($r = $old->fetch()) _del_image($r['image_path']);
-    if (!move_uploaded_file($f['tmp_name'], $dir.$name)) err('Failed to move uploaded file');
-    $path = 'uploads/darkroom/'.$name;
-    $pdo->prepare("UPDATE photo SET image_path=? WHERE id=?")->execute([$path, $id]);
-    ok(['image_path' => $path]);
+    $base = 'photo-'.$id.'-'.time();
+
+    // Full-size JPEG (max 1800px, 85% quality)
+    [$sw, $sh] = [imagesx($src), imagesy($src)];
+    $max = 1800;
+    if ($sw > $max || $sh > $max) {
+        $ratio = $sw > $sh ? $max/$sw : $max/$sh;
+        $nw = (int)round($sw*$ratio); $nh = (int)round($sh*$ratio);
+        $full = imagecreatetruecolor($nw, $nh);
+        imagecopyresampled($full, $src, 0,0,0,0, $nw,$nh,$sw,$sh);
+    } else { $full = $src; }
+    $fullName = $base.'.jpg';
+    imagejpeg($full, $dir.$fullName, 85);
+    if ($full !== $src) imagedestroy($full);
+
+    // Square thumbnail 400×400 centre-crop
+    [$fw, $fh] = [imagesx($src), imagesy($src)];
+    if ($fw > $fh) { $cy=0; $cx=(int)(($fw-$fh)/2); $cs=$fh; }
+    else           { $cx=0; $cy=(int)(($fh-$fw)/2); $cs=$fw; }
+    $thumb = imagecreatetruecolor(400, 400);
+    imagecopyresampled($thumb, $src, 0,0,$cx,$cy, 400,400,$cs,$cs);
+    $thumbName = $base.'-thumb.jpg';
+    imagejpeg($thumb, $dir.$thumbName, 80);
+    imagedestroy($thumb);
+    imagedestroy($src);
+
+    $pdo = db();
+    $old = $pdo->prepare("SELECT image_path, thumb_path FROM photo WHERE id=?"); $old->execute([$id]);
+    if ($r = $old->fetch()) { _del_image($r['image_path']); _del_image($r['thumb_path']); }
+
+    $path      = 'uploads/darkroom/'.$fullName;
+    $thumbPath = 'uploads/darkroom/'.$thumbName;
+    $pdo->prepare("UPDATE photo SET image_path=?, thumb_path=? WHERE id=?")->execute([$path, $thumbPath, $id]);
+    ok(['image_path' => $path, 'thumb_path' => $thumbPath]);
 }
 
 function _del_image(?string $path): void {
