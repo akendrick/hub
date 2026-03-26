@@ -119,7 +119,7 @@ function r_chemistry(string $m, ?int $id, array $b): void {
         ok(['id'=>$nid]);
     }
     if ($m==='PATCH'&&$id) {
-        prow('chemistry',$id,$b,['date_created'=>'s','type_id'=>'i','percent_solution'=>'f','notes'=>'s']);
+        prow('chemistry',$id,$b,['label'=>'s','date_created'=>'s','type_id'=>'i','percent_solution'=>'f','notes'=>'s']);
         if (array_key_exists('created_from_id',$b)) {
             $pdo->prepare("DELETE FROM chemistry_lineage WHERE child_id=?")->execute([$id]);
             if ($b['created_from_id'])

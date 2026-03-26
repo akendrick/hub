@@ -428,6 +428,7 @@ textarea{resize:vertical;min-height:58px}
         <div class="panel-header"><div class="panel-title" id="form-chemistry-title">New Chemistry</div></div>
         <div class="fsec fsec-photo">
           <div class="form-grid">
+            <div class="form-group span2"><label class="fld">Label</label><input type="text" id="chem-label" placeholder="e.g. IndiaInkSample, GelSize-A…"></div>
             <div class="form-group"><label class="fld">Date Created *</label><input type="date" id="chem-date_created"></div>
             <div class="form-group"><label class="fld">Type</label><select id="chem-type_id"><option value="">-- select --</option></select></div>
             <div class="form-group"><label class="fld">% Solution</label><input type="number" id="chem-percent_solution" step="0.1" min="0" max="100" placeholder="e.g. 10.0"></div>
@@ -444,7 +445,7 @@ textarea{resize:vertical;min-height:58px}
         </div>
       </div>
       <table class="data-table" id="tbl-chemistry">
-        <thead><tr><th>#</th><th>Label</th><th>Date</th><th>%</th><th>Created From</th><th>Notes</th><th></th></tr></thead>
+        <thead><tr><th>#</th><th>Label</th><th>Type</th><th>Date</th><th>%</th><th>Created From</th><th>Notes</th><th></th></tr></thead>
         <tbody><tr><td colspan="7" class="empty-state">Loading…</td></tr></tbody>
       </table>
       <button class="opts-more" id="opts-chemistry-more" onclick="loadMoreChemistry()" style="display:none">Load more ↓</button>
@@ -616,6 +617,8 @@ function ctMenuLabel(ct){ const ym=ct.date_poured?ct.date_poured.slice(2).replac
 function chemLabel(c){
   if(!c) return '';
   const type = c.type_name||'Chemistry';
+  if(c.label) return `${c.label} (${type})`;
+  // Fallback for legacy records without a label
   const d = c.date_created ? new Date(c.date_created+'T12:00:00') : null;
   const mon = d ? d.toLocaleString('en-CA',{month:'short'}) : '';
   const day = d ? d.getDate() : '';
@@ -1162,6 +1165,7 @@ function openForm(tab,data=null){
     document.getElementById('form-photo_types-title').textContent='New Process Type';
   }
   if(!data && tab==='chemistry'){
+    document.getElementById('chem-label').value='';
     document.getElementById('chem-date_created').value=TODAY;
     document.getElementById('chem-type_id').value='';
     document.getElementById('chem-percent_solution').value='';
@@ -1403,7 +1407,7 @@ function renderOptsRecent(listId,moreId,arr,labelFn){
 function renderChemistry(){
   const tb=document.querySelector('#tbl-chemistry tbody'); if(!tb) return;
   const rows = S.chemistryShowAll ? S.chemistry : S.chemistry.slice(0,OPTS_PAGE);
-  if(!rows.length){tb.innerHTML='<tr><td colspan="7" class="empty-state">No chemistry records yet</td></tr>';
+  if(!rows.length){tb.innerHTML='<tr><td colspan="8" class="empty-state">No chemistry records yet</td></tr>';
     document.getElementById('opts-chemistry-more').style.display='none'; return;}
   tb.innerHTML=rows.map(r=>{
     const fromLabel = r.created_from_ids
@@ -1411,11 +1415,12 @@ function renderChemistry(){
       : '--';
     return `<tr>
     <td style="color:rgba(255,255,255,.35)">${r.id}</td>
-    <td><strong>${esc(chemLabel(r))}</strong></td>
+    <td><strong>${esc(r.label||'—')}</strong></td>
+    <td>${esc(r.type_name||'—')}</td>
     <td>${esc(r.date_created)}</td>
     <td>${r.percent_solution!=null?r.percent_solution+'%':'--'}</td>
     <td>${fromLabel}</td>
-    <td style="color:rgba(255,255,255,.5);max-width:220px">${esc(r.notes||'--')}</td>
+    <td style="color:rgba(255,255,255,.5);max-width:180px">${esc(r.notes||'--')}</td>
     <td>${acts('chemistry',r.id)}</td></tr>`;
   }).join('');
   const moreBtn=document.getElementById('opts-chemistry-more');
@@ -1468,6 +1473,7 @@ async function submitChemistry(){
   const dateVal=document.getElementById('chem-date_created').value;
   if(!dateVal){msg.className='form-msg err';msg.textContent='Date required';return;}
   const body={
+    label:        document.getElementById('chem-label').value.trim()||null,
     date_created: dateVal,
     type_id:      parseInt(document.getElementById('chem-type_id').value)||null,
     percent_solution: parseFloat(document.getElementById('chem-percent_solution').value)||null,
@@ -1539,6 +1545,7 @@ async function editRecord(tab,id){
       document.getElementById('pt-has_layers').checked=!!data.has_layers;
     },
     chemistry:()=>{
+      document.getElementById('chem-label').value=data.label||'';
       document.getElementById('chem-date_created').value=data.date_created||'';
       document.getElementById('chem-type_id').value=data.type_id||'';
       document.getElementById('chem-percent_solution').value=data.percent_solution||'';
