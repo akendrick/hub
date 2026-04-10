@@ -323,10 +323,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <button class="filter-tab" data-filter="2">P2</button>
     <button class="filter-tab" data-filter="3">P3</button>
     <button class="filter-tab" data-filter="recurring">Recurring</button>
-    <button class="filter-tab" data-filter="done">Done</button>
   </div>
 
   <div id="itemList"></div>
+
+  <!-- ── COMPLETED SECTION ── -->
+  <div id="completedSection" style="display:none;margin-top:28px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div class="section-label" style="margin-bottom:0">Completed <span style="color:#ccc;font-weight:400" id="completedCount"></span></div>
+      <button id="completedToggle" onclick="toggleCompletedList()" style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:none;border:1px solid #ddd;padding:3px 10px;cursor:pointer;font-family:inherit;color:#aaa">Hide</button>
+    </div>
+    <div id="completedList"></div>
+  </div>
 
   </div><!-- end #panel-items -->
 
@@ -556,67 +564,105 @@ function markDirty() {
 function uid() { return 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 
 // ── RENDER ────────────────────────────────────────────────────────
+// filteredItems only returns ACTIVE (non-done) items, applying the current filter
 function filteredItems() {
   switch(currentFilter) {
     case 'active':    return items.filter(i => !i.done);
-    case 'done':      return items.filter(i => i.done);
-    case 'recurring': return items.filter(i => i.recurWeekday!=null || i.recurDay!=null);
-    case 'all':       return [...items].sort((a,b)=>(parseInt(a.priority)||5)-(parseInt(b.priority)||5));
-    default:          return items.filter(i => parseInt(i.priority) === parseInt(currentFilter));
+    case 'recurring': return items.filter(i => !i.done && (i.recurWeekday!=null || i.recurDay!=null));
+    case 'all':       return items.filter(i => !i.done).sort((a,b)=>(parseInt(a.priority)||5)-(parseInt(b.priority)||5));
+    default:          return items.filter(i => !i.done && parseInt(i.priority) === parseInt(currentFilter));
   }
 }
 
-function renderList() {
-  const list  = document.getElementById('itemList');
-  const shown = filteredItems();
-  document.getElementById('itemCount').textContent = '(' + shown.length + ' of ' + items.length + ')';
-  if (!shown.length) { list.innerHTML = '<div class="empty-state">No items here yet.</div>'; return; }
+function buildItemRow(item, isDone) {
+  const realIdx = items.indexOf(item);
+  const pc  = getPC(item.priority);
+  const due = item.due ? formatDue(item.due) : null;
+  const dueOverdue = item.due && item.due < todayStr() && !isDone;
+  const DOW_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let recurLabel = '';
+  if (item.recurWeekday != null) recurLabel = '↻ Every ' + DOW_NAMES[item.recurWeekday];
+  else if (item.recurDay != null) recurLabel = '↻ Day ' + item.recurDay + ' monthly';
 
-  list.innerHTML = '';
-  shown.forEach(item => {
-    const realIdx = items.indexOf(item);
-    const pc  = getPC(item.priority);
-    const due = item.due ? formatDue(item.due) : null;
-    const dueOverdue = item.due && item.due < todayStr() && !item.done;
-    const DOW_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-    let recurLabel = '';
-    if (item.recurWeekday != null) recurLabel = '↻ Every ' + DOW_NAMES[item.recurWeekday];
-    else if (item.recurDay != null) recurLabel = '↻ Day ' + item.recurDay + ' monthly';
+  const tagHtml = (item.tags||[]).map(t =>
+    '<span class="blk-tag">' + escHtml(t) + '</span>').join('');
 
-    const tagHtml = (item.tags||[]).map(t =>
-      '<span class="blk-tag">' + escHtml(t) + '</span>').join('');
+  const row = document.createElement('div');
+  row.className = 'item-row' + (isDone ? ' done-row' : '') + (editingId===item.id ? ' editing' : '');
+  row.dataset.id  = item.id;
+  row.dataset.idx = realIdx;
+  if (!isDone) row.draggable = true;
 
-    const row = document.createElement('div');
-    row.className = 'item-row' + (item.done ? ' done-row' : '') + (editingId===item.id ? ' editing' : '');
-    row.dataset.id  = item.id;
-    row.dataset.idx = realIdx;
-    row.draggable = true;
+  // Show doneAt timestamp for completed items
+  const doneAtStr = isDone && item.doneAt
+    ? new Date(item.doneAt).toLocaleString('en-CA',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})
+    : null;
 
-    row.innerHTML = `
-      <div class="drag-handle" title="Drag to reorder">⠿</div>
-      <div class="item-stripe ${pc.stripeClass}"></div>
-      <div class="item-body">
-        <div class="item-main">
-          <div class="item-check${item.done?' done':''}" onclick="toggleDone('${item.id}')"></div>
-          <div class="item-text${item.done?' done':''}">${tagHtml}${escHtml(item.text)}</div>
-          <span class="priority-tag ${pc.tagClass}">${pc.label}</span>
-        </div>
-        <div class="item-meta">
-          ${due ? `<span class="meta-due${dueOverdue?' overdue':''}">📅 ${due}</span>` : ''}
-          ${recurLabel ? `<span>${recurLabel}</span>` : ''}
-          ${item.notes ? `<span style="color:#bbb;font-style:italic">${escHtml(item.notes.slice(0,60))}${item.notes.length>60?'…':''}</span>` : ''}
-        </div>
-        <div class="item-edit-panel${editingId===item.id?' open':''}" id="edit-${item.id}">
-          ${buildEditPanel(item)}
-        </div>
+  row.innerHTML = `
+    ${!isDone ? '<div class="drag-handle" title="Drag to reorder">⠿</div>' : '<div style="width:26px;flex-shrink:0"></div>'}
+    <div class="item-stripe ${pc.stripeClass}"></div>
+    <div class="item-body">
+      <div class="item-main">
+        <div class="item-check${isDone?' done':''}" onclick="toggleDone('${item.id}')"></div>
+        <div class="item-text${isDone?' done':''}">${tagHtml}${escHtml(item.text)}</div>
+        <span class="priority-tag ${pc.tagClass}">${pc.label}</span>
       </div>
-      <div class="item-actions">
-        <button class="act-btn" onclick="toggleEdit('${item.id}')" title="Edit">✎</button>
-        <button class="act-btn del" onclick="deleteItem('${item.id}')" title="Delete">✕</button>
-      </div>`;
-    setupDrag(row, realIdx);
-    list.appendChild(row);
-  });
+      <div class="item-meta">
+        ${due ? `<span class="meta-due${dueOverdue?' overdue':''}">📅 ${due}</span>` : ''}
+        ${recurLabel ? `<span>${recurLabel}</span>` : ''}
+        ${doneAtStr ? `<span style="color:#bbb">✓ ${doneAtStr}</span>` : ''}
+        ${item.notes ? `<span style="color:#bbb;font-style:italic">${escHtml(item.notes.slice(0,60))}${item.notes.length>60?'…':''}</span>` : ''}
+      </div>
+      <div class="item-edit-panel${editingId===item.id?' open':''}" id="edit-${item.id}">
+        ${buildEditPanel(item)}
+      </div>
+    </div>
+    <div class="item-actions">
+      <button class="act-btn" onclick="toggleEdit('${item.id}')" title="Edit">✎</button>
+      <button class="act-btn del" onclick="deleteItem('${item.id}')" title="Delete">✕</button>
+    </div>`;
+
+  if (!isDone) setupDrag(row, realIdx);
+  return row;
+}
+
+let completedVisible = true;
+function toggleCompletedList() {
+  completedVisible = !completedVisible;
+  document.getElementById('completedList').style.display = completedVisible ? '' : 'none';
+  document.getElementById('completedToggle').textContent = completedVisible ? 'Hide' : 'Show';
+}
+
+function renderList() {
+  const list      = document.getElementById('itemList');
+  const compList  = document.getElementById('completedList');
+  const compSec   = document.getElementById('completedSection');
+
+  const activeItems = filteredItems();
+  const doneItems   = items.filter(i => i.done)
+    .sort((a,b) => new Date(b.doneAt||0) - new Date(a.doneAt||0));
+
+  const activeCount = items.filter(i => !i.done).length;
+  document.getElementById('itemCount').textContent = '(' + activeItems.length + ' of ' + activeCount + ')';
+
+  // ── Active list ──
+  list.innerHTML = '';
+  if (!activeItems.length) {
+    list.innerHTML = '<div class="empty-state">No items here yet.</div>';
+  } else {
+    activeItems.forEach(item => list.appendChild(buildItemRow(item, false)));
+  }
+
+  // ── Completed list ──
+  if (!doneItems.length) {
+    compSec.style.display = 'none';
+  } else {
+    compSec.style.display = '';
+    document.getElementById('completedCount').textContent = '(' + doneItems.length + ')';
+    compList.innerHTML = '';
+    compList.style.display = completedVisible ? '' : 'none';
+    doneItems.forEach(item => compList.appendChild(buildItemRow(item, true)));
+  }
 }
 
 function buildEditPanel(item) {
