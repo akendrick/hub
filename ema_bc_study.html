@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BC EMA Exam Prep</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0d1117; --surface:#161b22; --surface2:#1e2530; --border:#2a3141;
+    --text:#e6edf3; --muted:#8b949e;
+    --critical:#ff4757; --critical-dim:rgba(255,71,87,0.12);
+    --warn:#f39c12; --warn-dim:rgba(243,156,18,0.12);
+    --ok:#2ecc71; --ok-dim:rgba(46,204,113,0.12);
+    --blue:#4a9eff; --blue-dim:rgba(74,158,255,0.12);
+    --accent:#e63946;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6;}
+  .header{border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);z-index:100;}
+  .logo{font-family:'Space Mono',monospace;font-size:13px;color:var(--muted);letter-spacing:.05em;}
+  .logo span{color:var(--accent);}
+  .score-badge{font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:4px 12px;border-radius:20px;}
+  .score-badge b{color:var(--ok);}
+  .nav{display:flex;padding:0 24px;border-bottom:1px solid var(--border);overflow-x:auto;}
+  .nav-btn{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:12px 18px;border:none;background:none;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:color .15s,border-color .15s;}
+  .nav-btn:hover{color:var(--text);}
+  .nav-btn.active{color:var(--text);border-bottom-color:var(--accent);}
+  .main{max-width:900px;margin:0 auto;padding:24px;}
+  .hidden{display:none!important;}
+  .filter-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;align-items:center;}
+  .filter-label{font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:.08em;margin-right:4px;}
+  .chip{font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;}
+  .chip:hover{border-color:var(--blue);color:var(--blue);}
+  .chip.active{background:var(--blue-dim);border-color:var(--blue);color:var(--blue);}
+  .chip.red:hover,.chip.red.active{background:var(--critical-dim);border-color:var(--critical);color:var(--critical);}
+  .progress-wrap{margin-bottom:24px;}
+  .progress-meta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);font-family:'Space Mono',monospace;margin-bottom:6px;}
+  .progress-track{height:3px;background:var(--border);border-radius:2px;overflow:hidden;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--warn));border-radius:2px;transition:width .3s ease;}
+  /* CARD */
+  .card-frame{perspective:1200px;min-height:300px;cursor:pointer;margin-bottom:20px;user-select:none;}
+  .card-inner{position:relative;width:100%;min-height:300px;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.175,.885,.32,1.275);}
+  .card-frame.flipped .card-inner{transform:rotateY(180deg);}
+  .card-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border:1px solid var(--border);border-radius:12px;padding:32px;background:var(--surface);display:flex;flex-direction:column;}
+  .card-face.back{transform:rotateY(180deg);background:var(--surface2);}
+  .tag{display:inline-flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:20px;width:fit-content;}
+  .tag::before{content:'●';font-size:8px;}
+  .tag.critical{background:var(--critical-dim);color:var(--critical);border:1px solid rgba(255,71,87,.3);}
+  .tag.moderate{background:var(--warn-dim);color:var(--warn);border:1px solid rgba(243,156,18,.3);}
+  .tag.standard{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(74,158,255,.3);}
+  .card-cat{font-size:10px;font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:8px 0;}
+  .card-q{font-size:20px;font-weight:500;line-height:1.4;flex:1;display:flex;align-items:center;}
+  .card-hint{margin-top:20px;font-size:12px;color:var(--muted);font-family:'Space Mono',monospace;text-align:center;}
+  .answer-label{font-size:10px;font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:.1em;color:var(--ok);margin-bottom:12px;}
+  .card-a{font-size:14px;line-height:1.7;flex:1;overflow-y:auto;}
+  .card-a ul{padding-left:18px;}.card-a li{margin-bottom:3px;}.card-a ol{padding-left:18px;}
+  .hl{color:var(--critical);font-weight:700;}.num{color:var(--warn);font-weight:700;font-family:'Space Mono',monospace;}.okt{color:var(--ok);font-weight:600;}
+  .card-controls{display:flex;gap:12px;align-items:center;justify-content:space-between;}
+  .btn-group{display:flex;gap:8px;}
+  .btn{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.06em;padding:9px 20px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px;}
+  .btn:hover{background:var(--surface2);border-color:var(--muted);}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .btn.primary:hover{background:#c0392b;}
+  .btn.success{background:var(--ok-dim);border-color:var(--ok);color:var(--ok);}
+  .btn.fail{background:var(--critical-dim);border-color:var(--critical);color:var(--critical);}
+  .card-counter{font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);}
+  /* QUIZ */
+  .quiz-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;margin-bottom:16px;}
+  .quiz-q{font-size:18px;font-weight:500;line-height:1.5;margin-bottom:24px;}
+  .quiz-opts{display:flex;flex-direction:column;gap:10px;}
+  .qopt{padding:14px 18px;border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .15s;font-size:14px;line-height:1.5;background:var(--bg);display:flex;align-items:flex-start;gap:12px;}
+  .qopt:hover:not(.locked){border-color:var(--blue);background:var(--blue-dim);}
+  .qopt.correct{border-color:var(--ok)!important;background:var(--ok-dim)!important;}
+  .qopt.wrong{border-color:var(--critical)!important;background:var(--critical-dim)!important;}
+  .qopt.locked{cursor:default;}
+  .opt-letter{font-family:'Space Mono',monospace;font-size:11px;min-width:22px;height:22px;border-radius:4px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+  .quiz-fb{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin-top:12px;font-size:14px;line-height:1.6;}
+  .quiz-fb.correct{border-color:var(--ok);}.quiz-fb.wrong{border-color:var(--critical);}
+  .fb-title{font-family:'Space Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;}
+  .fb-title.ok{color:var(--ok);}.fb-title.err{color:var(--critical);}
+  .results{text-align:center;padding:40px 20px;}
+  .results-score{font-family:'Space Mono',monospace;font-size:72px;font-weight:700;line-height:1;margin-bottom:8px;}
+  .results-label{font-size:13px;color:var(--muted);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:.1em;margin-bottom:32px;}
+  .results-row{display:flex;gap:24px;justify-content:center;margin-bottom:32px;flex-wrap:wrap;}
+  .rstat{text-align:center;}.rstat-num{font-family:'Space Mono',monospace;font-size:28px;font-weight:700;}
+  .rstat-label{font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:.08em;}
+  /* PROTOCOLS */
+  .proto-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px;}
+  .proto-hdr{padding:14px 20px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:background .15s;}
+  .proto-hdr:hover{background:var(--surface2);}
+  .proto-hdr-left{display:flex;align-items:center;gap:12px;}
+  .proto-name{font-weight:600;font-size:15px;}
+  .proto-body{padding:0 20px 20px;border-top:1px solid var(--border);}
+  .chevron{color:var(--muted);font-size:12px;transition:transform .2s;display:inline-block;}
+  .chevron.open{transform:rotate(180deg);}
+  .step-list{list-style:none;padding:0;margin-top:14px;}
+  .step-item{display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start;font-size:13px;}
+  .step-item:last-child{border-bottom:none;}
+  .snum{font-family:'Space Mono',monospace;font-size:10px;min-width:24px;height:24px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;}
+  .snum.c{background:var(--critical-dim);color:var(--critical);border:1px solid rgba(255,71,87,.3);}
+  .snum.w{background:var(--warn-dim);color:var(--warn);border:1px solid rgba(243,156,18,.3);}
+  .snum.g{background:var(--ok-dim);color:var(--ok);border:1px solid rgba(46,204,113,.3);}
+  .snum.b{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(74,158,255,.3);}
+  .step-text{flex:1;line-height:1.5;font-size:13px;}
+  .step-text b{color:var(--critical);}
+  /* DRUGS */
+  .drug-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px;}
+  .drug-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+  .drug-hdr{padding:12px 14px 8px;border-bottom:1px solid var(--border);display:flex;align-items:baseline;gap:8px;}
+  .drug-name{font-weight:700;font-size:14px;}
+  .drug-level{font-size:10px;font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:.08em;font-weight:400;}
+  .drug-body{padding:10px 14px;display:flex;flex-direction:column;gap:5px;}
+  .drow{display:flex;gap:8px;}
+  .dkey{color:var(--muted);font-family:'Space Mono',monospace;font-size:10px;text-transform:uppercase;min-width:62px;flex-shrink:0;padding-top:2px;letter-spacing:.06em;}
+  .dval{color:var(--text);font-size:12px;line-height:1.45;}
+  .dval.dose{font-family:'Space Mono',monospace;font-size:11px;color:var(--warn);}
+  .dval.ci{color:var(--critical);font-size:12px;}
+  .dval.caut{color:#e8a838;font-size:12px;}
+  .shake{animation:shake .4s ease;}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+  @media(max-width:600px){
+    .header{padding:12px 16px;}.main{padding:16px;}
+    .card-face{padding:20px;}.card-q{font-size:17px;}
+    .nav-btn{padding:10px 12px;font-size:10px;}
+  }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo">BC <span>EMA</span> Exam Prep · April 2025</div>
+  <div class="score-badge">Session: <b id="scoreDisplay">—</b></div>
+</div>
+<nav class="nav">
+  <button class="nav-btn active" data-mode="flash" onclick="switchMode('flash')">Flashcards</button>
+  <button class="nav-btn" data-mode="quiz" onclick="switchMode('quiz')">Quiz</button>
+  <button class="nav-btn" data-mode="protocols" onclick="switchMode('protocols')">Protocols Ref</button>
+  <button class="nav-btn" data-mode="drugs" onclick="switchMode('drugs')">Drug Monographs</button>
+</nav>
+<div class="main">
+
+<!-- FLASH -->
+<div id="mode-flash">
+  <div class="filter-row">
+    <span class="filter-label">Focus:</span>
+    <button class="chip red active" data-filter="all" onclick="setFilter('all',this)">All Cards</button>
+    <button class="chip red" data-filter="critical" onclick="setFilter('critical',this)">⚠ Critical</button>
+    <button class="chip" data-filter="assessment" onclick="setFilter('assessment',this)">Assessment</button>
+    <button class="chip" data-filter="protocol" onclick="setFilter('protocol',this)">Protocols</button>
+    <button class="chip" data-filter="trauma" onclick="setFilter('trauma',this)">Trauma</button>
+    <button class="chip" data-filter="drug" onclick="setFilter('drug',this)">Drugs</button>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-meta"><span id="flashProg">Card 1 of 1</span><span id="flashPct">0%</span></div>
+    <div class="progress-track"><div class="progress-fill" id="flashFill" style="width:0%"></div></div>
+  </div>
+  <div class="card-frame" id="flashCard" onclick="flipCard()">
+    <div class="card-inner">
+      <div class="card-face front">
+        <div id="cardTag" class="tag critical">Critical</div>
+        <div id="cardCat" class="card-cat">Category</div>
+        <div class="card-q" id="cardQ">Loading…</div>
+        <div class="card-hint">Click to reveal answer</div>
+      </div>
+      <div class="card-face back">
+        <div class="answer-label">▶ Answer</div>
+        <div class="card-a" id="cardA"></div>
+      </div>
+    </div>
+  </div>
+  <div class="card-controls">
+    <div class="btn-group">
+      <button class="btn" onclick="prevCard()">← Prev</button>
+      <button class="btn" onclick="nextCard()">Next →</button>
+    </div>
+    <div class="card-counter" id="cardCounter">1 / 1</div>
+    <div class="btn-group">
+      <button class="btn fail" onclick="markCard(false)">✗ Again</button>
+      <button class="btn success" onclick="markCard(true)">✓ Got it</button>
+    </div>
+  </div>
+  <div style="margin-top:16px;display:flex;gap:16px;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);">
+    <span>✓ Known: <b id="knownCount" style="color:var(--ok)">0</b></span>
+    <span>✗ Review: <b id="reviewCount" style="color:var(--critical)">0</b></span>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div id="mode-quiz" class="hidden">
+  <div id="quizActive">
+    <div class="filter-row">
+      <span class="filter-label">Category:</span>
+      <button class="chip red active" data-qf="all" onclick="setQuizFilter('all',this)">All</button>
+      <button class="chip red" data-qf="critical" onclick="setQuizFilter('critical',this)">⚠ Critical</button>
+      <button class="chip" data-qf="protocol" onclick="setQuizFilter('protocol',this)">Protocols</button>
+      <button class="chip" data-qf="drug" onclick="setQuizFilter('drug',this)">Drugs</button>
+      <button class="chip" data-qf="assessment" onclick="setQuizFilter('assessment',this)">Assessment</button>
+      <button class="btn" style="margin-left:auto" onclick="startQuiz()">↺ Restart</button>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-meta"><span id="quizProg">Question 1 of 20</span><span id="quizScore">Score: 0/0</span></div>
+      <div class="progress-track"><div class="progress-fill" id="quizFill" style="width:0%"></div></div>
+    </div>
+    <div id="quizContent"></div>
+  </div>
+  <div id="quizResults" class="hidden results">
+    <div class="results-score" id="resPct">0%</div>
+    <div class="results-label">Quiz Complete</div>
+    <div class="results-row">
+      <div class="rstat"><div class="rstat-num" id="resCorrect" style="color:var(--ok)">0</div><div class="rstat-label">Correct</div></div>
+      <div class="rstat"><div class="rstat-num" id="resWrong" style="color:var(--critical)">0</div><div class="rstat-label">Wrong</div></div>
+      <div class="rstat"><div class="rstat-num" id="resTotal">0</div><div class="rstat-label">Total</div></div>
+    </div>
+    <button class="btn primary" onclick="startQuiz()">Try Again</button>
+  </div>
+</div>
+
+<!-- PROTOCOLS -->
+<div id="mode-protocols" class="hidden">
+  <p style="font-size:13px;color:var(--muted);margin-bottom:20px;">Quick reference for practical exam. <span style="color:var(--critical)">Red</span> = major deduction territory.</p>
+  <div id="protocolGrid"></div>
+</div>
+
+<!-- DRUGS -->
+<div id="mode-drugs" class="hidden">
+  <div class="filter-row">
+    <span class="filter-label">Level:</span>
+    <button class="chip active" data-dl="all" onclick="setDrugFilter('all',this)">All</button>
+    <button class="chip" data-dl="emr" onclick="setDrugFilter('emr',this)">EMR</button>
+    <button class="chip" data-dl="pcp" onclick="setDrugFilter('pcp',this)">PCP only</button>
+  </div>
+  <div class="drug-grid" id="drugGrid"></div>
+</div>
+
+</div>
+<script>
+const FC=[
+  {id:1,p:'critical',cat:'Assessment',q:'7 components of the Patient Assessment Model — correct order?',a:'<ol style="padding-left:18px"><li><b>Rescue Scene Evaluation (RSE)</b></li><li>Primary Survey (LOC → Spinal → A → B → C → RBS → Interventions → Transport Decision)</li><li>Secondary Survey (History / Vitals / Head-to-Toe)</li><li>Protocols</li><li>Treatments</li><li>Load &amp; Transport</li><li>Records &amp; Reports</li></ol><br>Load &amp; transport may occur any time after the decision point in unstable patients.'},
+  {id:2,p:'critical',cat:'Assessment',q:'Primary Survey — correct sequence of steps',a:'<span class="okt">LOC → Spinal Precautions → Airway → Breathing → Circulation → RBS → Interventions → Transport Decision</span><br><br><b>Hemorrhage control order:</b> Direct pressure → Pressure dressing → Elevation → Positioning → <span class="hl">Tourniquet (note time, NEVER release)</span> → Wound packing'},
+  {id:3,p:'critical',cat:'Assessment',q:'AVPU — airway implications at each level',a:'<ul><li><span class="num">A</span> Alert — maintains own airway</li><li><span class="num">V</span> Verbal — drowsy; consider semi-prone</li><li><span class="num">P</span> Pain — monitor closely; semi-prone if able</li><li><span class="hl">U Unresponsive — CANNOT protect airway. You MUST intervene.</span></li></ul>'},
+  {id:4,p:'critical',cat:'Assessment',q:'6 primary survey findings that make a patient UNSTABLE',a:'<ul><li><b>Altered LOC or unconsciousness</b></li><li><b>Respiratory distress / arrest</b></li><li><b>Absent radial pulses / cardiac arrest</b></li><li>Hemorrhage requiring tourniquet or wound packing</li><li>Cool pale clammy skin — suspected shock</li><li>CVA, heat stroke, severe hypothermia, cardiac chest pain, anaphylaxis</li></ul>'},
+  {id:5,p:'critical',cat:'Assessment',q:'Anatomical findings that classify a patient as unstable',a:'<ul><li>Open/depressed skull #; new neurological deficits</li><li>Major penetrating trauma to head/neck/torso/proximal extremities</li><li>2+ proximal long bone fractures; crushed/de-gloved/mangled extremity</li><li>Pulseless extremity after 1 realignment attempt</li><li><b>Amputation proximal to wrist or ankle</b></li><li>Unstable pelvis / flail chest</li><li>Burns: partial &gt;<span class="num">20%</span> BSA · full &gt;<span class="num">10%</span> BSA · facial/airway burns</li></ul>'},
+  {id:6,p:'critical',cat:'Protocol',q:'Anaphylaxis — 4 required criteria and first actions',a:'<b>ALL 4 must be present:</b><ul><li>Signs of anaphylaxis (resp/abd/urticaria/angioedema/hypotension)</li><li>History of allergy</li><li>Exposure to allergen</li><li><b>Unstable:</b> syncope, decreased LOC, BP &lt;<span class="num">90</span>, or respiratory distress</li></ul><b>First:</b> Supine (don\'t walk) → remove allergen → primary survey + O₂ → <b>Epinephrine 0.5mg IM</b>'},
+  {id:7,p:'critical',cat:'Protocol',q:'Cardiac Chest Pain — all-levels steps in order',a:'<ol style="padding-left:18px"><li>Position of comfort, <b>limit movement</b></li><li>Primary survey + O₂ (SpO₂ ≥ <span class="num">94%</span>)</li><li><b>ASA 160mg</b> chewed &amp; swallowed (if not yet taken)</li><li>Initiate transport</li><li>History + baseline vitals</li><li><b>NTG SL</b> if SBP &gt;110, HR 50–150, no PDE5i within window</li></ol><br>Transport after first NTG if not already done'},
+  {id:8,p:'critical',cat:'Protocol',q:'Adult CPR/AED — when to stop, key interruption rule',a:'Stop when:<ul><li>Care transferred to advanced providers</li><li>Signs of life</li><li><b>30 minutes elapsed</b></li><li>Valid DNR / No CPR order</li></ul><span class="hl">Interruptions must be &lt;5 seconds.</span> Consult medical oversight at <b>20 min</b> or if treatable cause found.'},
+  {id:9,p:'critical',cat:'Protocol',q:'Adult CPR — rate, depth, ratio',a:'Rate: <span class="hl">100–120/min</span> · Depth: <span class="hl">5.0–6.0 cm</span> (normal adult; 1/3–½ chest for others)<br>Ratio: <span class="num">30:2</span> (1 or 2 rescuers)<br><br>Complete recoil every compression. Avoid hyperventilation. Change operators q2 min.'},
+  {id:10,p:'critical',cat:'Protocol',q:'Narcotic Overdose — signs and Naloxone escalating doses',a:'<b>Signs:</b> Decreased LOC + <b>↓ RR and ↓ tidal volume</b> + pinpoint pupils + hypotension + hypothermia<br><br><b>Naloxone (q3min if SpO₂ &lt;94% or RR &lt;10):</b><br><span class="num">0.4 → 0.4 → 0.8 → 2.0 mg</span> IM/IV &nbsp;·&nbsp; IN: <span class="num">3mg</span>'},
+  {id:11,p:'critical',cat:'Protocol',q:'Diabetic Emergency — conscious vs unconscious treatment',a:'<b>Conscious (can maintain airway):</b> <span class="okt">Oral glucose gel 15g</span> to oral mucosa; repeat q5min<br><br><b>Unprotected airway — EMR:</b> <span class="hl">Glucagon 0.5–1mg IM or 3mg IN</span><br><br><b>PCP:</b> D10W 10–25g IV; Glucagon if no IV<br>Treat when BGL &lt; <span class="num">4.0 mmol/L</span>'},
+  {id:12,p:'critical',cat:'Protocol',q:'Hypovolemia protocol — 4 required criteria and PCP bolus',a:'All of:<ul><li>Evidence of hypovolemia</li><li><b>Systolic BP &lt; 90 mmHg</b></li><li>Other clinical signs of shock</li><li>OR Burns &gt;20% BSA</li></ul><br><b>PCP bolus:</b> <span class="num">20ml/kg</span> to max <span class="num">2L</span>, reassess every <span class="num">500ml</span>'},
+  {id:13,p:'critical',cat:'Trauma',q:'Tourniquet — when to apply, time rule, wound packing rule',a:'Apply when: direct pressure fails AND wound is in tourniquet-amenable area<ul><li>Apply <b>proximal to wound</b></li><li><span class="hl">Note the time</span></li><li><span class="hl">NEVER release once applied</span></li><li>Junctional hemorrhage → wound packing</li><li><b>NEVER pack: neck, chest, or abdomen</b></li></ul>'},
+  {id:14,p:'critical',cat:'Trauma',q:'Pelvic binder — indications, contraindications, key rule',a:'<b>Indications (MOI + any of):</b> HR &gt;100, SBP &lt;90, GCS &lt;14, pelvic pain/instability, decreased LOC, distracting injury<br><br><b>Contraindications:</b> Neck-of-femur fractures; simple falls from standing<br><br><b>Key:</b> Centre at <span class="hl">greater trochanter</span>. <span class="hl">Do NOT roll patient.</span> Zap straps are NOT acceptable.'},
+  {id:15,p:'moderate',cat:'Trauma',q:'Traction splint (Sager) — STAPLES mnemonic',a:'<b>S</b>ize · <b>T</b>high strap · <b>A</b>nkle harness above malleoli · <b>P</b>adding<br><b>L</b>bs: <span class="num">10%</span> body weight, max <span class="num">15 lbs</span> (closed); max <span class="num">5 lbs</span> (open)<br><b>E</b>levate to neutral · <b>S</b>traps: 3 straps + blanket between legs<br><br>Indication: mid-shaft femur, <em style="color:var(--warn)">stable patients only</em>'},
+  {id:16,p:'critical',cat:'Trauma',q:'Modified NEXUS — 5 criteria; when is SMR NOT warranted?',a:'<b>No</b> to ALL 5 required:<ul><li>No midline tenderness</li><li>No altered LOC (must be alert ×3 or 4)</li><li>No new focal neurological deficits</li><li>Not intoxicated</li><li>No major distracting injury</li></ul><b>High-risk group (simple SMR warranted):</b> age &gt;65, osteoporosis, pre-existing spinal condition'},
+  {id:17,p:'moderate',cat:'Trauma',q:'Burn management — cooling protocol and unstable criteria',a:'Cool <b>15–20 min</b> with cool (not cold) running water (inclusive of bystander time)<br>After cooling: sterile nonstick dry gauze<br><br><b>Unstable burns:</b> Partial &gt;<span class="num">20%</span> BSA · Full &gt;<span class="num">10%</span> BSA · Facial/airway burns · Circumferential limb · High-voltage electrical · 3rd° hands/feet/eyes/neck/groin'},
+  {id:18,p:'moderate',cat:'Trauma',q:'Amputated part — procedure and 4 prohibitions',a:'Rinse cool sterile water → saline-moistened gauze → plastic bag → cool protective container → transport with patient<br><br><span class="hl">NEVER:</span><ul><li>Warm the part</li><li>Place in water</li><li>Place directly on ice</li><li>Use dry ice</li></ul>'},
+  {id:19,p:'moderate',cat:'Trauma',q:'TBI — GCS classification and management targets',a:'≥<span class="num">13</span> mild · <span class="num">9–12</span> moderate · ≤<span class="num">8</span> severe<br><br>All levels: SpO₂ &gt;<span class="num">94%</span>, HOB <span class="num">30°</span>, loosen hard collar<br>PCP: BGL 4.0–8.0 mmol/L, SBP &gt;<span class="num">120 mmHg</span>, IV-TKVO<br><span class="hl">TXA contraindicated for isolated TBIs</span>'},
+  {id:20,p:'critical',cat:'Drug',q:'Epinephrine — indication, dose, route, cautions',a:'<b>Ind:</b> Anaphylaxis, severe bronchospasm<br><b>Adult:</b> <span class="num">0.5mg IM</span> q5min up to 3× &nbsp; <b>Paeds:</b> <span class="num">0.01mg/kg IM</span> max 0.5mg<br><b>Onset:</b> IM 5–15 min · No absolute CI in life-threatening situations<br><br><b>Cautions:</b><ul><li><span class="hl">Hypotension if given IV too quickly — use IM route</span></li><li>Hypertension, tachycardia, dysrhythmias at high doses</li></ul>'},
+  {id:21,p:'critical',cat:'Drug',q:'Nitroglycerin — dose, contraindications, cautions',a:'<b>Dose:</b> 1 dose SL q3–5min while SBP &gt;<span class="num">110</span>; max 3 doses/30min<br><br><b>Contraindications:</b><ul><li>SBP &lt;<span class="hl">110 mmHg</span></li><li>HR &lt;<span class="hl">50</span> or &gt;<span class="hl">150</span></li><li>Viagra/Levitra &lt;<span class="hl">24h</span> · Cialis &lt;<span class="hl">48h</span></li><li>Nitrate allergy</li></ul><b>Cautions:</b> Hypotension (esp. elderly) — patient must not be at fall risk; medical oversight if no Rx or &gt;3 doses. Do NOT shake NTG spray.'},
+  {id:22,p:'critical',cat:'Drug',q:'Naloxone — dose escalation, cautions, adverse effects',a:'<b>IM/IV (q3min if SpO₂ &lt;94% or RR &lt;10):</b> <span class="num">0.4 → 0.4 → 0.8 → 2.0 mg</span> · IN: <span class="num">3mg</span><br><br><b>Cautions &amp; adverse effects:</b><ul><li><span class="hl">Patient combativeness on reversal</span></li><li>May precipitate severe withdrawal symptoms</li><li>Hypotension, hypertension, tachycardia, N/V, sweating</li></ul>'},
+  {id:23,p:'moderate',cat:'Drug',q:'ASA — dose, special rule, contraindications, cautions',a:'<b>Dose:</b> <span class="num">160mg PO</span> chewed and swallowed<br><span class="okt">Only drug NOT requiring vitals before administration</span><br><br><b>Contraindications:</b> Allergy/unable to swallow · Active GI bleed · Already taken dose · Salicylate/NSAID-induced asthma · <b>Peds with viral symptoms</b><br><br><b>Cautions:</b> Recent internal bleeding · Anticoagulant use · Recent surgery · Possible pregnancy'},
+  {id:24,p:'moderate',cat:'Drug',q:'CPAP — all indications required, contraindications',a:'<b>Indications (patient ≥13 AND ALL of):</b> RR &gt;<span class="num">24</span> · SpO₂ &lt;<span class="num">94%</span> on O₂ · accessory muscle use · awake + following commands<br><br><b>Contraindications:</b> Age ≤12 · Decreased LOC · Respiratory arrest · Vomiting/aspiration · Traumatic cause · Pneumothorax · Tracheostomy · SBP &lt;<span class="hl">90mmHg</span><br><br>Start <span class="num">5cmH₂O</span>, titrate +2.5 to max <span class="num">10cmH₂O</span>'},
+  {id:25,p:'moderate',cat:'Drug',q:'Salbutamol — doses, contraindications, cautions',a:'<b>Neb:</b> &gt;1yr <span class="num">5mg</span> · &lt;1yr <span class="num">2.5mg</span><br><b>MDI adult:</b> <span class="num">4×100mcg</span> repeat prn<br><b>MDI paeds:</b> &lt;10kg: not indicated · 10–20kg: 5×100mcg · &gt;20kg: 10×100mcg (up to 3×)<br><br><b>Contraindication:</b> Hemodynamic tachyarrhythmias &gt;120bpm<br><b>Cautions:</b> Coronary disease · COPD with degenerative heart disease · Diabetes (β2 effects on BGL)'},
+  {id:26,p:'moderate',cat:'Drug',q:'TXA — indications, contraindications, cautions',a:'<b>Indications:</b> Major trauma + hypovolemia protocol · Shock with occult/ongoing bleeding<br><br><b>Contraindications:</b><ul><li>Allergy to TXA</li><li><span class="hl">&gt;3 hours post-injury</span></li><li>Age &lt;12 years</li><li><span class="hl">Isolated TBIs</span></li></ul><b>Dose:</b> <span class="num">2g IV push over 1 min</span><br><b>Caution:</b> <span class="hl">Hypotension if pushed too quickly</span>'},
+  {id:27,p:'moderate',cat:'Protocol',q:'SOB Asthma/COPD — O₂ target, COPD caution, PCP escalation',a:'Target SpO₂ ≥ <span class="num">94%</span> (<em style="color:var(--warn)">may not be achievable in COPD</em>)<br>COPD maintenance O₂: <span class="hl">nasal cannula 1–3 L/min</span> (high flow OK for active SOB)<br><br><b>PCP escalation:</b><ol style="padding-left:18px"><li>Salbutamol + Ipratropium (Iprat = single dose only)</li><li>IM Epinephrine if SpO₂ &lt;90% or severe unresolved bronchospasm</li><li>Dexamethasone + CPAP</li></ol>'},
+  {id:28,p:'moderate',cat:'Trauma',q:'Chest trauma — occlusive dressing, flail chest, PCP additions',a:'Open wound: <b>3-sided occlusive dressing</b> or commercial chest seal<br><span class="hl">Monitor for tension pneumothorax — relieve if necessary</span><br><br>Flail chest: MANUALLY stabilize<br>PCP en route: vascular access + TXA if indicated'},
+  {id:29,p:'moderate',cat:'Protocol',q:'Stroke — FAST-VAN screen, O₂ target, transport priority',a:'<b>FAST:</b> Face, Arm, Speech, Time (≤6h or outside window)<br><b>VAN:</b> Vision (gaze deviation), Aphasia (naming), Neglect (ignores one side)<br><span class="hl">VAN positive = STROKE ALERT — possible large vessel occlusion</span><br><br>SpO₂ ≥<span class="num">94%</span> · BGL check · Timely transport · <b>Pre-notify receiving facility</b><br>PCP: IV above wrist, 18G, right side'},
+  {id:30,p:'standard',cat:'Assessment',q:'Practical exam grading — Major vs Moderate vs Minor deficiency',a:'<b>Major (***):</b> Failing indicated skill · Gross errors · Non-indicated skill causing detriment · Wrong sequencing causing detriment<br><br><b>Moderate (**):</b> Minor errors with detriment potential · Safety issues · Wrong sequencing without detriment · Omitting critical report info<br><br><b>Minor (*):</b> Insufficient justification · Minor errors without detriment · Omitting non-critical info<br><br><span class="okt">Pass mark: 70%</span>'},
+];
+
+const QQ=[
+  // CPR / CARDIAC
+  {cat:'critical',q:'Maximum allowable CPR interruption duration?',opts:['10 seconds','5 seconds','15 seconds','No defined limit'],ans:1,exp:'CPR interruptions must be kept to less than 5 seconds to maintain perfusion pressure.'},
+  {cat:'critical',q:'Adult CPR compression rate and depth?',opts:['80–100/min at 4–5 cm','100–120/min at 5–6 cm','120–140/min at 4–5 cm','100–120/min at 6–7 cm'],ans:1,exp:'Rate 100–120/min, depth 5.0–6.0 cm for a normal adult. Adjust to 1/3–½ chest diameter for other sizes.'},
+  {cat:'critical',q:'Adult CPR ratio (one or two rescuers)?',opts:['15:2','30:2','30:1','20:2'],ans:1,exp:'30:2 for one or two adult rescuers. Infant/child 2-rescuer ratio is 15:2.'},
+  {cat:'critical',q:'When must you consult medical oversight during a cardiac arrest?',opts:['After 10 minutes','After 15 minutes','At 20 min, or when a treatable cause is found','Only if the patient has a DNR'],ans:2,exp:'Consult at 20 min of high-quality CPR, when a treatable cause is identified, or when patient arrests during transport.'},
+  {cat:'critical',q:'Infant CPR — which pulse point is used?',opts:['Carotid','Radial','Brachial','Femoral'],ans:2,exp:'Use the brachial artery (not carotid) to assess pulse in an infant.'},
+  {cat:'critical',q:'Infant/child CPR compression depth is:',opts:['3–4 cm fixed','5–6 cm','1/3–½ chest diameter','2 cm only'],ans:2,exp:'1/3 to ½ of the chest diameter at 100–120/min. Two-rescuer infant/child ratio is 15:2.'},
+  {cat:'critical',q:'Nitroglycerin is contraindicated if systolic BP is below:',opts:['90 mmHg','100 mmHg','110 mmHg','120 mmHg'],ans:2,exp:'NTG is contraindicated if SBP < 110 mmHg, HR <50 or >150, and Viagra <24h or Cialis <48h.'},
+  {cat:'critical',q:'Nitroglycerin HR contraindication range is:',opts:['HR < 60 or > 120','HR < 50 or > 150','HR < 40 or > 100','HR < 70 or > 130'],ans:1,exp:'NTG is contraindicated if HR <50 or >150, in addition to SBP <110 and recent PDE5 inhibitors.'},
+  {cat:'critical',q:'How long before NTG can Viagra/Levitra be taken without contraindication?',opts:['12 hours','24 hours','48 hours','72 hours'],ans:1,exp:'Viagra and Levitra: 24-hour window. Cialis: 48-hour window. Beyond these, use caution but not absolute contraindication.'},
+  // PROTOCOLS
+  {cat:'protocol',q:'Anaphylaxis — correct FIRST action after confirming all 4 indications?',opts:['Administer Epinephrine IM immediately','Position supine + remove allergen + primary survey, THEN Epinephrine','Start IV access first','Administer Diphenhydramine'],ans:1,exp:'Sequence: position supine (do NOT walk patient) → remove allergen → primary survey + O₂ → Epinephrine.'},
+  {cat:'protocol',q:'Traction splint indication:',opts:['Any femur fracture','Mid-shaft femur in STABLE patients only','Open femur fractures only','All tibia/fibula fractures'],ans:1,exp:'Mid-shaft femur fractures in STABLE patients only. Open fractures: max 5 lbs traction.'},
+  {cat:'protocol',q:'Open mid-shaft femur fracture — maximum traction is:',opts:['10 lbs','15 lbs','5 lbs','20 lbs'],ans:2,exp:'Open mid-shaft fracture: maximum 5 lbs. Closed mid-shaft: 10% of body weight to a maximum of 15 lbs.'},
+  {cat:'protocol',q:'CPAP is contraindicated if systolic BP is below:',opts:['110 mmHg','100 mmHg','90 mmHg','80 mmHg'],ans:2,lv:'pcp',exp:'CPAP contraindicated if SBP < 90 mmHg. Also contraindicated in age ≤12, decreased LOC, vomiting, pneumothorax.'},
+  {cat:'protocol',q:'CPAP starting pressure and maximum pressure are:',opts:['5 cmH₂O start, max 15 cmH₂O','5 cmH₂O start, max 10 cmH₂O','2.5 cmH₂O start, max 7.5 cmH₂O','10 cmH₂O start, max 20 cmH₂O'],ans:1,lv:'pcp',exp:'Start at 5 cmH₂O, increase in 2.5 cmH₂O increments to a maximum of 10 cmH₂O.'},
+  {cat:'protocol',q:'Oral glucose is given to a hypoglycemic patient ONLY if:',opts:['Glucagon is unavailable','Patient has sufficient mentation to maintain airway','BGL is below 2.0 mmol/L','Patient is a known diabetic'],ans:1,exp:'Oral glucose only for patients with sufficient mentation to maintain their own airway. Otherwise use glucagon or D10W.'},
+  {cat:'protocol',q:'Severe hypothermia (<28°C) — active rewarming is:',opts:['Required immediately with hot packs','Required with warm IV fluids','Contraindicated — insulate only, avoid rough handling','Recommended only in hospital'],ans:2,exp:'Severe hypothermia (<28°C): do NOT actively rewarm. Insulate, heat ambulance to 30°C, avoid rough handling. Active rewarming for mild-moderate (>28°C) only.'},
+  {cat:'protocol',q:'For hypothermia, how long should you check for a pulse before declaring pulselessness?',opts:['5–10 seconds','10–15 seconds','30–45 seconds','60 seconds'],ans:2,exp:'Take up to 30–45 seconds to determine pulselessness in the severely hypothermic patient.'},
+  {cat:'protocol',q:'Burn cooling — how long should you cool with running water?',opts:['5–10 minutes','10–15 minutes','15–20 minutes','30 minutes minimum'],ans:2,exp:'15–20 minutes, inclusive of any bystander cooling time. Burns should be cooled with cool (not cold) running water.'},
+  {cat:'protocol',q:'After burn cooling is complete, the wound is dressed with:',opts:['Wet saline dressings','Ice packs','Sterile nonstick dry gauze','Petroleum-based dressing'],ans:2,exp:'Once cooling is finished, dress with sterile, nonstick, dry gauze.'},
+  {cat:'protocol',q:'For heatstroke cooling, you should continue cooling for a minimum of how long before transport?',opts:['5 minutes','10 minutes','15 minutes','20 minutes'],ans:1,exp:'Continue cooling efforts for a minimum of 10 minutes prior to beginning conveyance to hospital.'},
+  {cat:'protocol',q:'Chest trauma open wound — the dressing applied is:',opts:['Fully occlusive 4-sided dressing','Three-sided occlusive dressing or commercial chest seal','Standard gauze bandage','Pressure dressing only'],ans:1,exp:'Seal open chest wound with a three-sided occlusive dressing or commercial chest seal. Monitor closely for tension pneumothorax.'},
+  {cat:'protocol',q:'Congestive heart failure / pulmonary edema — correct patient position is:',opts:['Supine flat','Recovery position (lateral)','Sitting upright with legs hung down','Trendelenburg (legs elevated)'],ans:2,exp:'Position sitting upright with legs hung down to reduce venous return and work of breathing.'},
+  {cat:'protocol',q:'Abdominal evisceration — extruded bowel should be:',opts:['Replaced into the abdominal cavity','Covered with moist sterile dressings then an occlusive layer','Covered with dry sterile gauze only','Left exposed and patient transported immediately'],ans:1,exp:'Cover extruded bowel with moist, sterile dressings followed by an occlusive layer. Do NOT replace in the cavity.'},
+  {cat:'protocol',q:'For a drowning patient, spinal motion restriction is applied:',opts:['Always in drowning cases','Only if the patient is unconscious','As indicated by the mechanism of injury','Never — it delays airway management'],ans:2,exp:'Apply spinal motion restriction as indicated based on the mechanism of injury, not automatically in all drowning cases.'},
+  {cat:'protocol',q:'FAST-VAN stroke screen — what does VAN stand for?',opts:['Vital signs, Airway, Neuro exam','Vision, Aphasia, Neglect','Ventilation, Airway, Nausea','Verbal, Arm, Neuro deficit'],ans:1,exp:'VAN = Vision (gaze deviation), Aphasia (naming difficulties), Neglect (ignores one side). VAN positive = possible large vessel occlusion.'},
+  {cat:'protocol',q:'Stroke — which IV size and side is preferred for PCP vascular access?',opts:['20G on the left side','18G above the wrist, right side preferred','16G antecubital, either side','22G on the left side'],ans:1,lv:'pcp',exp:'Select a site above the level of the wrist using an 18G catheter, preferably on the right side.'},
+  // DRUGS
+  {cat:'drug',q:'Naloxone initial dose is 0.4mg. If SpO₂ remains <94% after 3 min, next dose is:',opts:['0.8 mg','0.4 mg','2.0 mg','1.2 mg'],ans:1,exp:'Escalating sequence: 0.4 → 0.4 → 0.8 → 2.0 mg IM/IV, each 3 minutes apart if target not achieved.'},
+  {cat:'drug',q:'Naloxone intranasal (IN) dose is:',opts:['0.4 mg','0.8 mg','2.0 mg','3 mg'],ans:3,exp:'Intranasal Naloxone dose is 3mg. IM/IV uses the escalating 0.4 → 0.4 → 0.8 → 2.0mg sequence.'},
+  {cat:'drug',q:'ASA dose for cardiac chest pain:',opts:['325 mg chewed','500 mg swallowed','160 mg chewed','81 mg chewed'],ans:2,exp:'160 mg PO, chewed and swallowed. ASA is the ONLY drug that does not require vitals before administration.'},
+  {cat:'drug',q:'Epinephrine adult dose for anaphylaxis:',opts:['0.3 mg IM','0.5 mg IM','1.0 mg IM','0.5 mg IV'],ans:1,exp:'0.5 mg IM q5min, up to 3 times. Paeds: 0.01 mg/kg IM max 0.5 mg.'},
+  {cat:'drug',q:'Epinephrine pediatric dose for anaphylaxis:',opts:['0.5 mg IM flat','0.01 mg/kg IM, max 0.5 mg','0.1 mg/kg IM, max 1 mg','0.3 mg IM flat'],ans:1,exp:'0.01 mg/kg IM to a maximum of 0.5 mg, may repeat up to 3 times.'},
+  {cat:'drug',q:'TXA is contraindicated if more than how many hours post-injury?',opts:['1 hour','2 hours','3 hours','6 hours'],ans:2,lv:'pcp',exp:'TXA contraindicated if >3 hours post-injury, for isolated TBIs, and for patients <12 years.'},
+  {cat:'drug',q:'TXA dose and route:',opts:['1g IV over 10 minutes','2g IV push over 1 minute','500mg IM','2g IV over 30 minutes'],ans:1,lv:'pcp',exp:'2g (2000mg) IV push over 1 minute. Caution: further hypotension if administered too quickly.'},
+  {cat:'drug',q:'COPD maintenance O₂ delivery (post-acute):',opts:['Non-rebreather at 15L/min','Nasal cannula 1–3 L/min','Simple mask at 6 L/min','BVM as needed'],ans:1,exp:'Post-acute COPD: nasal cannula 1–3 L/min. High flow O₂ is indicated during active SOB.'},
+  {cat:'drug',q:'Salbutamol nebulizer dose for a child over 1 year of age:',opts:['2.5 mg','5 mg','10 mg','1 mg/kg'],ans:1,exp:'Age >1 year: 5mg via nebulizer. Age <1 year: 2.5mg. Adult MDI: 4×100mcg.'},
+  {cat:'drug',q:'Ipratropium is described as which type of administration?',opts:['Multiple doses as needed','Single dose only','Twice daily maximum','Continuous infusion'],ans:1,lv:'pcp',exp:'Ipratropium is a single dose only. Salbutamol may be repeated. Both can be combined in the same nebulizer.'},
+  {cat:'drug',q:'Glucagon intranasal (IN) dose and repeat timing:',opts:['1mg IN, repeat in 5min','3mg IN, repeat after 15min if no response','2mg IN, repeat in 10min','0.5mg IN, repeat in 30min'],ans:1,lv:'pcp',exp:'3mg IN; repeat after 15 minutes if no clinical response. IM dose is 0.5–1mg.'},
+  {cat:'drug',q:'D10W dose for confirmed hypoglycemia (PCP):',opts:['5–10g IV','10–25g (100–250ml) IV','50g IV push','25–50g IV'],ans:1,lv:'pcp',exp:'10–25g (100–250ml of 10% solution) IV. Extravasation causes tissue necrosis — confirm IV patency.'},
+  {cat:'drug',q:'Dimenhydrinate IV — how must it be administered?',opts:['IV push undiluted over 30 seconds','Diluted in NS, injected over 2 minutes at 25mg/min','Bolus over 5 minutes','Mixed with D5W only'],ans:1,lv:'pcp',exp:'IV: dilute with NS and inject slowly over 2 minutes at 25mg/min. IM can be given undiluted.'},
+  {cat:'drug',q:'Ondansetron adult PO dose is:',opts:['2 mg','4 mg','8 mg','10 mg'],ans:1,lv:'pcp',exp:'Adult: 4mg PO. Pediatric: 2mg (6mo–4yr), 4mg (4yr+). Relatively contraindicated in 1st trimester pregnancy.'},
+  {cat:'drug',q:'Ondansetron — special concern for Indigenous patients relates to:',opts:['Higher risk of allergic reaction','Higher prevalence of Long QT Syndrome — use Dimenhydrinate instead if confirmed','Slower metabolism requiring lower dose','Increased risk of hypertension'],ans:1,lv:'pcp',exp:'Some Indigenous people have higher prevalence of Long QT Syndrome due to a genetic variation. If Long QT is known or suspected, use Dimenhydrinate instead.'},
+  {cat:'drug',q:'Dexamethasone PCP adult dose and preferred route:',opts:['4mg IM only','8mg IV/IM/PO — PO preferred','16mg IV only','2mg PO'],ans:1,lv:'pcp',exp:'Adult: 8mg IV/IO/IM/PO. PO is preferred. Pediatric: 0.5mg/kg to a maximum of 16mg.'},
+  {cat:'drug',q:'Methoxyflurane (Penthrox) is contraindicated in patients under what age?',opts:['12 years','16 years','18 years','21 years'],ans:2,lv:'pcp',exp:'Methoxyflurane is contraindicated in patients less than 18 years of age, along with pregnancy, decreased LOC, and renal/hepatic impairment.'},
+  {cat:'drug',q:'Methoxyflurane maximum total volume per encounter is:',opts:['3 mL','6 mL','9 mL','12 mL'],ans:1,lv:'pcp',exp:'3 mL self-administered via inhaler, may repeat once after 20 minutes. Maximum total volume is 6 mL.'},
+  // ASSESSMENT
+  {cat:'assessment',q:'GCS score of 10 indicates what TBI severity?',opts:['Mild','Moderate','Severe','Critical'],ans:1,exp:'GCS ≥13 = mild, 9–12 = moderate, ≤8 = severe. GCS 10 is in the moderate range.'},
+  {cat:'assessment',q:'TBI — what SpO₂ target must be maintained?',opts:['≥90%','≥94%','≥98%','100%'],ans:1,exp:'Ensure adequate oxygenation with SpO₂ > 94%. Elevate HOB to 30 degrees and loosen hard collar.'},
+  {cat:'assessment',q:'TBI — PCP systolic BP target is:',opts:['> 90 mmHg','> 100 mmHg','> 110 mmHg','> 120 mmHg'],ans:3,lv:'pcp',exp:'PCP: maintain systolic BP > 120 mmHg. IV-TKVO if SBP is already above this target.'},
+  {cat:'assessment',q:'Load and transport may appropriately occur:',opts:['Only after full secondary survey','Only after all treatments','Any time after the decision point in unstable patients','Only after the protocol phase'],ans:2,exp:'Load and transport may be appropriate any time after the "decision point," especially for unstable patients.'},
+  {cat:'assessment',q:'How many NEXUS criteria must be absent to safely clear the c-spine?',opts:['3 of 5','4 of 5','All 5','At least 2'],ans:2,exp:'"No to ALL FIVE questions — SMR is not warranted." All 5 must be absent.'},
+  {cat:'assessment',q:'A free fall from what height makes a patient automatically unstable?',opts:['3 metres','6 metres','10 metres','Any height'],ans:1,exp:'Free fall from a height greater than 6 metres (~20 feet) classifies as an unstable mechanism of injury.'},
+  {cat:'assessment',q:'Auto vs pedestrian/cyclist at what speed is an unstable mechanism?',opts:['> 20 kph','> 30 kph','> 50 kph','> 60 kph'],ans:1,exp:'Auto versus pedestrian or cyclist at greater than 30 kph is classified as an unstable mechanism.'},
+  {cat:'assessment',q:'Which burn type and BSA automatically makes a patient unstable?',opts:['Any burn >5% BSA','Partial thickness >20% BSA or full thickness >10% BSA','Full thickness >20% BSA only','Superficial burns covering >50% BSA'],ans:1,exp:'Unstable burns: partial thickness >20% BSA, full thickness >10% BSA, facial/airway burns, and high voltage electrical burns.'},
+  // TRAUMA
+  {cat:'critical',q:'Wound packing is PROHIBITED at which locations?',opts:['Groin and axilla','Neck, chest, or abdomen','Back and pelvis','Proximal thigh'],ans:1,exp:'Do NOT pack neck, chest, or abdomen. Wound packing is for junctional hemorrhage not amenable to tourniquet.'},
+  {cat:'critical',q:'Pelvic binder centre must align with the:',opts:['Iliac crest','Greater trochanter','Pubic symphysis','Level of umbilicus'],ans:1,exp:'Align centre with the greater trochanter. Do NOT roll the patient. Zap straps NOT acceptable.'},
+  {cat:'critical',q:'Pelvic binder is CONTRAINDICATED in which situation?',opts:['Hemodynamic instability','Neck-of-femur (hip) fracture or simple fall from standing','Pelvic pain on exam','GCS < 14'],ans:1,exp:'Pelvic binder is contraindicated for neck-of-femur ("hip") fractures and falls from standing height or other simple falls.'},
+  {cat:'critical',q:'Correct amputated part preservation method:',opts:['Place directly on ice','Submerge in clean water','Saline gauze → plastic bag → cool container','Warm gently to prevent cell death'],ans:2,exp:'Rinse cool sterile water → saline-moistened gauze → plastic bag → cool protective container. NEVER warm, submerge, or use direct ice.'},
+  {cat:'critical',q:'For a pulseless limb distal to an injury, how many realignment attempts are allowed?',opts:['No attempts','One attempt','Two attempts','As many as needed'],ans:1,exp:'One attempt may be made to re-align to anatomical position. If circulation returns → stable. If pulseless remains → manage as unstable.'},
+  {cat:'critical',q:'Spinal management — the head must NOT be secured by:',opts:['Foam blocks','Tape across the forehead','Hard collar','Body straps'],ans:1,exp:'Do not tape the head. Secure the patient\'s body to the immobilization device; use foam rollers/blocks for the head.'},
+];
+
+const PROTOCOLS=[
+  // ── TREATMENT PROTOCOLS ──
+  {name:'Wound Care',p:'critical',steps:[
+    {t:'c',s:'Expose and examine'},
+    {t:'c',s:'Control major hemorrhage: direct pressure → pressure dressing → elevation → positioning → <b>Tourniquet</b> (note time, NEVER release)'},
+    {t:'c',s:'If direct pressure fails and amenable to tourniquet: apply tourniquet <b>proximal to wound</b>'},
+    {t:'c',s:'If NOT amenable to tourniquet (junctional): consider <b>wound packing</b> — <b>DO NOT pack neck, chest, or abdomen</b>'},
+    {t:'w',s:'Bandage the bleed once hemorrhage controlled'},
+    {t:'g',s:'Protocols: provide analgesia if appropriate'},
+    {t:'b',s:'Treatment: clean and dress minor wounds; assess distal circulation; apply cold (if distal circulation intact)'},
+    {t:'b',s:'Immobilize limbs if large wounds or wounds over joints; stabilize embedded objects in place (unless impairing airway)'},
+  ]},
+  {name:'Preservation of Amputated Parts',p:'moderate',steps:[
+    {t:'b',s:'Stabilize patient injuries first'},
+    {t:'w',s:'Rinse amputated part with <b>cool sterile water</b> to remove gross contaminants'},
+    {t:'w',s:'Wrap loosely in <b>saline-moistened sterile gauze</b>'},
+    {t:'w',s:'Place in a plastic bag and keep cool in a <b>protective container</b>'},
+    {t:'b',s:'Transport with the patient'},
+    {t:'c',s:'<b>NEVER</b> warm the part'},
+    {t:'c',s:'<b>NEVER</b> place directly in water'},
+    {t:'c',s:'<b>NEVER</b> place directly on ice'},
+    {t:'c',s:'<b>NEVER</b> use dry ice'},
+  ]},
+  {name:'Musculoskeletal Injuries',p:'moderate',steps:[
+    {t:'w',s:'Expose and examine'},
+    {t:'c',s:'Control major hemorrhage'},
+    {t:'w',s:'Stabilize fractured limb(s), pelvis or hip'},
+    {t:'w',s:'Check distal pulse(s); reassess throughout call'},
+    {t:'w',s:'Realign grossly deformed or pulseless limb(s) — <b>one attempt only</b>'},
+    {t:'w',s:'Bind pelvis if appropriate'},
+    {t:'b',s:'Apply cold'},
+    {t:'g',s:'Protocols: analgesia prior to movement in stable, appropriate patients'},
+    {t:'b',s:'Treatment: apply traction if appropriate; immobilize joints above and below injury site'},
+  ]},
+  {name:'Hip Dislocation / Fracture',p:'critical',steps:[
+    {t:'c',s:'All hip dislocations: <b>Rapid Transport Category</b>'},
+    {t:'c',s:'Limb-threatening if neuro or vascular impairment present'},
+    {t:'w',s:'Quickly support injured limb with helpers, rolled blankets, and ties'},
+    {t:'w',s:'Move patient onto firm, blanketed stretcher or spinal device — secure to eliminate motion at hip'},
+    {t:'b',s:'Conduct remainder of secondary survey en route to hospital'},
+    {t:'w',s:'Maintain regular check of vitals, distal pulses, and neurological function in affected limb'},
+    {t:'b',s:'If dislocation spontaneously reduces during transport, <b>notify medical oversight</b>'},
+    {t:'g',s:'Pain management'},
+  ]},
+  {name:'Fracture Management — Traction Splint',p:'moderate',steps:[
+    {t:'b',s:'<b>Indication:</b> Suspected mid-shaft femur fractures in <em>stable patients only</em>'},
+    {t:'w',s:'Assess distal circulation, sensation, and function'},
+    {t:'b',s:'Apply cold if appropriate (ice on 10 min / off 5 min)'},
+    {t:'g',s:'Give analgesia if not contraindicated'},
+    {t:'w',s:'Ensure patient supine with injured leg aligned with body; maintain manual stabilization after movement'},
+    {t:'b',s:'<b>STAPLES:</b> Size → Thigh strap → Ankle harness above malleoli → Padding'},
+    {t:'c',s:'<b>Lbs traction:</b> Closed fracture: 10% body weight, max 15 lbs · Open fracture: max 5 lbs'},
+    {t:'b',s:'Elevate bottom of sager to align neutral with leg → apply 3 elasticized straps → blanket between legs'},
+    {t:'w',s:'Reassess and correct traction with every movement or vital sign reassessment'},
+  ]},
+  {name:'Pelvis Binding',p:'critical',steps:[
+    {t:'b',s:'<b>Indications:</b> MOI suggestive of pelvic # + any of: HR &gt;100, SBP &lt;90, GCS &lt;14, pelvic pain/instability, decreased LOC, distracting injury'},
+    {t:'c',s:'<b>Contraindications:</b> Neck-of-femur fractures; simple falls from standing'},
+    {t:'c',s:'Use commercial grade binder (preferred) or 3 overlapping broad triangular bandages — <b>Zap straps NOT acceptable</b>'},
+    {t:'c',s:'Align centre of belt with <b>greater trochanter</b>'},
+    {t:'c',s:'<b>Do NOT roll the patient</b> when applying bandages'},
+    {t:'w',s:'Tighten enough to support pelvis without causing pain'},
+    {t:'b',s:'Pelvis must be stabilized prior to transport — reduces pelvic volume, creates tamponade, stabilizes fragments'},
+  ]},
+  {name:'Spinal Management',p:'critical',steps:[
+    {t:'b',s:'Follow <b>NEXUS criteria</b> and <b>Canadian C-Spine Guidelines</b>'},
+    {t:'c',s:'Manually stabilize head and neck'},
+    {t:'w',s:'Apply hard collar'},
+    {t:'w',s:'Place patient on spinal immobilization device'},
+    {t:'w',s:'Place foam rollers/foam blocks'},
+    {t:'c',s:'Secure patient\'s body to spinal device if appropriate — <b>DO NOT tape the head</b>'},
+    {t:'b',s:'Simple SMR: cervical collar on, head not taped, patient on mattress not clamshell, head of stretcher up 30° only if head injured'},
+    {t:'b',s:'Multi-trauma: more than one simultaneous injury (multiple fractures, organ damage, major vessel damage)'},
+  ]},
+  {name:'Traumatic Brain Injury',p:'critical',steps:[
+    {t:'b',s:'<b>GCS classification:</b> ≥13 mild · 9–12 moderate · ≤8 severe'},
+    {t:'c',s:'Ensure adequate oxygenation: SpO₂ &gt; <b>94%</b>'},
+    {t:'w',s:'If difficulty maintaining respirations, assist ventilations to keep SpO₂ &gt;94%'},
+    {t:'w',s:'Elevate HOB to <b>30 degrees</b>'},
+    {t:'w',s:'Loosen hard collar'},
+    {t:'c',s:'<b>TXA is contraindicated for isolated TBIs</b>'},
+    {t:'g',s:'PCP: Maintain blood sugar 4.0–8.0 mmol/L'},
+    {t:'g',s:'PCP: Maintain SBP &gt; 120 mmHg'},
+    {t:'g',s:'PCP: IV-TKVO if SBP &gt;120 mmHg'},
+  ]},
+  {name:'Burn Management',p:'moderate',steps:[
+    {t:'w',s:'Expose and examine'},
+    {t:'c',s:'Initiate cooling for <b>15–20 minutes</b> (inclusive of bystander time)'},
+    {t:'w',s:'Apply high flow O₂ if suspected inhalation injury or SOB'},
+    {t:'b',s:'Calculate BSA (Rule of Nines)'},
+    {t:'g',s:'Protocols: consider pain management if indicated'},
+    {t:'b',s:'Treatment: once cooling finished, dress with <b>sterile, nonstick, dry gauze</b>'},
+    {t:'b',s:'Cool with cool (not cold) running water; cool saline acceptable if immediate transport required'},
+    {t:'g',s:'PCP: IV if indicated · Hypotensive: 20ml/kg to max 2 litres'},
+  ]},
+  {name:'Hypothermia',p:'moderate',steps:[
+    {t:'c',s:'Assess and maintain ABCs'},
+    {t:'c',s:'Take up to <b>30–45 seconds</b> to determine pulselessness in severely hypothermic patient'},
+    {t:'w',s:'Remove wet/cold clothing; cover with blankets or dry clothing'},
+    {t:'b',s:'Take temperature if appropriate'},
+    {t:'c',s:'Cardiac arrest: apply AED, analyze, defibrillate up to <b>3 times</b> if indicated, then CPR + rapid transport (after 3 shocks, do NOT pause for analysis)'},
+    {t:'w',s:'<b>Mild/Moderate (&gt;28°C):</b> actively rewarm — mild activity, preheat ambulance to 30°C, hot packs in towels, warm blankets'},
+    {t:'c',s:'<b>Severe (&lt;28°C):</b> do NOT actively rewarm — insulate to prevent heat loss, heat ambulance to 30°C, avoid rough handling'},
+  ]},
+  {name:'Stroke (CVA)',p:'critical',steps:[
+    {t:'w',s:'Assess and manage ABCs'},
+    {t:'w',s:'O₂ to maintain SpO₂ ≥ 94%'},
+    {t:'b',s:'Position appropriately'},
+    {t:'c',s:'Blood glucose check'},
+    {t:'c',s:'<b>FAST-VAN</b> screen — document findings and symptom onset time'},
+    {t:'c',s:'Timely transport — <b>pre-notify receiving facility</b> with stroke alert'},
+    {t:'g',s:'PCP: IV access above wrist, 18G, right side preferred'},
+  ]},
+  {name:'Abdominal Injuries',p:'moderate',steps:[
+    {t:'c',s:'Control external hemorrhage'},
+    {t:'w',s:'Limit patient movement to reduce clot disruption'},
+    {t:'w',s:'Protect against heat loss'},
+    {t:'c',s:'Cover extruded bowel / eviscerated contents with <b>moist sterile dressings</b> followed by an <b>occlusive layer</b>'},
+    {t:'c',s:'<b>DO NOT place bowel back</b> into abdominal cavity'},
+    {t:'b',s:'Position of comfort'},
+    {t:'b',s:'Transport'},
+    {t:'g',s:'PCP en route: vascular access + correct hypoperfusion · TXA if indicated'},
+  ]},
+  {name:'Congestive Heart Failure / Pulmonary Edema',p:'moderate',steps:[
+    {t:'w',s:'Keep patient at rest; avoid exertion — bring equipment to patient'},
+    {t:'c',s:'Position <b>sitting upright with legs hung down</b>'},
+    {t:'w',s:'Keep patient warm; protect from heat loss'},
+    {t:'w',s:'O₂ to maintain SpO₂ ≥ 94%'},
+    {t:'w',s:'Assist ventilations if altered LOC or SpO₂ &lt;94%'},
+    {t:'b',s:'Transport'},
+    {t:'g',s:'PCP: Consider CPAP'},
+    {t:'g',s:'PCP: If BVM required, consider PEEP valve (5 cmH₂O to start)'},
+  ]},
+  {name:'Chest Trauma',p:'critical',steps:[
+    {t:'w',s:'Control any bleeding with gauze'},
+    {t:'w',s:'Assist oxygenation and ventilation if necessary'},
+    {t:'c',s:'Seal open chest wound with <b>three-sided occlusive dressing</b> or commercial chest seal'},
+    {t:'c',s:'<b>Monitor closely for tension pneumothorax</b> — relieve if necessary'},
+    {t:'c',s:'<b>MANUALLY stabilize flail chest</b>'},
+    {t:'w',s:'Position the patient ASAP'},
+    {t:'g',s:'PCP en route: vascular access if required · TXA if indicated'},
+  ]},
+  {name:'Electrical Contact',p:'critical',steps:[
+    {t:'c',s:'<b>Paramedic safety is critical</b> — do NOT approach until qualified personnel confirm scene safe'},
+    {t:'w',s:'Consider spinal motion restriction'},
+    {t:'c',s:'Cardiac arrest: begin compressions + follow resuscitation guidelines'},
+    {t:'w',s:'Supplemental O₂ as required'},
+    {t:'w',s:'Flush and decontaminate with sterile saline'},
+    {t:'c',s:'Do NOT cool burns longer than <b>15–20 minutes</b> including decontamination time'},
+    {t:'b',s:'Dress injuries; identify type of current and duration of contact; estimate BSA'},
+    {t:'b',s:'Consider ambulance heater during conveyance if significant body surface area cooling required'},
+    {t:'g',s:'PCP: vascular access · If hypotensive: fluid bolus 20ml/kg to max 2L, reassess every 500ml'},
+  ]},
+  {name:'Heat Exhaustion / Heatstroke',p:'moderate',steps:[
+    {t:'w',s:'Move patient to a cool area if appropriate'},
+    {t:'c',s:'Remove all clothing'},
+    {t:'c',s:'Begin <b>convective cooling</b> with AC set to maximum cold'},
+    {t:'c',s:'Apply cold, wet towels to head, torso, and thighs for <b>evaporative cooling</b>'},
+    {t:'w',s:'Immerse feet and legs in ice water bucket/basin if available'},
+    {t:'c',s:'Continue cooling for a <b>minimum of 10 minutes</b> prior to transport'},
+    {t:'w',s:'Check blood glucose if decreased LOC'},
+    {t:'w',s:'Continue most aggressive cooling available during transport until treatment endpoints reached'},
+    {t:'g',s:'PCP: consider fluid replacement if signs of dehydration'},
+  ]},
+  {name:'Drowning / Near Drowning',p:'moderate',steps:[
+    {t:'w',s:'Apply spinal motion restriction as indicated by mechanism of injury'},
+    {t:'w',s:'Keep patient at rest'},
+    {t:'w',s:'Position patient sitting up'},
+    {t:'w',s:'Remove wet clothing and dry the patient'},
+    {t:'w',s:'Avoid rough handling'},
+    {t:'w',s:'Maintain body temperature'},
+    {t:'c',s:'Basic airway management; initiate IPPV if failing respirations'},
+    {t:'c',s:'Cardiac or respiratory arrest: immediately commence resuscitation per appropriate guideline'},
+    {t:'g',s:'PCP: use PEEP or CPAP if indicated'},
+  ]},
+  // ── MEDICAL PROTOCOLS ──
+  {name:'Anaphylaxis',p:'critical',steps:[
+    {t:'c',s:'Position <b>SUPINE</b> — do NOT walk the patient'},
+    {t:'c',s:'Remove allergen (scrape stinger / stop drug infusion)'},
+    {t:'w',s:'Primary survey + airway + O₂ (SpO₂ ≥ 94%)'},
+    {t:'w',s:'Delegate crew to prep egress'},
+    {t:'b',s:'History + baseline vitals'},
+    {t:'c',s:'<b>Epinephrine 0.5mg IM</b> q5min, up to 3×'},
+    {t:'b',s:'Transport + continue assessment en route'},
+    {t:'g',s:'PCP: IV + fluid bolus if hypotensive (20ml/kg to 2L, q500ml)'},
+    {t:'g',s:'PCP: Salbutamol for bronchospasm (after Epi)'},
+    {t:'g',s:'PCP: Diphenhydramine to limit histamine response'},
+  ]},
+  {name:'Cardiac Chest Pain',p:'critical',steps:[
+    {t:'w',s:'Position of comfort, <b>limit movement</b>'},
+    {t:'w',s:'Primary survey + O₂ (SpO₂ ≥ 94%)'},
+    {t:'c',s:'<b>ASA 160mg</b> — chewed and swallowed (if not yet taken)'},
+    {t:'c',s:'Initiate transport immediately'},
+    {t:'b',s:'History (pain assessment) + baseline vitals'},
+    {t:'c',s:'<b>NTG SL</b> if SBP &gt;110, HR 50–150, no recent PDE5i — transport after 1st dose'},
+    {t:'g',s:'PCP: IV access + Dimenhydrinate for nausea'},
+    {t:'w',s:'PCP: Pain persists &gt;3 NTG doses or SBP &lt;110 → <b>Entonox</b> (5 min after last NTG)'},
+  ]},
+  {name:'Nausea / Vomiting (PCP)',p:'moderate',steps:[
+    {t:'w',s:'Keep patient at rest in position of comfort'},
+    {t:'w',s:'Maintain position consistent with airway protection'},
+    {t:'g',s:'PCP: Consider vascular access'},
+    {t:'g',s:'PCP: Consider <b>Dimenhydrinate</b>'},
+    {t:'g',s:'PCP: Consider <b>Ondansetron</b>'},
+    {t:'w',s:'Stable patients may be treated with anti-emetics on scene; unstable treated en route'},
+    {t:'g',s:'PCP: Treat hypotension from volume loss: 20ml/kg to max 2L, q500ml, target SBP 90 mmHg'},
+    {t:'b',s:'Continue airway monitoring; have suction ready'},
+  ]},
+  {name:'SOB — Asthma / COPD',p:'critical',steps:[
+    {t:'w',s:'Position of comfort (seated, leaning forward), limit movement'},
+    {t:'w',s:'O₂ to SpO₂ ≥ 94% (may not be achievable in COPD)'},
+    {t:'b',s:'Auscultation + baseline vitals'},
+    {t:'c',s:'<b>Salbutamol</b> by nebulizer or MDI — transport after first dose'},
+    {t:'b',s:'MDI + spacer strongly recommended for patients with influenza-like illness / infectious respiratory conditions'},
+    {t:'g',s:'PCP: Salbutamol + Ipratropium combined (Iprat = single dose only)'},
+    {t:'w',s:'PCP: IM Epinephrine if SpO₂ &lt;90% or severe unresolved bronchospasm'},
+    {t:'g',s:'PCP: Consider Dexamethasone + CPAP'},
+  ]},
+  {name:'CPR / AED (Adult)',p:'critical',steps:[
+    {t:'c',s:'Assess breathing + pulse simultaneously, <b>max 10 seconds</b>'},
+    {t:'c',s:'No pulse / no or gasping breathing → CPR <b>30:2</b>'},
+    {t:'c',s:'Attach AED and defibrillate as soon as possible'},
+    {t:'w',s:'Rate: <b>100–120/min</b> · Depth: <b>5.0–6.0cm</b> · Complete recoil every compression'},
+    {t:'w',s:'Interruptions <b>&lt;5 sec</b>; change operators every 2 min; avoid hyperventilation'},
+    {t:'b',s:'Shock: defibrillate → 2min CPR → analyze → repeat'},
+    {t:'b',s:'No shock: 2min CPR → analyze → repeat'},
+    {t:'c',s:'Consult medical oversight at <b>20 minutes</b> or if treatable cause found'},
+    {t:'g',s:'Stop: care transferred / signs of life / 30 min elapsed / valid DNR'},
+  ]},
+  {name:'CPR / AED (Child & Infant)',p:'critical',steps:[
+    {t:'c',s:'Assess breathing + pulse simultaneously, <b>max 10 seconds</b>'},
+    {t:'c',s:'No pulse or pulse &lt;60 with inadequate perfusion → begin CPR'},
+    {t:'w',s:'Rate: 100–120/min · Depth: <b>1/3–½ chest diameter</b>'},
+    {t:'w',s:'1 rescuer ratio: <b>30:2</b> · 2 rescuer ratio: <b>15:2</b>'},
+    {t:'b',s:'Neonate (≤28 days): ratio <b>3:1</b> — no AED'},
+    {t:'w',s:'Infant pulse: assess brachial artery'},
+    {t:'b',s:'Child &lt;8yr: use child AED pads if available; if pads within 2.5cm of each other, use anterior/posterior configuration'},
+    {t:'c',s:'If alone with unwitnessed arrest: 5 cycles (~2 min) CPR <b>before</b> applying AED'},
+    {t:'w',s:'Effective ventilation/oxygenation is especially important in paediatric CPR'},
+  ]},
+  {name:'Foreign Body Airway Obstruction',p:'critical',steps:[
+    {t:'w',s:'Stabilize head and neck if necessary; assess LOC (AVPU)'},
+    {t:'c',s:'Assess &amp; manage ABCs; suction, AED, BVM ready'},
+    {t:'c',s:'<b>Unwitnessed unconscious:</b> attempt 1 ventilation → if no air entry, reposition and retry → if still no air, begin chest compressions (30:2); inspect mouth before each ventilation; remove object if seen'},
+    {t:'c',s:'<b>Witnessed conscious → unconscious:</b> partial obstruction → forceful cough; full obstruction → chest thrusts, back slaps, abdominal thrusts (alternating sets of 5)'},
+    {t:'c',s:'Infant: repeated cycles of <b>5 back blows</b> → <b>5 chest compressions</b> until expelled'},
+    {t:'c',s:'Patient collapses → CPR (no pulse check); after 30 compressions open airway; attempt 2 breaths; continue cycles'},
+    {t:'c',s:'<b>Do NOT perform blind finger sweeps</b>'},
+    {t:'b',s:'Complete RBS; transport'},
+  ]},
+  {name:'Narcotic Overdose',p:'critical',steps:[
+    {t:'c',s:'Airway — positioning, suction, adjuncts'},
+    {t:'c',s:'Support ventilations (consider 2-person BVM)'},
+    {t:'w',s:'O₂ to maintain SpO₂ ≥ 94%'},
+    {t:'b',s:'History + vitals including <b>blood glucose</b>'},
+    {t:'w',s:'BGL ≤ 4 mmol/L → initiate diabetic protocol'},
+    {t:'c',s:'<b>Naloxone: 0.4mg IM/IV</b> → 0.4 → 0.8 → 2.0mg (q3min if target not met)'},
+    {t:'b',s:'Transport + continue assessment en route'},
+    {t:'g',s:'PCP: IV access for continued unconsciousness/apnea'},
+  ]},
+  {name:'Diabetic Emergencies',p:'critical',steps:[
+    {t:'c',s:'Primary survey: airway + lateral positioning if needed'},
+    {t:'w',s:'O₂ to maintain SpO₂ ≥ 94%'},
+    {t:'b',s:'History + vitals including <b>blood glucose</b>'},
+    {t:'w',s:'Evaluate for stroke signs'},
+    {t:'c',s:'BGL &lt; 4.0 mmol/L + airway intact → <b>Oral glucose gel 15g</b> to mucosa'},
+    {t:'c',s:'EMR: Unprotected airway → <b>Glucagon 0.5–1mg IM or 3mg IN</b>'},
+    {t:'g',s:'PCP: IV access + D10W 10–25g; Glucagon if no IV'},
+  ]},
+  {name:'Hypovolemia',p:'critical',steps:[
+    {t:'c',s:'Control external hemorrhage'},
+    {t:'w',s:'Splint pelvis/fractures if clinically indicated'},
+    {t:'w',s:'Position <b>supine</b> to support BP'},
+    {t:'w',s:'Keep warm; protect from heat loss'},
+    {t:'w',s:'O₂ to maintain SpO₂ ≥ 94%'},
+    {t:'c',s:'PCP: IV access en route or if time delay'},
+    {t:'c',s:'PCP: Fluid bolus <b>20ml/kg to max 2L</b>, reassess every 500ml'},
+    {t:'g',s:'PCP: Consider TXA for shock from blood loss/occult bleeding'},
+  ]},
+  // ── EXAM FRAMEWORK ──
+  {name:'Practical Exam Grading Criteria',p:'moderate',steps:[
+    {t:'b',s:'Evaluations use percentage-based marking; candidates enter at 100% and deductions are applied'},
+    {t:'c',s:'<b>Major Deficiency (***):</b> Failing to perform when indicated · Failing to meet skill standards · Gross errors regardless of outcome · Non-indicated skill causing detriment · Wrong sequencing causing detriment'},
+    {t:'w',s:'<b>Moderate Deficiency (**):</b> Minor errors with potential for detriment · Non-indicated skill with detriment potential · Wrong sequencing without detriment · Safety risks · Failure to provide critical report info'},
+    {t:'b',s:'<b>Minor Deficiency (*):</b> Appropriate skill with insufficient justification · Minor errors without detriment · Omitting non-critical report info'},
+    {t:'g',s:'Pass mark: <b>70%</b>'},
+    {t:'b',s:'Review request: within <b>5 days</b> of exam date; results within 2 weeks of submission'},
+  ]},
+];
+
+const DRUGS=[
+  {name:'Epinephrine',level:'emr',
+   ind:'Anaphylaxis, severe bronchospasm',
+   dose:'Adult: 0.5mg IM q5min ×3\nPaeds: 0.01mg/kg IM, max 0.5mg',
+   ci:'No absolute CI in life-threatening situations',
+   caut:'Hypotension if given IV too quickly — use IM route; hypertension/dysrhythmias at high doses'},
+  {name:'Aspirin (ASA)',level:'emr',
+   ind:'Cardiac chest pain / suspected AMI',
+   dose:'160mg PO chewed',
+   ci:'Allergy/unable to swallow · Active GI bleed · Already taken · Salicylate-asthma · Peds with viral illness',
+   caut:'Recent internal bleeding · Anticoagulant use · Recent surgery · Possible pregnancy'},
+  {name:'Nitroglycerin',level:'emr',
+   ind:'Cardiac chest pain',
+   dose:'1 dose SL q3–5min while SBP >110\nMax 3 doses / 30min',
+   ci:'SBP <110 · HR <50 or >150 · Viagra <24h · Cialis <48h · Nitrate allergy',
+   caut:'Hypotension (esp. elderly) — patient must not risk a fall · Medical oversight if no Rx or >3 doses · Do NOT shake spray'},
+  {name:'Naloxone (Narcan)',level:'emr',
+   ind:'Narcotic overdose — respiratory depression',
+   dose:'0.4 → 0.4 → 0.8 → 2.0mg IM/IV (q3min)\nIN: 3mg',
+   ci:'Known hypersensitivity',
+   caut:'Patient combativeness on opioid reversal · Precipitates withdrawal · Hypotension, hypertension, tachycardia, N/V'},
+  {name:'Oral Glucose',level:'emr',
+   ind:'Hypoglycemia — conscious patient only',
+   dose:'15g PO to oral mucosa; repeat q5min, no limit',
+   ci:'Insufficient mentation / unprotected airway',
+   caut:'Patient MUST be able to maintain own airway; monitor for aspiration'},
+  {name:'Glucagon',level:'emr',
+   ind:'Hypoglycemia — unprotected airway or no IV',
+   dose:'IM: 0.5–1mg\nIN: 3mg; repeat after 15min if no response',
+   ci:'Allergy / hypersensitivity to glucagon',
+   caut:'N/V, hypokalemia, urticaria, respiratory distress, hypotension'},
+  {name:'Salbutamol',level:'emr',
+   ind:'Bronchospasm — asthma, COPD, anaphylaxis',
+   dose:'Neb: >1yr 5mg / <1yr 2.5mg\nMDI adult: 4×100mcg repeat prn\nMDI paeds: 10–20kg 5×; >20kg 10×; max 3 courses',
+   ci:'Hemodynamic tachyarrhythmia >120bpm',
+   caut:'Coronary disease · COPD with degenerative heart disease · Diabetes (β2 effects on BGL) · β1 effects with repeated doses'},
+  {name:'Entonox (N₂O)',level:'emr',
+   ind:'Pain — cardiac (no NTG value), extremity injuries, burns',
+   dose:'Self-administered inhalation; invert cylinder 3× before use',
+   ci:'Altered LOC · Pneumothorax · NTG in last 5min · Air embolism · Decompression sickness · Inhalation injury · Cannot comply',
+   caut:'Shock · Abdominal distention · Depressant drugs · COPD · Facial injuries · Must ventilate enclosed treatment area'},
+  {name:'Dimenhydrinate',level:'pcp',
+   ind:'Nausea, vomiting, vertigo',
+   dose:'1mg/kg max 50mg\nIM: undiluted · IV: dilute in NS over 2min (25mg/min)',
+   ci:'Known hypersensitivity',
+   caut:'Glaucoma · Asthma/COPD · HTN / ischemic heart disease · Prostatic hyperplasia · Elderly · Pregnancy'},
+  {name:'Ipratropium',level:'pcp',
+   ind:'Severe bronchospasm — asthma/COPD (always with salbutamol)',
+   dose:'Neb: 500mcg (single dose only)\nMDI: 160mcg (8×20mcg)',
+   ci:'Known hypersensitivity · NOT for use as monotherapy',
+   caut:'Narrow-angle glaucoma (↑ IOP) · Prostatic hyperplasia (urinary retention) · Not for neonates <30 days'},
+  {name:'Dexamethasone',level:'pcp',
+   ind:'Croup, bronchospasm (asthma/COPD)',
+   dose:'Adult: 8mg IV/IM/PO (PO preferred)\nPaeds: 0.5mg/kg max 16mg',
+   ci:'Systemic fungal infection · Hypersensitivity to dexamethasone',
+   caut:'CHF/HTN — fluid retention risk · Myocardial rupture risk in acute MI · Crosses placenta (oral cleft risk 1st trimester) · Hypercortisolism in children with prolonged use'},
+  {name:'D10W',level:'pcp',
+   ind:'Hypoglycemia, altered LOC, coma/seizure NYD',
+   dose:'10–25g (100–250ml of 10% solution) IV',
+   ci:'None',
+   caut:'Extravasation causes tissue necrosis — confirm IV patency before and during infusion'},
+  {name:'Ondansetron',level:'pcp',
+   ind:'Moderate–severe nausea and vomiting',
+   dose:'Adult: 4mg PO\nPaeds: 2mg (6mo–4yr) · 4mg (≥4yr)',
+   ci:'Allergy · Congenital long QT syndrome · PKU (ODT form) · Relative CI: 1st trimester pregnancy',
+   caut:'Indigenous patients — higher prevalence of Long QT Syndrome; if family history of Long QT, use Dimenhydrinate instead · Monitor for respiratory depression in elderly/hepatic impairment'},
+  {name:'Tranexamic Acid',level:'pcp',
+   ind:'Major trauma with shock + ongoing/occult bleeding',
+   dose:'2g (2000mg) IV push over 1 minute',
+   ci:'Allergy · >3hr post-injury · Age <12 · Isolated TBI · Epistaxis/PPH without oversight consult',
+   caut:'Hypotension if pushed too quickly — strict 1-minute delivery required'},
+  {name:'CPAP',level:'pcp',
+   ind:'Resp. distress: CHF, asthma, pneumonia, near-drowning',
+   dose:'Start 5cmH₂O; increase by 2.5 to max 10cmH₂O\nO₂ flow: 5LPM at 5cmH₂O up to 10LPM at max',
+   ci:'Age ≤12 · Decreased LOC · Resp. arrest/hypoventilation · Vomiting/aspiration risk · Traumatic cause · Pneumothorax · Tracheostomy · SBP <90mmHg',
+   caut:'Monitor closely for deterioration — switch to BVM if patient worsens · Remove immediately if patient becomes hypotensive or arrests'},
+];
+
+// ═══ STATE ═══
+let curFilter='all', cards=[], cardIdx=0, knownSet=new Set(), reviewSet=new Set(), flipped=false;
+let qFilter='all', qList=[], qIdx=0, qCorrect=0, qAnswered=0, qSkipped=0;
+
+// ═══ MODE ═══
+function switchMode(mode){
+  ['flash','quiz','protocols','drugs'].forEach(m=>{
+    document.getElementById('mode-'+m).classList.toggle('hidden',m!==mode);
+  });
+  document.querySelectorAll('.nav-btn').forEach(b=>{
+    b.classList.toggle('active',b.dataset.mode===mode);
+  });
+}
+
+// ═══ FLASHCARDS ═══
+function setFilter(f,btn){
+  curFilter=f;
+  document.querySelectorAll('[data-filter]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  cards=f==='all'?[...FC]:f==='critical'?FC.filter(c=>c.p==='critical'):FC.filter(c=>c.cat.toLowerCase()===f);
+  cardIdx=0; flipped=false;
+  document.getElementById('flashCard').classList.remove('flipped');
+  renderCard();
+}
+function renderCard(){
+  if(!cards.length) return;
+  const c=cards[cardIdx];
+  document.getElementById('cardQ').textContent=c.q;
+  document.getElementById('cardA').innerHTML=c.a;
+  document.getElementById('cardCat').textContent=c.cat.toUpperCase();
+  const tag=document.getElementById('cardTag');
+  tag.className='tag '+c.p;
+  tag.textContent=c.p.charAt(0).toUpperCase()+c.p.slice(1);
+  const n=cards.length, s=cardIdx+1;
+  document.getElementById('flashProg').textContent='Card '+s+' of '+n;
+  document.getElementById('flashPct').textContent=Math.round(s/n*100)+'% reviewed';
+  document.getElementById('flashFill').style.width=(s/n*100)+'%';
+  document.getElementById('cardCounter').textContent=(cardIdx+1)+' / '+n;
+  document.getElementById('knownCount').textContent=knownSet.size;
+  document.getElementById('reviewCount').textContent=reviewSet.size;
+}
+function flipCard(){flipped=!flipped;document.getElementById('flashCard').classList.toggle('flipped',flipped);}
+function nextCard(){
+  flipped=false;document.getElementById('flashCard').classList.remove('flipped');
+  cardIdx=(cardIdx+1)%cards.length;renderCard();
+}
+function prevCard(){
+  flipped=false;document.getElementById('flashCard').classList.remove('flipped');
+  cardIdx=(cardIdx-1+cards.length)%cards.length;renderCard();
+}
+function markCard(known){
+  const id=cards[cardIdx].id;
+  known?(knownSet.add(id),reviewSet.delete(id)):(reviewSet.add(id),knownSet.delete(id));
+  const t=knownSet.size+reviewSet.size;
+  document.getElementById('scoreDisplay').textContent=t>0?Math.round(knownSet.size/t*100)+'%':'—';
+  nextCard();
+}
+
+// ═══ QUIZ ═══
+function setQuizFilter(f,btn){
+  qFilter=f;
+  document.querySelectorAll('[data-qf]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  startQuiz();
+}
+function startQuiz(){
+  const pool=qFilter==='all'?[...QQ]:QQ.filter(q=>q.cat===qFilter);
+  qList=shuffle(pool).slice(0,Math.min(20,pool.length));
+  qIdx=0;qCorrect=0;qAnswered=0;qSkipped=0;
+  document.getElementById('quizActive').classList.remove('hidden');
+  document.getElementById('quizResults').classList.add('hidden');
+  renderQ();
+}
+function renderQ(){
+  if(qIdx>=qList.length){showResults();return;}
+  const q=qList[qIdx];
+  const L=['A','B','C','D'];
+  const catMap={critical:'⚠ Critical',protocol:'Protocol',drug:'Drug',assessment:'Assessment'};
+  const tagClass=q.cat==='critical'?'critical':q.cat==='drug'?'moderate':'standard';
+  const opts=q.opts.map((o,i)=>'<div class="qopt" id="qo'+i+'" onclick="pick('+i+')">'
+    +'<div class="opt-letter">'+L[i]+'</div><div>'+o+'</div></div>').join('');
+  const pcpBadge=q.lv==='pcp'
+    ?'<span class="tag moderate" style="margin-left:8px">PCP only</span>'
+    :'';
+  document.getElementById('quizContent').innerHTML=
+    '<div class="quiz-wrap"><div style="margin-bottom:14px;display:flex;align-items:center;flex-wrap:wrap;gap:6px">'
+    +'<span class="tag '+tagClass+'">'+catMap[q.cat]+'</span>'+pcpBadge+'</div>'
+    +'<div class="quiz-q">'+q.q+'</div><div class="quiz-opts">'+opts+'</div>'
+    +'<div id="qfb" style="display:none" class="quiz-fb"></div></div>'
+    +'<div style="margin-top:16px;display:flex;justify-content:space-between;align-items:center">'
+    +(q.lv==='pcp'?'<button class="btn" id="skipBtn" onclick="skipQ()" style="border-color:var(--warn);color:var(--warn)">⟳ Skip — PCP only</button>':'<div></div>')
+    +'<button class="btn hidden" id="nxtBtn" onclick="nextQ()">Next Question →</button></div>';
+  document.getElementById('quizProg').textContent='Question '+(qIdx+1)+' of '+qList.length+(qSkipped?' ('+qSkipped+' skipped)':'');
+  document.getElementById('quizScore').textContent='Score: '+qCorrect+'/'+(qAnswered||0);
+  document.getElementById('quizFill').style.width=(qIdx/qList.length*100)+'%';
+}
+function skipQ(){
+  qSkipped++;
+  qIdx++;
+  document.getElementById('quizProg').textContent='Question '+(qIdx+1)+' of '+qList.length+(qSkipped?' ('+qSkipped+' skipped)':'');
+  renderQ();
+}
+function pick(i){
+  const q=qList[qIdx];
+  document.querySelectorAll('.qopt').forEach(o=>o.classList.add('locked'));
+  const skipBtn=document.getElementById('skipBtn');
+  if(skipBtn) skipBtn.classList.add('hidden');
+  qAnswered++;
+  const fb=document.getElementById('qfb');
+  if(i===q.ans){
+    qCorrect++;
+    document.getElementById('qo'+i).classList.add('correct');
+    fb.className='quiz-fb correct';
+    fb.innerHTML='<div class="fb-title ok">✓ Correct</div>'+q.exp;
+  } else {
+    document.getElementById('qo'+i).classList.add('wrong');
+    document.getElementById('qo'+q.ans).classList.add('correct');
+    fb.className='quiz-fb wrong';
+    fb.innerHTML='<div class="fb-title err">✗ Incorrect</div><b>Correct: '+q.opts[q.ans]+'</b><br>'+q.exp;
+    document.getElementById('qo'+i).classList.add('shake');
+  }
+  fb.style.display='block';
+  document.getElementById('nxtBtn').classList.remove('hidden');
+  document.getElementById('quizScore').textContent='Score: '+qCorrect+'/'+qAnswered;
+  document.getElementById('scoreDisplay').textContent=Math.round(qCorrect/qAnswered*100)+'%';
+}
+function nextQ(){qIdx++;renderQ();}
+function showResults(){
+  document.getElementById('quizActive').classList.add('hidden');
+  const r=document.getElementById('quizResults');
+  r.classList.remove('hidden');
+  const attempted=qList.length-qSkipped;
+  const pct=attempted>0?Math.round(qCorrect/attempted*100):0;
+  const el=document.getElementById('resPct');
+  el.textContent=pct+'%';
+  el.style.color=pct>=70?'var(--ok)':pct>=50?'var(--warn)':'var(--critical)';
+  document.getElementById('resCorrect').textContent=qCorrect;
+  document.getElementById('resWrong').textContent=attempted-qCorrect;
+  document.getElementById('resTotal').textContent=attempted+(qSkipped?' ('+qSkipped+' skipped)':'');
+}
+
+// ═══ PROTOCOLS ═══
+function renderProtocols(){
+  document.getElementById('protocolGrid').innerHTML=PROTOCOLS.map((p,i)=>{
+    const steps=p.steps.map((s,j)=>'<li class="step-item"><div class="snum '+s.t+'">'+(j+1)+'</div><div class="step-text">'+s.s+'</div></li>').join('');
+    return '<div class="proto-card">'
+      +'<div class="proto-hdr" onclick="toggleP('+i+')">'
+      +'<div class="proto-hdr-left"><span class="tag '+(p.p==='critical'?'critical':'moderate')+'">'+(p.p==='critical'?'⚠ Major Deductions':'Moderate')+'</span>'
+      +'<span class="proto-name">'+p.name+'</span></div>'
+      +'<span class="chevron" id="ch'+i+'">▼</span></div>'
+      +'<div class="proto-body hidden" id="pb'+i+'"><ul class="step-list">'+steps+'</ul></div></div>';
+  }).join('');
+}
+function toggleP(i){
+  const b=document.getElementById('pb'+i),c=document.getElementById('ch'+i),o=!b.classList.contains('hidden');
+  b.classList.toggle('hidden',o);c.classList.toggle('open',!o);
+}
+
+// ═══ DRUGS ═══
+function renderDrugs(){
+  const f=document.querySelector('[data-dl].active').dataset.dl;
+  const list=f==='all'?DRUGS:f==='emr'?DRUGS.filter(d=>d.level==='emr'):DRUGS.filter(d=>d.level==='pcp');
+  document.getElementById('drugGrid').innerHTML=list.map(d=>`
+    <div class="drug-card">
+      <div class="drug-hdr">
+        <span class="drug-name">${d.name}</span>
+        <span class="drug-level" style="color:${d.level==='pcp'?'var(--warn)':'var(--ok)'}">${d.level.toUpperCase()}</span>
+      </div>
+      <div class="drug-body">
+        <div class="drow"><div class="dkey">Ind.</div><div class="dval">${d.ind}</div></div>
+        <div class="drow"><div class="dkey">Dose</div><div class="dval dose">${d.dose.replace(/\n/g,'<br>')}</div></div>
+        <div class="drow"><div class="dkey">CI</div><div class="dval ci">${d.ci}</div></div>
+        <div class="drow"><div class="dkey">Cautions</div><div class="dval caut">${d.caut}</div></div>
+      </div>
+    </div>`).join('');
+}
+function setDrugFilter(f,btn){
+  document.querySelectorAll('[data-dl]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');renderDrugs();
+}
+
+// ═══ UTILS ═══
+function shuffle(a){
+  const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;
+}
+
+// ═══ INIT ═══
+setFilter('all',document.querySelector('[data-filter="all"]'));
+renderProtocols();
+renderDrugs();
+startQuiz();
+</script>
+</body>
+</html>
