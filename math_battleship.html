@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root{--pr:#2c3e50;--se:#34495e;--ac:#3498db;--hit:#e74c3c;--miss:#95a5a6;--ship:#2ecc71;--adv:#8e44ad;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:#ecf0f1;display:flex;justify-content:center;padding:16px;transition:background .15s;}
+body.sink-flash{background:var(--hit)!important;}
+button{font-family:inherit;padding:8px 14px;font-size:.84rem;font-weight:700;cursor:pointer;border:none;border-radius:6px;transition:all .2s;line-height:1.3;}
+
+/* ── Mode selector ── */
+#mode-sel{background:var(--pr);border-radius:14px;padding:38px 28px;display:flex;flex-direction:column;align-items:center;gap:20px;}
+#mode-sel h1{color:#fff;font-size:1.65rem;letter-spacing:.3px;}
+#mode-sel>p{color:#7f8c8d;font-size:.88rem;}
+.mode-cards{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;}
+.mcard{background:var(--se);border-radius:10px;padding:24px 20px;cursor:pointer;transition:all .2s;color:#fff;text-align:center;width:190px;border:2px solid transparent;}
+.mcard:hover{background:#3d566e;border-color:var(--ac);transform:translateY(-2px);}
+.micon{font-size:2.2rem;font-weight:700;color:var(--ship);margin-bottom:10px;line-height:1;}
+.mcard h2{font-size:1rem;margin-bottom:6px;}
+.mcard p{font-size:.77rem;color:#95a5a6;line-height:1.5;}
+
+/* ── Game wrap ── */
+.wrap{background:#fff;padding:20px 16px;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.12);text-align:center;width:fit-content;max-width:100%;overflow-x:auto;}
+.gtitle{font-size:1.2rem;color:var(--pr);margin-bottom:11px;font-weight:700;}
+.nav{display:flex;justify-content:center;gap:7px;margin-bottom:10px;flex-wrap:wrap;}
+.nbtn{background:var(--pr);color:#fff;}.nbtn:hover{background:var(--se);}
+.msw{background:var(--adv);color:#fff;}
+
+@keyframes jiggle{0%{transform:translate(0,0)}25%{transform:translate(2px,2px)}50%{transform:translate(-2px,-2px)}75%{transform:translate(2px,-2px)}100%{transform:translate(0,0)}}
+.jiggle{animation:jiggle .22s ease-in-out infinite;}
+
+/* ── Grid ── */
+.grid{display:grid;gap:1px;background:#ccc;border:2px solid var(--pr);margin:0 auto 10px;width:fit-content;}
+.cell{display:flex;align-items:center;justify-content:center;background:#fff;font-size:.74rem;cursor:crosshair;user-select:none;transition:background .1s;}
+.hdr{background:var(--pr);color:#fff;font-weight:700;cursor:default;font-size:.7rem;}
+.rhdr{background:var(--se);color:#fff;font-weight:700;cursor:default;font-size:.67rem;}
+.ship-cell{}
+.show-ships .ship-cell:not(.hit):not(.miss){background:var(--ship)!important;color:#145a32!important;}
+.hit{background:var(--hit)!important;color:#fff!important;font-weight:700;}
+.miss{background:var(--miss)!important;color:#fff!important;}
+.nh{color:transparent!important;}
+.adv-mode .cell:not(.hdr):not(.rhdr){color:transparent;}
+.adv-mode .cell.hit,.adv-mode .cell.miss{color:#fff!important;}
+.adv-mode.show-ships .ship-cell:not(.hit):not(.miss){color:#145a32!important;}
+.p-ship{background:var(--hit)!important;}
+.p-water{background:#3498db!important;}
+
+/* ── Stats ── */
+.stats{display:flex;justify-content:center;gap:7px;margin-bottom:7px;flex-wrap:wrap;}
+.stat{font-size:.78rem;font-weight:700;padding:6px 10px;background:#ecf0f1;border-radius:7px;}
+.ann{height:16px;color:var(--hit);font-weight:700;font-size:.8rem;margin-bottom:2px;}
+#shud{font-weight:700;color:var(--adv);font-size:.83rem;margin-bottom:6px;min-height:15px;}
+
+/* ── Overlays ── */
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.76);z-index:100;justify-content:center;align-items:center;}
+.ov.open{display:flex;}
+.panel{background:#fff;padding:24px;border-radius:12px;width:330px;max-height:88vh;overflow-y:auto;position:relative;text-align:left;}
+.panel h2{margin:0 0 13px;color:var(--pr);font-size:1rem;font-weight:700;}
+.xbtn{position:absolute;top:9px;right:12px;font-size:20px;cursor:pointer;color:#aaa;background:none;border:none;padding:0;font-weight:700;}
+.fld{margin-bottom:13px;}
+.fld label{display:block;font-weight:700;font-size:.79rem;margin-bottom:4px;color:var(--pr);}
+.fld input[type=range]{width:100%;}
+.oprow{display:flex;gap:5px;}
+.opbtn{flex:1;padding:7px 2px;font-size:.76rem;background:#ecf0f1;color:var(--pr);border:2px solid transparent;border-radius:6px;cursor:pointer;font-weight:700;}
+.opbtn.on{background:var(--ac);color:#fff;border-color:var(--ac);}
+.wb{width:100%;margin-top:6px;padding:9px;font-size:.82rem;font-weight:700;border-radius:6px;cursor:pointer;border:none;}
+#bbtn.on{background:#c0392b;color:#fff;}#bbtn:not(.on){background:#7f8c8d;color:#fff;}
+#abtn.on{background:var(--adv);color:#fff;}#abtn:not(.on){background:#7f8c8d;color:#fff;}
+#cbtn{background:var(--ac);color:#fff;}#rbtn{background:#e67e22;color:#fff;}
+
+/* ── Fire modal ── */
+.fq{font-size:2.3rem;font-weight:700;text-align:center;color:var(--pr);margin:10px 0;}
+.fi{width:100%;padding:10px;font-size:1.1rem;text-align:center;border:2px solid #ddd;border-radius:8px;font-family:inherit;outline:none;}
+.fi.err{border-color:var(--hit);}
+.frow{display:flex;gap:8px;margin-top:9px;}
+.fbtn{background:var(--ship);color:#fff;flex:2;padding:9px;}
+.abtn2{background:#95a5a6;color:#fff;flex:1;padding:9px;}
+
+/* ── Win ── */
+.wscr{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:200;justify-content:center;align-items:center;flex-direction:column;color:#fff;gap:12px;}
+.wscr.open{display:flex;}
+.wscr h2{font-size:3rem;color:var(--ship);}
+</style>
+</head>
+<body>
+
+<!-- ── Mode selector (in-flow) ── -->
+<div id="mode-sel">
+  <h1>⚓ Math Battleship</h1>
+  <p>Select your mission type to begin</p>
+  <div class="mode-cards">
+    <div class="mcard" onclick="selectMode('mult')">
+      <div class="micon">×</div>
+      <h2>Multiplication</h2>
+      <p>12 × 12 grid — identify coordinates by solving multiplication problems</p>
+    </div>
+    <div class="mcard" onclick="selectMode('num')">
+      <div class="micon">+ −</div>
+      <h2>Addition &amp; Subtraction</h2>
+      <p>1–120 number chart — navigate by solving addition or subtraction problems</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── Game area (hidden until mode chosen) ── -->
+<div id="game" class="wrap" style="display:none">
+  <h1 class="gtitle" id="gtitle">Battleship</h1>
+  <div class="nav">
+    <button class="nbtn msw" onclick="showModeSel()">⇄ Mode</button>
+    <button class="nbtn" onclick="op('settings-ov')">⚙ Settings</button>
+    <button class="nbtn" onclick="op('rules-ov')">Rules</button>
+  </div>
+  <div id="shud"></div>
+  <div id="grid" class="grid"></div>
+  <div class="stats">
+    <div class="stat">Time: <span id="tt">00:00</span></div>
+    <div class="stat">Hits: <span id="th">0</span>/<span id="ttot">0</span></div>
+    <div class="stat">Ships: <span id="ts">0</span></div>
+  </div>
+  <div class="ann" id="ann"></div>
+</div>
+
+<!-- ── Fire modal ── -->
+<div id="fire-ov" class="ov">
+  <div class="panel" style="text-align:center;width:280px;">
+    <h2 style="text-align:center;">Targeting Computer</h2>
+    <div class="fq" id="qtext"></div>
+    <input class="fi" type="number" id="ainp" placeholder="Answer?">
+    <div class="frow">
+      <button class="fbtn" onclick="submit()">Fire!</button>
+      <button class="abtn2" onclick="ca()">Abort</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Settings modal ── -->
+<div id="settings-ov" class="ov">
+  <div class="panel">
+    <button class="xbtn" onclick="ca()">×</button>
+    <h2>Settings</h2>
+    <div class="fld">
+      <label>Fleet size: <span id="flbl">5</span> ships</label>
+      <input type="range" id="fsl" min="3" max="8" value="5">
+    </div>
+    <div class="fld num-only" style="display:none">
+      <label>Number visibility: <span id="vlbl">30</span>%</label>
+      <input type="range" id="vsl" min="0" max="100" value="30" step="5">
+    </div>
+    <div class="fld num-only" style="display:none">
+      <label>Operation type:</label>
+      <div class="oprow">
+        <button class="opbtn on" data-op="add" onclick="setOp('add')">Addition</button>
+        <button class="opbtn" data-op="sub" onclick="setOp('sub')">Subtraction</button>
+        <button class="opbtn" data-op="mix" onclick="setOp('mix')">Mix</button>
+      </div>
+    </div>
+    <div class="fld">
+      <button id="bbtn" class="wb on" onclick="togBlast()">Blast Radius: ON</button>
+    </div>
+    <div class="fld" id="pfield">
+      <label>Pulse duration: <span id="plbl">250</span>ms</label>
+      <input type="range" id="psl" min="150" max="600" value="250" step="10">
+    </div>
+    <div class="fld mult-only" style="display:none">
+      <button id="abtn" class="wb" onclick="togAdv()">Advanced Mode: OFF</button>
+    </div>
+    <button id="cbtn" class="wb" onclick="togCheat()">Show Ships (Cheat)</button>
+    <button id="rbtn" class="wb" onclick="init()">Reset Grid</button>
+  </div>
+</div>
+
+<!-- ── Rules modal ── -->
+<div id="rules-ov" class="ov">
+  <div class="panel" style="width:360px;">
+    <button class="xbtn" onclick="ca()">×</button>
+    <h2>How to Play</h2>
+    <div id="rm" style="display:none">
+      <ul style="line-height:1.8;padding-left:16px;font-size:.84rem;color:#333;">
+        <li>Click any cell — answer its <b>row × column</b> multiplication to fire.</li>
+        <li><b>Blast Radius:</b> Correct answers pulse all 8 neighbours — <span style="color:var(--hit)">■</span> red = ship, <span style="color:#3498db">■</span> blue = water.</li>
+        <li><b>Advanced Mode:</b> Grid numbers hidden. 3 correct answers in a row reveals a bonus water tile!</li>
+        <li>Sink all ships to win. Timer starts on your first shot!</li>
+      </ul>
+    </div>
+    <div id="rn" style="display:none">
+      <ul style="line-height:1.8;padding-left:16px;font-size:.84rem;color:#333;">
+        <li>Numbers <b>1–120</b> fill the grid. Most are hidden — use math to navigate!</li>
+        <li>Click any square and answer the addition or subtraction problem to fire.</li>
+        <li><b>Blast Radius:</b> Correct answers pulse all 8 neighbours — <span style="color:var(--hit)">■</span> red = ship, <span style="color:#3498db">■</span> blue = water.</li>
+        <li>Use the <b>visibility slider</b> in Settings to reveal more or fewer numbers.</li>
+        <li>Sink all ships to win!</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ── Win screen ── -->
+<div id="wscr" class="wscr">
+  <h2>VICTORY!</h2>
+  <p style="font-size:1.1rem">Mission time: <strong id="ftime">00:00</strong></p>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:4px;">
+    <button onclick="showModeSel()" style="background:var(--adv);color:#fff;padding:10px 18px;">⇄ Change Mode</button>
+    <button onclick="init()" style="background:var(--ship);color:#fff;padding:10px 18px;">Play Again</button>
+  </div>
+</div>
+
+<script>
+const MSIZ=12,NR=12,NC=10;
+let mode=null,ships=[],used=new Set(),vis=new Set();
+let active=false,tInt=null,t0=null,fc=false;
+let blast=true,nop='add',adv=false;
+let pc=null,pq=null,tHits=0,tSegs=0,sLeft=0;
+let cTO=null,cInt=null,streak=0;
+
+const $=id=>document.getElementById(id);
+const GR=$('grid'),ttEl=$('tt'),thEl=$('th'),tsEl=$('ts'),
+  totEl=$('ttot'),annEl=$('ann'),ainp=$('ainp'),qEl=$('qtext'),
+  fsl=$('fsl'),vsl=$('vsl'),psl=$('psl'),shud=$('shud');
+
+function R(){return mode==='mult'?MSIZ:NR;}
+function C(){return mode==='mult'?MSIZ:NC;}
+function cv(r,c){return mode==='mult'?r*c:(r-1)*NC+c;}
+function op(id){$(id).classList.add('open');}
+function ca(){document.querySelectorAll('.ov').forEach(o=>o.classList.remove('open'));ainp.value='';ainp.classList.remove('err');}
+
+function showModeSel(){
+  ca();clearInterval(tInt);clrCheat();
+  $('wscr').classList.remove('open');
+  $('game').style.display='none';
+  $('mode-sel').style.display='flex';
+}
+
+function selectMode(m){
+  mode=m;
+  $('mode-sel').style.display='none';
+  $('game').style.display='block';
+  $('gtitle').innerText=m==='mult'?'Multiplication Battleship':'Number Chart Battleship';
+  document.querySelectorAll('.mult-only').forEach(el=>el.style.display=m==='mult'?'block':'none');
+  document.querySelectorAll('.num-only').forEach(el=>el.style.display=m==='num'?'block':'none');
+  $('rm').style.display=m==='mult'?'block':'none';
+  $('rn').style.display=m==='num'?'block':'none';
+  if(m!=='mult'&&adv){adv=false;$('abtn').classList.remove('on');$('abtn').innerText='Advanced Mode: OFF';}
+  init();
+}
+
+function gq(cell){
+  const r=+cell.dataset.r,c=+cell.dataset.c,v=+cell.dataset.v;
+  if(mode==='mult') return{t:`${r} × ${c} = ?`,a:v};
+  let o=nop;
+  if(o==='mix')o=Math.random()>.5?'add':'sub';
+  if(o==='add'&&v<=1)o='sub';
+  if(o==='add'){const a=Math.floor(Math.random()*(v-1))+1;return{t:`${a} + ${v-a} = ?`,a:v};}
+  const b=Math.floor(Math.random()*Math.min(25,130-v))+1;
+  return{t:`${v+b} − ${b} = ?`,a:v};
+}
+
+function setOp(o){nop=o;document.querySelectorAll('.opbtn').forEach(b=>b.classList.toggle('on',b.dataset.op===o));}
+function gc(r,c){return GR.querySelector(`[data-r="${r}"][data-c="${c}"]`);}
+
+function mk(cls,w,h,txt){
+  const el=document.createElement('div');
+  el.className='cell '+cls;el.style.cssText=`width:${w}px;height:${h}px;`;
+  if(txt!==undefined)el.innerText=txt;GR.appendChild(el);return el;
+}
+
+function init(){
+  ca();clearInterval(tInt);clrCheat();
+  GR.innerHTML='';used.clear();ships=[];vis.clear();
+  active=true;fc=false;streak=0;tHits=0;sLeft=0;
+  $('wscr').classList.remove('open');
+  annEl.innerText='';ttEl.innerText='00:00';thEl.innerText='0';shud.innerText='';
+
+  const rows=R(),cols=C(),fsz=+fsl.value;
+  $('flbl').innerText=fsz;
+
+  if(mode==='mult'){
+    const W=40,H=36;
+    GR.style.gridTemplateColumns=`repeat(${cols+1},${W}px)`;
+    mk('hdr',W,H,'×');
+    for(let c=1;c<=cols;c++)mk('hdr',W,H,c);
+    for(let r=1;r<=rows;r++){
+      mk('hdr',W,H,r);
+      for(let c=1;c<=cols;c++){
+        const el=mk('',W,H,r*c);
+        el.dataset.r=r;el.dataset.c=c;el.dataset.v=r*c;
+        el.onclick=()=>clk(el);
+      }
+    }
+  }else{
+    const vp=+vsl.value,all=[];
+    const DW=36,DH=32,LW=52;
+    for(let r=1;r<=rows;r++)for(let c=1;c<=cols;c++)all.push(`${r},${c}`);
+    all.sort(()=>Math.random()-.5).slice(0,Math.round(all.length*vp/100)).forEach(k=>vis.add(k));
+    GR.style.gridTemplateColumns=`${LW}px repeat(${cols},${DW}px)`;
+    mk('hdr',LW,DH,'#');
+    for(let c=1;c<=cols;c++)mk('hdr',DW,DH,c);
+    for(let r=1;r<=rows;r++){
+      mk('rhdr',LW,DH,`${(r-1)*10+1}–${r*10}`);
+      for(let c=1;c<=cols;c++){
+        const v=cv(r,c),el=mk('',DW,DH,v);
+        el.dataset.r=r;el.dataset.c=c;el.dataset.v=v;
+        if(!vis.has(`${r},${c}`))el.classList.add('nh');
+        el.onclick=()=>clk(el);
+      }
+    }
+  }
+
+  apSt();
+  let plan=[5,4,3,3,2];
+  while(plan.length<fsz)plan.push(2);
+  while(plan.length>fsz)plan.pop();
+  tSegs=plan.reduce((a,b)=>a+b,0);totEl.innerText=tSegs;
+  sLeft=fsz;tsEl.innerText=sLeft;
+  plan.sort((a,b)=>b-a).forEach(len=>plSh(len));
+}
+
+function canPl(r,c,len,h){
+  const rows=R(),cols=C();
+  for(let i=0;i<len;i++){
+    const cr=h?r:r+i,cc=h?c+i:c;
+    if(cr>rows||cc>cols)return false;
+    for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++)if(used.has(`${cr+dr},${cc+dc}`))return false;
+  }return true;
+}
+
+function plSh(len){
+  let placed=false,tries=0;
+  const rows=R(),cols=C();
+  while(!placed&&tries<2000){
+    tries++;
+    const h=Math.random()>.5,r=Math.floor(Math.random()*rows)+1,c=Math.floor(Math.random()*cols)+1;
+    if(canPl(r,c,len,h)){
+      const coords=[];
+      for(let i=0;i<len;i++){
+        const cr=h?r:r+i,cc=h?c+i:c,el=gc(cr,cc);
+        if(el)el.classList.add('ship-cell');
+        used.add(`${cr},${cc}`);coords.push(`${cr},${cc}`);
+      }
+      ships.push({coords,hits:0});placed=true;
+    }
+  }
+}
+
+function clk(cell){
+  if(!active||cell.classList.contains('hit')||cell.classList.contains('miss'))return;
+  pc=cell;pq=gq(cell);qEl.innerText=pq.t;
+  op('fire-ov');setTimeout(()=>ainp.focus(),80);
+}
+
+function submit(){
+  const v=+ainp.value;if(isNaN(v))return;
+  if(v===pq.a){
+    if(blast)blastFx(pc);
+    else if(adv&&mode==='mult'){
+      streak++;shud.innerText=`🔥 Streak: ${streak}/3`;
+      if(streak>=3){streakFx(pc);streak=0;shud.innerText='';}
+    }
+    move(pc);ca();
+  }else{
+    ainp.value='';ainp.classList.add('err');
+    streak=0;if(adv)shud.innerText='Streak reset!';
+    setTimeout(()=>ainp.classList.remove('err'),500);
+  }
+}
+
+function blastFx(o){
+  const r=+o.dataset.r,c=+o.dataset.c,dur=+psl.value;
+  for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
+    const t=gc(r+dr,c+dc);
+    if(t&&!t.classList.contains('hit')&&!t.classList.contains('miss')){
+      t.classList.add('jiggle',t.classList.contains('ship-cell')?'p-ship':'p-water');
+      setTimeout(()=>t.classList.remove('jiggle','p-ship','p-water'),dur);
+    }
+  }
+}
+
+function streakFx(o){
+  const r=+o.dataset.r,c=+o.dataset.c,cands=[];
+  for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
+    const t=gc(r+dr,c+dc);
+    if(t&&!t.classList.contains('hit')&&!t.classList.contains('miss')&&!t.classList.contains('ship-cell'))cands.push(t);
+  }
+  if(cands.length){cands[Math.floor(Math.random()*cands.length)].classList.add('miss');annEl.innerText='Streak bonus: water revealed!';}
+}
+
+function move(cell){
+  if(!fc){fc=true;t0=Date.now();tInt=setInterval(()=>{const s=Math.floor((Date.now()-t0)/1000);ttEl.innerText=`${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;},1000);}
+  cell.classList.remove('nh');
+  if(cell.classList.contains('ship-cell')){
+    cell.classList.add('hit');tHits++;thEl.innerText=tHits;
+    const sh=ships.find(s=>s.coords.includes(`${cell.dataset.r},${cell.dataset.c}`));
+    sh.hits++;
+    if(sh.hits===sh.coords.length){
+      sLeft--;tsEl.innerText=sLeft;
+      annEl.innerText=`Ship sunk! (${sh.coords.length} segments) 💥`;
+      document.body.classList.add('sink-flash');
+      setTimeout(()=>document.body.classList.remove('sink-flash'),800);
+      sh.coords.forEach(k=>{const[sr,sc]=k.split(',');const el=gc(sr,sc);if(el)el.classList.remove('nh');});
+    }else annEl.innerText='Direct hit! 🎯';
+  }else{cell.classList.add('miss');annEl.innerText='Miss! 💦';}
+  if(sLeft===0){active=false;clearInterval(tInt);$('ftime').innerText=ttEl.innerText;setTimeout(()=>$('wscr').classList.add('open'),500);}
+}
+
+function apSt(){
+  GR.classList.toggle('adv-mode',adv&&mode==='mult');
+  shud.style.display=(adv&&!blast&&mode==='mult')?'block':'none';
+  $('pfield').style.display=blast?'block':'none';
+}
+
+function togBlast(){
+  blast=!blast;const b=$('bbtn');
+  b.classList.toggle('on',blast);b.innerText=`Blast Radius: ${blast?'ON':'OFF'}`;
+  if(blast&&adv){adv=false;$('abtn').classList.remove('on');$('abtn').innerText='Advanced Mode: OFF';}
+  apSt();clrCheat();
+}
+
+function togAdv(){
+  adv=!adv;const b=$('abtn');
+  b.classList.toggle('on',adv);b.innerText=`Advanced Mode: ${adv?'ON':'OFF'}`;
+  if(adv&&blast){blast=false;$('bbtn').classList.remove('on');$('bbtn').innerText='Blast Radius: OFF';}
+  apSt();clrCheat();
+}
+
+function clrCheat(){
+  clearTimeout(cTO);clearInterval(cInt);
+  GR.classList.remove('show-ships');$('cbtn').innerText='Show Ships (Cheat)';
+}
+
+function togCheat(){
+  if(GR.classList.contains('show-ships')){clrCheat();return;}
+  GR.classList.add('show-ships');
+  if(blast||adv){
+    let t=10;$('cbtn').innerText=`Hiding in ${t}s…`;
+    cInt=setInterval(()=>{t--;$('cbtn').innerText=`Hiding in ${t}s…`;},1000);
+    cTO=setTimeout(clrCheat,10000);
+  }else $('cbtn').innerText='Hide Ships';
+}
+
+psl.oninput=()=>$('plbl').innerText=psl.value;
+vsl.oninput=()=>$('vlbl').innerText=vsl.value;
+fsl.oninput=()=>$('flbl').innerText=fsl.value;
+ainp.onkeyup=e=>{if(e.key==='Enter')submit();};
+</script>
+</body>
+</html>
