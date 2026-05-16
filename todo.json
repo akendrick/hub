@@ -1,12 +1,40 @@
 [
     {
+        "id": "imngqr3hdxzcf",
+        "text": "Report cards",
+        "priority": 1,
+        "tags": [
+            "HW"
+        ],
+        "due": null,
+        "recurWeekday": null,
+        "recurDay": null,
+        "done": false,
+        "created": "2026-04-01",
+        "notes": null
+    },
+    {
+        "id": "imngqcyo1nvow",
+        "text": "P Card balence",
+        "priority": 1,
+        "tags": [
+            "HW"
+        ],
+        "due": null,
+        "recurWeekday": null,
+        "recurDay": null,
+        "done": true,
+        "created": "2026-04-01",
+        "notes": null
+    },
+    {
         "id": "imma5m8j3ca2f",
         "text": "412 Availability",
         "priority": 3,
         "tags": [
             "AMBO"
         ],
-        "due": "2026-03-14",
+        "due": "2026-04-13",
         "recurWeekday": null,
         "recurDay": null,
         "done": false,
@@ -35,22 +63,9 @@
         "due": null,
         "recurWeekday": null,
         "recurDay": null,
-        "done": false,
-        "created": "2026-03-01",
-        "notes": null
-    },
-    {
-        "id": "imm8ozrmxmj1r",
-        "text": "Jewett REPORT CARS",
-        "priority": 1,
-        "tags": [],
-        "due": "2026-03-04",
-        "recurWeekday": null,
-        "recurDay": null,
         "done": true,
         "created": "2026-03-01",
-        "notes": null,
-        "doneAt": "2026-03-10T02:14:54.057Z"
+        "notes": null
     },
     {
         "id": "imm8nm0dr0cyw",
@@ -60,7 +75,7 @@
         "due": null,
         "recurWeekday": null,
         "recurDay": null,
-        "done": false,
+        "done": true,
         "created": "2026-03-01",
         "notes": null
     },
@@ -112,7 +127,7 @@
         "due": "2026-03-03",
         "recurWeekday": null,
         "recurDay": null,
-        "done": false,
+        "done": true,
         "created": "2026-03-01",
         "notes": ""
     },
@@ -170,26 +185,11 @@
         "done": false,
         "priority": 4,
         "created": "2026-03-03T14:11:01-08:00",
-        "due": "2026-03-28",
+        "due": "2026-04-02",
         "notes": null,
         "tags": [],
         "recurWeekday": null,
         "recurDay": null
-    },
-    {
-        "id": "td_69a890aa3aa4b7.67988598",
-        "text": "House sitting@ Keri 10am",
-        "done": true,
-        "priority": 2,
-        "created": "2026-03-04T12:06:02-08:00",
-        "due": "2026-03-07",
-        "notes": null,
-        "tags": [
-            "HOME"
-        ],
-        "recurWeekday": null,
-        "recurDay": null,
-        "doneAt": "2026-03-10T02:15:12.315Z"
     },
     {
         "id": "td_69a9ed8e419338.06943672",
@@ -206,29 +206,187 @@
         "recurDay": null
     },
     {
-        "id": "td_69a9edb4c7ff77.08862900",
-        "text": "Book pool and Buses",
+        "id": "td_69ad99bed8d9d5.02654549",
+        "text": "Because news tickets",
         "done": true,
         "priority": 1,
-        "created": "2026-03-05T12:55:16-08:00",
-        "due": "2026-03-12",
+        "created": "2026-03-08T08:46:06-07:00",
+        "due": "2026-03-08",
+        "notes": "Box Office at 604-251-1363",
+        "tags": [],
+        "recurWeekday": null,
+        "recurDay": null
+    },
+    {
+        "id": "td_69b404fac4fa31.47782678",
+        "text": "Razor blades",
+        "done": true,
+        "priority": 3,
+        "created": "2026-03-13T05:37:14-07:00",
+        "due": null,
+        "notes": "Gillette sensor 5",
+        "tags": [
+            "HOME"
+        ],
+        "recurWeekday": null,
+        "recurDay": null
+    },
+    {
+        "id": "td_69c06825950a97.92546625",
+        "text": "PCARS Reconcile",
+        "done": true,
+        "priority": 2,
+        "created": "2026-03-22T15:07:33-07:00",
+        "due": "2026-03-25",
         "notes": null,
         "tags": [
             "HW"
         ],
         "recurWeekday": null,
-        "recurDay": null,
-        "doneAt": "2026-03-10T02:15:04.368Z"
+        "recurDay": null
     },
     {
-        "id": "td_69ad99bed8d9d5.02654549",
-        "text": "Because news tickets",
+        "id": "td_69c689f87f2653.81874618",
+        "text": "Invoices for HW",
+        "done": true,
+        "priority": 2,
+        "created": "2026-03-27T06:45:28-07:00",
+        "due": null,
+        "notes": null,
+        "tags": [
+            "HW"
+        ],
+        "recurWeekday": null,
+        "recurDay": null
+    },
+    {
+        "id": "td_69c68a045b7f82.16501332",
+        "text": "Test art materials",
+        "done": true,
+        "priority": 3,
+        "created": "2026-03-27T06:45:40-07:00",
+        "due": null,
+        "notes": null,
+        "tags": [
+            "HW"
+        ],
+        "recurWeekday": null,
+        "recurDay": null
+    },
+    {
+        "id": "td_69c68a1da35474.12301382",
+        "text": "Thank you cards and gift certificates",
+        "done": true,
+        "priority": 3,
+        "created": "2026-03-27T06:46:05-07:00",
+        "due": null,
+        "notes": null,
+        "tags": [],
+        "recurWeekday": null,
+        "recurDay": null,
+        "doneAt": "2026-04-10T22:27:40.621Z"
+    },
+    {
+        "id": "td_69c68a29d1cc44.31754058",
+        "text": "TAXES",
         "done": false,
         "priority": 1,
-        "created": "2026-03-08T08:46:06-07:00",
-        "due": "2026-03-09",
-        "notes": "Box Office at 604-251-1363",
+        "created": "2026-03-27T06:46:17-07:00",
+        "due": null,
+        "notes": null,
+        "tags": [
+            "HOME"
+        ],
+        "recurWeekday": null,
+        "recurDay": null
+    },
+    {
+        "id": "td_69c6de4c3b8f67.29087309",
+        "text": "Nice bookshelf",
+        "done": true,
+        "priority": 1,
+        "created": "2026-03-27T12:45:16-07:00",
+        "due": "2026-03-26",
+        "notes": null,
         "tags": [],
+        "recurWeekday": null,
+        "recurDay": null
+    },
+    {
+        "id": "td_69c924790bb621.86069626",
+        "text": "Good Friday",
+        "done": true,
+        "priority": 2,
+        "created": "2026-03-29T06:09:13-07:00",
+        "due": "2026-04-02",
+        "notes": null,
+        "tags": [],
+        "recurWeekday": null,
+        "recurDay": null
+    },
+    {
+        "id": "td_69c9248accd426.58909833",
+        "text": "Easter Monday",
+        "done": true,
+        "priority": 2,
+        "created": "2026-03-29T06:09:30-07:00",
+        "due": "2026-04-05",
+        "notes": null,
+        "tags": [],
+        "recurWeekday": null,
+        "recurDay": null
+    },
+    {
+        "id": "td_69d13acc49eba1.16333385",
+        "text": "HR FORMs",
+        "done": false,
+        "priority": 1,
+        "created": "2026-04-04T09:22:36-07:00",
+        "due": "2026-04-13",
+        "notes": null,
+        "tags": [],
+        "recurWeekday": null,
+        "recurDay": null
+    },
+    {
+        "id": "td_69d2768e859a15.03160745",
+        "text": "Email Louis Bockner about partnering for a photo exhibit. Get Langham application dates",
+        "done": false,
+        "priority": 3,
+        "created": "2026-04-05T07:49:50-07:00",
+        "due": null,
+        "notes": null,
+        "tags": [
+            "HOME"
+        ],
+        "recurWeekday": null,
+        "recurDay": null
+    },
+    {
+        "id": "td_69da3513891ee4.64183127",
+        "text": "Lesson plans for Heather",
+        "done": false,
+        "priority": 3,
+        "created": "2026-04-11T04:48:35-07:00",
+        "due": null,
+        "notes": null,
+        "tags": [
+            "HW"
+        ],
+        "recurWeekday": null,
+        "recurDay": null
+    },
+    {
+        "id": "td_69ed0c6bb2a871.94960877",
+        "text": "21”x37.5” sheet metal (ferrous)",
+        "done": false,
+        "priority": 2,
+        "created": "2026-04-25T11:48:11-07:00",
+        "due": null,
+        "notes": null,
+        "tags": [
+            "HOME"
+        ],
         "recurWeekday": null,
         "recurDay": null
     }

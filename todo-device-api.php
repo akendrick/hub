@@ -25,14 +25,14 @@
 // ── Config ────────────────────────────────────────────────────────────────────
 
 /** Long-lived secret — treat like a password. Set once, rotate if compromised. */
-const DEVICE_KEY = 'kw_40e818911c1980bcd56dc4aff37a820f811990a130eb771fd9e21a536edc55ea';
+const DEVICE_KEY = 'REPLACE_WITH_YOUR_SECRET_KEY';
 
 /**
  * Path to the JSON file where todo-api.php persists todos.
  * Adjust this to match your actual storage path.
  * Common locations: __DIR__.'/data/todos.json'  or  __DIR__.'/todos.json'
  */
-const TODOS_FILE = __DIR__ . '/todo.json';
+const TODOS_FILE = __DIR__ . '/data/todos.json';
 
 /** Safety cap — never return more than this many items. */
 const MAX_ITEMS = 30;
