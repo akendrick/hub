@@ -10,10 +10,9 @@
  *     "total":  N
  *   }
  *
- * "urgent"    = priority 1–2, OR due within 3 days (incl. overdue)
- * "important" = priority 3, OR due within 7 days (not already urgent)
- * "rest"      = everything else, sorted by priority then text
- * All buckets exclude done items and recurring items.
+ * "urgent" = priority 1–2, OR due within 3 days (incl. overdue)
+ * "rest"   = everything else, sorted by priority then text
+ * Both columns exclude done items and recurring items (those live in the calendar).
  *
  * ── Setup ─────────────────────────────────────────────────────────────────────
  * 1. Set DEVICE_KEY to any long random string (e.g. `openssl rand -hex 32`)
@@ -26,12 +25,14 @@
 // ── Config ────────────────────────────────────────────────────────────────────
 
 /** Long-lived secret — treat like a password. Set once, rotate if compromised. */
-const DEVICE_KEY = 'kw_40e818911c1980bcd56dc4aff37a820f811990a130eb771fd9e21a536edc55ea';
+const DEVICE_KEY = 'REPLACE_WITH_YOUR_SECRET_KEY';
 
 /**
  * Path to the JSON file where todo-api.php persists todos.
+ * Adjust this to match your actual storage path.
+ * Common locations: __DIR__.'/data/todos.json'  or  __DIR__.'/todos.json'
  */
-const TODOS_FILE = __DIR__ . '/todo.json';
+const TODOS_FILE = __DIR__ . '/data/todos.json';
 
 /** Safety cap — never return more than this many items. */
 const MAX_ITEMS = 30;
@@ -85,7 +86,7 @@ function fmt_due(?string $due): string {
 }
 
 /**
- * Returns true if an item belongs in the "urgent" bucket:
+ * Returns true if an item belongs in the "urgent" (left) column:
  *   - Priority 1 or 2
  *   - Due within 3 days OR overdue
  */
@@ -95,22 +96,6 @@ function is_urgent(array $item): bool {
     if (!empty($item['due'])) {
         $in3 = (new DateTime('today + 3 days'))->format('Y-m-d');
         if ($item['due'] <= $in3) return true;
-    }
-    return false;
-}
-
-/**
- * Returns true if an item belongs in the "important" bucket
- * (not already urgent):
- *   - Priority 3
- *   - Due within 7 days
- */
-function is_important(array $item): bool {
-    $pri = (int) ($item['priority'] ?? 5);
-    if ($pri === 3) return true;
-    if (!empty($item['due'])) {
-        $in7 = (new DateTime('today + 7 days'))->format('Y-m-d');
-        if ($item['due'] <= $in7) return true;
     }
     return false;
 }
@@ -154,9 +139,8 @@ $active = array_filter($all, function (array $item): bool {
 $active = array_values(array_slice($active, 0, MAX_ITEMS));
 
 // ── Classify, format, sort ────────────────────────────────────────────────────
-$urgent    = [];
-$important = [];
-$rest      = [];
+$urgent = [];
+$rest   = [];
 
 foreach ($active as $item) {
     $out = [
@@ -167,43 +151,17 @@ foreach ($active as $item) {
     ];
     if (is_urgent($item)) {
         $urgent[] = $out;
-    } elseif (is_important($item)) {
-        $important[] = $out;
     } else {
         $rest[] = $out;
     }
 }
 
-usort($urgent,    'cmp_urgent');
-usort($important, 'cmp_rest');
-usort($rest,      'cmp_rest');
-
-// ── Flatten to top-level scalars — TRMNL Liquid needs no IDX_0, no arrays ────
-// u0_text/u0_due … u3_text/u3_due  (urgent, up to 4)
-// i0_text/i0_due … i5_text/i5_due  (important, up to 6)
-// r0_text/r0_due … r7_text/r7_due  (rest, up to 8)
-$flat = ['total' => count($urgent) + count($important) + count($rest)];
-
-$flat['u_count'] = count($urgent);
-for ($i = 0; $i < 4; $i++) {
-    $flat["u{$i}_text"] = $urgent[$i]['text']      ?? '';
-    $flat["u{$i}_due"]  = $urgent[$i]['due_label'] ?? '';
-}
-$flat['u_more'] = max(0, count($urgent) - 4);
-
-$flat['i_count'] = count($important);
-for ($i = 0; $i < 6; $i++) {
-    $flat["i{$i}_text"] = $important[$i]['text']      ?? '';
-    $flat["i{$i}_due"]  = $important[$i]['due_label'] ?? '';
-}
-$flat['i_more'] = max(0, count($important) - 6);
-
-$flat['r_count'] = count($rest);
-for ($i = 0; $i < 8; $i++) {
-    $flat["r{$i}_text"] = $rest[$i]['text']      ?? '';
-    $flat["r{$i}_due"]  = $rest[$i]['due_label'] ?? '';
-}
-$flat['r_more'] = max(0, count($rest) - 8);
+usort($urgent, 'cmp_urgent');
+usort($rest,   'cmp_rest');
 
 // ── Output ────────────────────────────────────────────────────────────────────
-echo json_encode($flat, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+echo json_encode([
+    'urgent' => $urgent,
+    'rest'   => $rest,
+    'total'  => count($urgent) + count($rest),
+], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

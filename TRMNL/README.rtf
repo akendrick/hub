@@ -1,0 +1,653 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2868
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\froman\fcharset0 Times-Bold;\f1\froman\fcharset0 Times-Roman;\f2\fnil\fcharset0 AppleColorEmoji;
+\f3\fnil\fcharset0 HelveticaNeue;\f4\fmodern\fcharset0 Courier-Bold;\f5\fmodern\fcharset0 Courier;
+\f6\froman\fcharset0 TimesNewRomanPSMT;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red109\green109\blue109;\red0\green0\blue0;
+\red16\green19\blue24;\red32\green36\blue45;\red167\green0\blue20;\red14\green110\blue109;\red15\green112\blue1;
+\red91\green98\blue116;\red4\green57\blue181;\red173\green0\blue24;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;\cssrgb\c50196\c50196\c50196;\cssrgb\c0\c0\c0\c84706;
+\cssrgb\c7843\c9412\c12157;\cssrgb\c16863\c18824\c23137;\cssrgb\c72157\c3922\c9412;\cssrgb\c0\c50196\c50196;\cssrgb\c0\c50196\c0;
+\cssrgb\c43137\c46275\c52941;\cssrgb\c0\c31765\c76078;\cssrgb\c74118\c5882\c11765;}
+{\*\listtable{\list\listtemplateid1\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat0\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid1\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listname ;}\listid1}}
+{\*\listoverridetable{\listoverride\listid1\listoverridecount0\ls1}}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\deftab720
+\pard\pardeftab720\sa321\partightenfactor0
+
+\f0\b\fs48 \cf0 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Kaslo Weather \'97 TRMNL Private Plugin\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f1\b0\fs24 \cf0 A full-screen 800\'d7480 e-ink weather dashboard pulling live observations from your EcoWitt station (IKASLO6) and the Open-Meteo 7-day forecast.\
+\pard\pardeftab720\partightenfactor0
+\cf3 \strokec3 \
+\pard\pardeftab720\sa298\partightenfactor0
+
+\f0\b\fs36 \cf0 \strokec2 Step 1 \'97 Plugin Configuration\
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrt\brdrnil \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clwWidth2292\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx4320
+\clvertalc \clshdrawnil \clwWidth3518\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\qc\partightenfactor0
+
+\fs24 \cf0 Field\cell 
+\pard\intbl\itap1\pardeftab720\qc\partightenfactor0
+\cf0 Value\cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clwWidth2292\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx4320
+\clvertalc \clshdrawnil \clwWidth3518\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf0 Name
+\f1\b0 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf0 Kaslo Weather\cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clwWidth2292\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx4320
+\clvertalc \clshdrawnil \clwWidth3518\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f0\b \cf0 Strategy
+\f1\b0 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf0 Polling\cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clwWidth2292\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx4320
+\clvertalc \clshdrawnil \clwWidth3518\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f0\b \cf0 Polling Verb
+\f1\b0 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf0 GET\cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrt\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clwWidth2292\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx4320
+\clvertalc \clshdrawnil \clwWidth3518\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f0\b \cf0 Remove Bleed Margin
+\f1\b0 \cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f2 \cf0 \uc0\u9989 
+\f1  Enable (for edge-to-edge layout)\cell \lastrow\row
+\pard\pardeftab720\sa280\partightenfactor0
+
+\f0\b\fs28 \cf0 Polling URLs (enter one per line)\
+\pard\pardeftab720\qc\partightenfactor0
+
+\f3\b0\fs22 \cf4 \strokec4 \
+\
+\pard\pardeftab720\partightenfactor0
+
+\f1\fs24 \cf5 \strokec5 https://api.ecowitt.net/api/v3/device/real_time?application_key=C6FD389063D6A82CC7A68532000A5962&api_key=1c2c26a5-a293-4f82-a69a-9e77b6447344&mac=E0:5A:1B:21:11:57&call_back=all&temp_unitid=1&pressure_unitid=3&wind_speed_unitid=7&rainfall_unitid=12&solar_irradiance_unitid=16\
+https://api.open-meteo.com/v1/forecast?latitude=49.912&longitude=-116.908&current=temperature_2m,apparent_temperature,precipitation,wind_speed_10m,wind_direction_10m,wind_gusts_10m,relative_humidity_2m,surface_pressure,uv_index,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weather_code,sunrise,sunset&wind_speed_unit=kmh&timezone=America%2FVancouver&forecast_days=7\
+\pard\pardeftab720\sa240\partightenfactor0
+\cf0 \strokec2 With two URLs, TRMNL exposes them as:\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\partightenfactor0
+\ls1\ilvl0
+\f4\b\fs26 \cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 IDX_0.*
+\f1\b0\fs24  \'97 EcoWitt real-time station data\
+\ls1\ilvl0
+\f4\b\fs26 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 IDX_1.*
+\f1\b0\fs24  \'97 Open-Meteo forecast JSON\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f0\b \cf0 Key rotation:
+\f1\b0  If you ever regenerate your EcoWitt API key, update URL 1. The Open-Meteo URL is keyless and permanent.\
+\pard\pardeftab720\sa280\partightenfactor0
+
+\f0\b\fs28 \cf0 Key variable paths\
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrt\brdrnil \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clwWidth1919\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx4320
+\clvertalc \clshdrawnil \clwWidth6583\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\qc\partightenfactor0
+
+\fs24 \cf0 What\cell 
+\pard\intbl\itap1\pardeftab720\qc\partightenfactor0
+\cf0 Liquid path\cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clwWidth1919\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx4320
+\clvertalc \clshdrawnil \clwWidth6583\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f1\b0 \cf0 Outdoor temp\cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f5\fs26 \cf0 IDX_0.data.outdoor.temperature.value
+\f1\fs24 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clwWidth1919\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx4320
+\clvertalc \clshdrawnil \clwWidth6583\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf0 Feels like\cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f5\fs26 \cf0 IDX_0.data.outdoor.feels_like.value
+\f1\fs24 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clwWidth1919\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx4320
+\clvertalc \clshdrawnil \clwWidth6583\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf0 Humidity\cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f5\fs26 \cf0 IDX_0.data.outdoor.humidity.value
+\f1\fs24 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clwWidth1919\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx4320
+\clvertalc \clshdrawnil \clwWidth6583\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf0 Dew point\cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f5\fs26 \cf0 IDX_0.data.outdoor.dew_point.value
+\f1\fs24 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clwWidth1919\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx4320
+\clvertalc \clshdrawnil \clwWidth6583\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf0 Wind speed\cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f5\fs26 \cf0 IDX_0.data.wind.wind_speed.value
+\f1\fs24 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clwWidth1919\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx4320
+\clvertalc \clshdrawnil \clwWidth6583\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf0 Wind gust\cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f5\fs26 \cf0 IDX_0.data.wind.wind_gust.value
+\f1\fs24 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clwWidth1919\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx4320
+\clvertalc \clshdrawnil \clwWidth6583\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf0 Wind direction\'b0\cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f5\fs26 \cf0 IDX_0.data.wind.wind_direction.value
+\f1\fs24 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clwWidth1919\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx4320
+\clvertalc \clshdrawnil \clwWidth6583\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf0 Pressure (hPa)\cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f5\fs26 \cf0 IDX_0.data.pressure.relative.value
+\f1\fs24 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clwWidth1919\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx4320
+\clvertalc \clshdrawnil \clwWidth6583\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf0 UV index\cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f5\fs26 \cf0 IDX_0.data.solar_and_uvi.uvi.value
+\f1\fs24 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clwWidth1919\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx4320
+\clvertalc \clshdrawnil \clwWidth6583\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf0 Solar W/m\'b2\cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f5\fs26 \cf0 IDX_0.data.solar_and_uvi.solar.value
+\f1\fs24 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clwWidth1919\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx4320
+\clvertalc \clshdrawnil \clwWidth6583\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf0 Rain rate\cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f5\fs26 \cf0 IDX_0.data.rainfall.rain_rate.value
+\f1\fs24 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clwWidth1919\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx4320
+\clvertalc \clshdrawnil \clwWidth6583\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf0 Daily rain\cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f5\fs26 \cf0 IDX_0.data.rainfall.daily.value
+\f1\fs24 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clwWidth1919\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx4320
+\clvertalc \clshdrawnil \clwWidth6583\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf0 Weekly rain\cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f5\fs26 \cf0 IDX_0.data.rainfall.weekly.value
+\f1\fs24 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clwWidth1919\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx4320
+\clvertalc \clshdrawnil \clwWidth6583\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf0 Indoor temp\cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f5\fs26 \cf0 IDX_0.data.indoor.temperature.value
+\f1\fs24 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clwWidth1919\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx4320
+\clvertalc \clshdrawnil \clwWidth6583\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf0 Indoor humidity\cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f5\fs26 \cf0 IDX_0.data.indoor.humidity.value
+\f1\fs24 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clwWidth1919\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx4320
+\clvertalc \clshdrawnil \clwWidth6583\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf0 Current WMO code\cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f5\fs26 \cf0 IDX_1.current.weather_code
+\f1\fs24 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clwWidth1919\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx4320
+\clvertalc \clshdrawnil \clwWidth6583\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf0 Today Hi/Lo\cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f5\fs26 \cf0 IDX_1.daily.temperature_2m_max[0]
+\f1\fs24  / 
+\f5\fs26 ..min[0]
+\f1\fs24 \cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrt\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clwWidth1919\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx4320
+\clvertalc \clshdrawnil \clwWidth6583\clftsWidth3 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt20 \clpadl20 \clpadb20 \clpadr20 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+\cf0 Sunrise string\cell 
+\pard\intbl\itap1\pardeftab720\partightenfactor0
+
+\f5\fs26 \cf0 IDX_1.daily.sunrise[0]
+\f1\fs24  
+\f6 \uc0\u8594 
+\f1  "2026-04-13T07:12"\cell \lastrow\row
+\pard\pardeftab720\partightenfactor0
+\cf3 \strokec3 \
+\pard\pardeftab720\sa298\partightenfactor0
+
+\f0\b\fs36 \cf0 \strokec2 Step 2 \'97 Edit Markup\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f1\b0\fs24 \cf0 Click 
+\f0\b Edit Markup
+\f1\b0  
+\f6 \uc0\u8594 
+\f1  paste the following into the 
+\f0\b Full
+\f1\b0  tab.\
+\pard\pardeftab720\qc\partightenfactor0
+
+\f3\fs22 \cf4 \strokec4 \
+\
+\pard\pardeftab720\partightenfactor0
+
+\f1\fs24 \cf0 \strokec2 html\
+\pard\pardeftab720\partightenfactor0
+\cf5 \strokec5 ##\{% comment %\}\
+================================================================================\
+  Kaslo Weather \'b7 TRMNL Private Plugin\
+  Layout:  3-column full screen (800\'d7480 B&W e-ink)\
+  IDX_0 =  EcoWitt real-time station (IKASLO6)\
+  IDX_1 =  Open-Meteo 7-day forecast\
+================================================================================\
+##\{% endcomment %\}\
+\
+##\{% comment %\} 
+\f6 \uc0\u9472 \u9472 
+\f1  Wind direction: degrees 
+\f6 \uc0\u8594 
+\f1  8-point compass 
+\f6 \uc0\u9472 \u9472 
+\f1  ##\{% endcomment %\}\
+##\{% assign _wd = IDX_0.data.wind.wind_direction.value | plus: 0 %\}\
+##\{% if _wd < 23 or _wd >= 338 %\}##\{% assign wdir = "N" %\}\
+##\{% elsif _wd < 68 %\}##\{% assign wdir = "NE" %\}\
+##\{% elsif _wd < 113 %\}##\{% assign wdir = "E" %\}\
+##\{% elsif _wd < 158 %\}##\{% assign wdir = "SE" %\}\
+##\{% elsif _wd < 203 %\}##\{% assign wdir = "S" %\}\
+##\{% elsif _wd < 248 %\}##\{% assign wdir = "SW" %\}\
+##\{% elsif _wd < 293 %\}##\{% assign wdir = "W" %\}\
+##\{% else %\}##\{% assign wdir = "NW" %\}\
+##\{% endif %\}\
+\
+##\{% comment %\} 
+\f6 \uc0\u9472 \u9472 
+\f1  WMO code 
+\f6 \uc0\u8594 
+\f1  condition label (current) 
+\f6 \uc0\u9472 \u9472 
+\f1  ##\{% endcomment %\}\
+##\{% assign _wc = IDX_1.current.weather_code | plus: 0 %\}\
+##\{% if _wc == 0 %\}##\{% assign wxlbl = "Clear" %\}\
+##\{% elsif _wc == 1 %\}##\{% assign wxlbl = "Mostly Clear" %\}\
+##\{% elsif _wc == 2 %\}##\{% assign wxlbl = "Partly Cloudy" %\}\
+##\{% elsif _wc == 3 %\}##\{% assign wxlbl = "Overcast" %\}\
+##\{% elsif _wc == 45 or _wc == 48 %\}##\{% assign wxlbl = "Fog" %\}\
+##\{% elsif _wc >= 51 and _wc <= 55 %\}##\{% assign wxlbl = "Drizzle" %\}\
+##\{% elsif _wc >= 61 and _wc <= 65 %\}##\{% assign wxlbl = "Rain" %\}\
+##\{% elsif _wc >= 71 and _wc <= 75 %\}##\{% assign wxlbl = "Snow" %\}\
+##\{% elsif _wc >= 80 and _wc <= 82 %\}##\{% assign wxlbl = "Rain Showers" %\}\
+##\{% elsif _wc == 85 or _wc == 86 %\}##\{% assign wxlbl = "Snow Showers" %\}\
+##\{% elsif _wc >= 95 %\}##\{% assign wxlbl = "Thunderstorm" %\}\
+##\{% else %\}##\{% assign wxlbl = "\'97" %\}\
+##\{% endif %\}\
+\
+##\{% comment %\} 
+\f6 \uc0\u9472 \u9472 
+\f1  Extract HH:MM from ISO datetime strings 
+\f6 \uc0\u9472 \u9472 
+\f1  ##\{% endcomment %\}\
+##\{% assign srtime = IDX_1.daily.sunrise[0] | split: "T" | last %\}\
+##\{% assign sstime = IDX_1.daily.sunset[0] | split: "T" | last %\}\
+\
+\pard\pardeftab720\partightenfactor0
+\cf6 \strokec6 <\cf7 \strokec7 style\cf6 \strokec6 >\cf5 \strokec5 \
+\pard\pardeftab720\partightenfactor0
+\cf7 \strokec7 *\cf6 \strokec6 ,\cf7 \strokec7  *::before\cf6 \strokec6 ,\cf7 \strokec7  *::after\cf5 \strokec5  \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 box-sizing\cf6 \strokec6 :\cf5 \strokec5  border-box\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 margin\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 0\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 padding\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 0\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\cf7 \strokec7 html\cf6 \strokec6 ,\cf7 \strokec7  body\cf5 \strokec5  \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 width\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 800\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 height\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 480\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 overflow\cf6 \strokec6 :\cf5 \strokec5  hidden\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 background\cf6 \strokec6 :\cf5 \strokec5  #fff\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 color\cf6 \strokec6 :\cf5 \strokec5  #000\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\cf7 \strokec7 body\cf5 \strokec5  \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 font-family\cf6 \strokec6 :\cf5 \strokec5  -apple-system\cf6 \strokec6 ,\cf5 \strokec5  BlinkMacSystemFont\cf6 \strokec6 ,\cf5 \strokec5  \cf9 \strokec9 'Segoe UI'\cf6 \strokec6 ,\cf5 \strokec5  Arial\cf6 \strokec6 ,\cf5 \strokec5  sans-serif\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 font-size\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 12\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 display\cf6 \strokec6 :\cf5 \strokec5  flex\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 flex-direction\cf6 \strokec6 :\cf5 \strokec5  column\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf10 \strokec10 /* 
+\f6 \uc0\u9472 \u9472 
+\f1  Header 
+\f6 \uc0\u9472 \u9472 
+\f1  */\cf5 \strokec5 \
+\pard\pardeftab720\partightenfactor0
+\cf7 \strokec7 .hdr\cf5 \strokec5  \cf6 \strokec6 \{\cf5 \strokec5 \
+  \cf7 \strokec7 display\cf6 \strokec6 :\cf5 \strokec5  flex\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 justify-content\cf6 \strokec6 :\cf5 \strokec5  space-between\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 align-items\cf6 \strokec6 :\cf5 \strokec5  center\cf6 \strokec6 ;\cf5 \strokec5 \
+  \cf7 \strokec7 padding\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 0\cf5 \strokec5  \cf8 \strokec8 10\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 height\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 28\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 border-bottom\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 2\cf5 \strokec5 px solid #000\cf6 \strokec6 ;\cf5 \strokec5 \
+  \cf7 \strokec7 flex-shrink\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 0\cf6 \strokec6 ;\cf5 \strokec5 \
+\pard\pardeftab720\partightenfactor0
+\cf6 \strokec6 \}\cf5 \strokec5 \
+\pard\pardeftab720\partightenfactor0
+\cf7 \strokec7 .hdr-title\cf5 \strokec5  \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 font-weight\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 700\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 font-size\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 13\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 letter-spacing\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 0.04\cf5 \strokec5 em\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\cf7 \strokec7 .hdr-time\cf5 \strokec5   \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 font-size\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 11\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 color\cf6 \strokec6 :\cf5 \strokec5  #555\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf10 \strokec10 /* 
+\f6 \uc0\u9472 \u9472 
+\f1  Main 3-column grid 
+\f6 \uc0\u9472 \u9472 
+\f1  */\cf5 \strokec5 \
+\pard\pardeftab720\partightenfactor0
+\cf7 \strokec7 .main\cf5 \strokec5  \cf6 \strokec6 \{\cf5 \strokec5 \
+  \cf7 \strokec7 display\cf6 \strokec6 :\cf5 \strokec5  grid\cf6 \strokec6 ;\cf5 \strokec5 \
+  \cf7 \strokec7 grid-template-columns\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 230\cf5 \strokec5 px \cf8 \strokec8 190\cf5 \strokec5 px \cf8 \strokec8 1\cf5 \strokec5 fr\cf6 \strokec6 ;\cf5 \strokec5 \
+  \cf7 \strokec7 flex\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 1\cf6 \strokec6 ;\cf5 \strokec5 \
+  \cf7 \strokec7 min-height\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 0\cf6 \strokec6 ;\cf5 \strokec5 \
+\pard\pardeftab720\partightenfactor0
+\cf6 \strokec6 \}\cf5 \strokec5 \
+\pard\pardeftab720\partightenfactor0
+\cf7 \strokec7 .col\cf5 \strokec5  \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 overflow\cf6 \strokec6 :\cf5 \strokec5  hidden\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\cf7 \strokec7 .col + .col\cf5 \strokec5  \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 border-left\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 1\cf5 \strokec5 px solid #bbb\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf10 \strokec10 /* 
+\f6 \uc0\u9472 \u9472 
+\f1  Col 1: Current Conditions 
+\f6 \uc0\u9472 \u9472 
+\f1  */\cf5 \strokec5 \
+\pard\pardeftab720\partightenfactor0
+\cf7 \strokec7 .col1\cf5 \strokec5  \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 padding\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 10\cf5 \strokec5 px \cf8 \strokec8 12\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 display\cf6 \strokec6 :\cf5 \strokec5  flex\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 flex-direction\cf6 \strokec6 :\cf5 \strokec5  column\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 gap\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 4\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\cf7 \strokec7 .big-temp\cf5 \strokec5  \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 font-size\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 68\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 font-weight\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 200\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 line-height\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 1\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\cf7 \strokec7 .big-temp sup\cf5 \strokec5  \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 font-size\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 26\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 vertical-align\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 0.6\cf5 \strokec5 em\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 font-weight\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 300\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\cf7 \strokec7 .wx-desc\cf5 \strokec5   \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 font-size\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 15\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 font-weight\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 700\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 margin-top\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 2\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\cf7 \strokec7 .sub-row\cf5 \strokec5   \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 font-size\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 11\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 color\cf6 \strokec6 :\cf5 \strokec5  #555\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\cf7 \strokec7 .hi-lo\cf5 \strokec5     \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 font-size\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 13\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 font-weight\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 600\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 color\cf6 \strokec6 :\cf5 \strokec5  #000\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\cf7 \strokec7 .divider\cf5 \strokec5   \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 border\cf6 \strokec6 :\cf5 \strokec5  none\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 border-top\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 1\cf5 \strokec5 px solid #e0e0e0\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 margin\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 4\cf5 \strokec5 px \cf8 \strokec8 0\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf10 \strokec10 /* 
+\f6 \uc0\u9472 \u9472 
+\f1  Col 2: Stats 2\'d72 grid 
+\f6 \uc0\u9472 \u9472 
+\f1  */\cf5 \strokec5 \
+\pard\pardeftab720\partightenfactor0
+\cf7 \strokec7 .stats-grid\cf5 \strokec5  \cf6 \strokec6 \{\cf5 \strokec5 \
+  \cf7 \strokec7 display\cf6 \strokec6 :\cf5 \strokec5  grid\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 grid-template-columns\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 1\cf5 \strokec5 fr \cf8 \strokec8 1\cf5 \strokec5 fr\cf6 \strokec6 ;\cf5 \strokec5 \
+  \cf7 \strokec7 grid-template-rows\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 1\cf5 \strokec5 fr \cf8 \strokec8 1\cf5 \strokec5 fr\cf6 \strokec6 ;\cf5 \strokec5 \
+  \cf7 \strokec7 height\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 100\cf5 \strokec5 %\cf6 \strokec6 ;\cf5 \strokec5 \
+  \cf7 \strokec7 gap\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 0\cf6 \strokec6 ;\cf5 \strokec5 \
+\pard\pardeftab720\partightenfactor0
+\cf6 \strokec6 \}\cf5 \strokec5 \
+\pard\pardeftab720\partightenfactor0
+\cf7 \strokec7 .sbox\cf5 \strokec5  \cf6 \strokec6 \{\cf5 \strokec5 \
+  \cf7 \strokec7 padding\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 10\cf5 \strokec5 px \cf8 \strokec8 10\cf5 \strokec5 px \cf8 \strokec8 8\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5 \
+  \cf7 \strokec7 border-right\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 1\cf5 \strokec5 px solid #e0e0e0\cf6 \strokec6 ;\cf5 \strokec5 \
+  \cf7 \strokec7 border-bottom\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 1\cf5 \strokec5 px solid #e0e0e0\cf6 \strokec6 ;\cf5 \strokec5 \
+  \cf7 \strokec7 display\cf6 \strokec6 :\cf5 \strokec5  flex\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 flex-direction\cf6 \strokec6 :\cf5 \strokec5  column\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 justify-content\cf6 \strokec6 :\cf5 \strokec5  center\cf6 \strokec6 ;\cf5 \strokec5 \
+\pard\pardeftab720\partightenfactor0
+\cf6 \strokec6 \}\cf5 \strokec5 \
+\pard\pardeftab720\partightenfactor0
+\cf7 \strokec7 .sbox:nth-child\cf6 \strokec6 (\cf7 \strokec7 2n\cf6 \strokec6 )\cf5 \strokec5   \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 border-right\cf6 \strokec6 :\cf5 \strokec5  none\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\cf7 \strokec7 .sbox:nth-child\cf6 \strokec6 (\cf7 \strokec7 3\cf6 \strokec6 ),\cf7 \strokec7 \
+.sbox:nth-child\cf6 \strokec6 (\cf7 \strokec7 4\cf6 \strokec6 )\cf5 \strokec5    \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 border-bottom\cf6 \strokec6 :\cf5 \strokec5  none\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\cf7 \strokec7 .s-lbl\cf5 \strokec5  \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 font-size\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 9\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 text-transform\cf6 \strokec6 :\cf5 \strokec5  uppercase\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 letter-spacing\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 0.09\cf5 \strokec5 em\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 color\cf6 \strokec6 :\cf5 \strokec5  #888\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 margin-bottom\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 3\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\cf7 \strokec7 .s-val\cf5 \strokec5  \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 font-size\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 22\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 font-weight\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 700\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 line-height\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 1\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\cf7 \strokec7 .s-unit\cf5 \strokec5  \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 font-size\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 11\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 font-weight\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 400\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\cf7 \strokec7 .s-sub\cf5 \strokec5  \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 font-size\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 10\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 color\cf6 \strokec6 :\cf5 \strokec5  #555\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 margin-top\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 3\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf10 \strokec10 /* 
+\f6 \uc0\u9472 \u9472 
+\f1  Col 3: 7-Day Forecast 
+\f6 \uc0\u9472 \u9472 
+\f1  */\cf5 \strokec5 \
+\pard\pardeftab720\partightenfactor0
+\cf7 \strokec7 .fc-grid\cf5 \strokec5  \cf6 \strokec6 \{\cf5 \strokec5 \
+  \cf7 \strokec7 display\cf6 \strokec6 :\cf5 \strokec5  grid\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 grid-template-columns\cf6 \strokec6 :\cf5 \strokec5  \cf11 \strokec11 repeat\cf6 \strokec6 (\cf8 \strokec8 7\cf6 \strokec6 ,\cf5 \strokec5  \cf8 \strokec8 1\cf5 \strokec5 fr\cf6 \strokec6 );\cf5 \strokec5 \
+  \cf7 \strokec7 height\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 100\cf5 \strokec5 %\cf6 \strokec6 ;\cf5 \strokec5 \
+\pard\pardeftab720\partightenfactor0
+\cf6 \strokec6 \}\cf5 \strokec5 \
+\pard\pardeftab720\partightenfactor0
+\cf7 \strokec7 .fc-day\cf5 \strokec5  \cf6 \strokec6 \{\cf5 \strokec5 \
+  \cf7 \strokec7 display\cf6 \strokec6 :\cf5 \strokec5  flex\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 flex-direction\cf6 \strokec6 :\cf5 \strokec5  column\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 align-items\cf6 \strokec6 :\cf5 \strokec5  center\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 justify-content\cf6 \strokec6 :\cf5 \strokec5  center\cf6 \strokec6 ;\cf5 \strokec5 \
+  \cf7 \strokec7 padding\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 6\cf5 \strokec5 px \cf8 \strokec8 2\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 border-right\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 1\cf5 \strokec5 px solid #e8e8e8\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 gap\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 2\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5 \
+\pard\pardeftab720\partightenfactor0
+\cf6 \strokec6 \}\cf5 \strokec5 \
+\pard\pardeftab720\partightenfactor0
+\cf7 \strokec7 .fc-day:last-child\cf5 \strokec5  \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 border-right\cf6 \strokec6 :\cf5 \strokec5  none\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\cf7 \strokec7 .fc-dname\cf5 \strokec5  \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 font-size\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 10\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 font-weight\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 700\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 text-transform\cf6 \strokec6 :\cf5 \strokec5  uppercase\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 letter-spacing\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 0.04\cf5 \strokec5 em\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\cf7 \strokec7 .fc-cond\cf5 \strokec5   \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 font-size\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 9\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 color\cf6 \strokec6 :\cf5 \strokec5  #444\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 text-align\cf6 \strokec6 :\cf5 \strokec5  center\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 line-height\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 1.2\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\cf7 \strokec7 .fc-hi\cf5 \strokec5     \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 font-size\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 15\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 font-weight\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 700\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\cf7 \strokec7 .fc-lo\cf5 \strokec5     \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 font-size\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 12\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 color\cf6 \strokec6 :\cf5 \strokec5  #777\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\cf7 \strokec7 .fc-prcp\cf5 \strokec5   \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 font-size\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 9\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 color\cf6 \strokec6 :\cf5 \strokec5  #999\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf10 \strokec10 /* 
+\f6 \uc0\u9472 \u9472 
+\f1  Footer 
+\f6 \uc0\u9472 \u9472 
+\f1  */\cf5 \strokec5 \
+\pard\pardeftab720\partightenfactor0
+\cf7 \strokec7 .ftr\cf5 \strokec5  \cf6 \strokec6 \{\cf5 \strokec5 \
+  \cf7 \strokec7 display\cf6 \strokec6 :\cf5 \strokec5  flex\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 justify-content\cf6 \strokec6 :\cf5 \strokec5  space-between\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 align-items\cf6 \strokec6 :\cf5 \strokec5  center\cf6 \strokec6 ;\cf5 \strokec5 \
+  \cf7 \strokec7 padding\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 0\cf5 \strokec5  \cf8 \strokec8 12\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 height\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 32\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 border-top\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 1\cf5 \strokec5 px solid #bbb\cf6 \strokec6 ;\cf5 \strokec5  \cf7 \strokec7 flex-shrink\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 0\cf6 \strokec6 ;\cf5 \strokec5 \
+  \cf7 \strokec7 font-size\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 11\cf5 \strokec5 px\cf6 \strokec6 ;\cf5 \strokec5 \
+\pard\pardeftab720\partightenfactor0
+\cf6 \strokec6 \}\cf5 \strokec5 \
+\pard\pardeftab720\partightenfactor0
+\cf7 \strokec7 .ftr-indoor\cf5 \strokec5  \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 font-weight\cf6 \strokec6 :\cf5 \strokec5  \cf8 \strokec8 600\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\cf7 \strokec7 .ftr-sun\cf5 \strokec5  \cf6 \strokec6 \{\cf5 \strokec5  \cf7 \strokec7 color\cf6 \strokec6 :\cf5 \strokec5  #444\cf6 \strokec6 ;\cf5 \strokec5  \cf6 \strokec6 \}\cf5 \strokec5 \
+\pard\pardeftab720\partightenfactor0
+\cf6 \strokec6 </\cf7 \strokec7 style\cf6 \strokec6 >\cf5 \strokec5 \
+\
+\cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 hdr\cf6 \strokec6 ">\cf5 \strokec5 \
+  \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 hdr-title\cf6 \strokec6 ">\cf5 \strokec5 IKASLO6 \cf8 \strokec8 &middot;\cf5 \strokec5  Kaslo BC\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+  \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 hdr-time\cf6 \strokec6 ">\cf5 \strokec5 ##\{\{ trmnl.user.time | date: "%a %b %-d \cf8 \strokec8 &middot;\cf5 \strokec5  %H:%M" \}\}\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+\
+\cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 main\cf6 \strokec6 ">\cf5 \strokec5 \
+\
+  \cf10 \strokec10 <!-- 
+\f6 \uc0\u9472 \u9472 
+\f1  COL 1: Current Conditions 
+\f6 \uc0\u9472 \u9472 
+\f1  -->\cf5 \strokec5 \
+  \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 col col1\cf6 \strokec6 ">\cf5 \strokec5 \
+    \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 big-temp\cf6 \strokec6 ">\cf5 \strokec5 ##\{\{ IDX_0.data.outdoor.temperature.value | split: "." | first \}\}\cf6 \strokec6 <\cf7 \strokec7 sup\cf6 \strokec6 >\cf8 \strokec8 &deg;\cf6 \strokec6 </\cf7 \strokec7 sup\cf6 \strokec6 ></\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+    \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 wx-desc\cf6 \strokec6 ">\cf5 \strokec5 ##\{\{ wxlbl \}\}\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+    \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 sub-row\cf6 \strokec6 ">\cf5 \strokec5 Feels ##\{\{ IDX_0.data.outdoor.feels_like.value | split: "." | first \}\}\cf8 \strokec8 &deg;\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+    \cf6 \strokec6 <\cf7 \strokec7 hr \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 divider\cf6 \strokec6 ">\cf5 \strokec5 \
+    \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 hi-lo\cf6 \strokec6 ">\cf5 \strokec5 Hi ##\{\{ IDX_1.daily.temperature_2m_max[0] | round \}\}\cf8 \strokec8 &deg;\cf5 \strokec5  \cf8 \strokec8 &middot;\cf5 \strokec5  Lo ##\{\{ IDX_1.daily.temperature_2m_min[0] | round \}\}\cf8 \strokec8 &deg;\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+    \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 sub-row\cf6 \strokec6 ">\cf5 \strokec5 Rain ##\{\{ IDX_0.data.rainfall.daily.value \}\} mm \cf8 \strokec8 &nbsp;&bull;&nbsp;\cf5 \strokec5  Rate ##\{\{ IDX_0.data.rainfall.rain_rate.value \}\} mm/h\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+    \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 sub-row\cf6 \strokec6 ">\cf5 \strokec5 Weekly ##\{\{ IDX_0.data.rainfall.weekly.value \}\} mm\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+  \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+\
+  \cf10 \strokec10 <!-- 
+\f6 \uc0\u9472 \u9472 
+\f1  COL 2: Stats Grid 
+\f6 \uc0\u9472 \u9472 
+\f1  -->\cf5 \strokec5 \
+  \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 col\cf6 \strokec6 ">\cf5 \strokec5 \
+    \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 stats-grid\cf6 \strokec6 ">\cf5 \strokec5 \
+      \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 sbox\cf6 \strokec6 ">\cf5 \strokec5 \
+        \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 s-lbl\cf6 \strokec6 ">\cf5 \strokec5 Wind\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+        \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 s-val\cf6 \strokec6 ">\cf5 \strokec5 ##\{\{ IDX_0.data.wind.wind_speed.value | split: "." | first \}\}\cf6 \strokec6 <\cf7 \strokec7 span \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 s-unit\cf6 \strokec6 ">\cf5 \strokec5  km/h\cf6 \strokec6 </\cf7 \strokec7 span\cf6 \strokec6 ></\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+        \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 s-sub\cf6 \strokec6 ">\cf5 \strokec5 ##\{\{ wdir \}\} \cf8 \strokec8 &bull;\cf5 \strokec5  ##\{\{ IDX_0.data.wind.wind_gust.value | split: "." | first \}\} gust\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+      \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+      \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 sbox\cf6 \strokec6 ">\cf5 \strokec5 \
+        \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 s-lbl\cf6 \strokec6 ">\cf5 \strokec5 Pressure\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+        \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 s-val\cf6 \strokec6 "\cf7 \strokec7  \cf12 \strokec12 style\cf6 \strokec6 ="\cf9 \strokec9 font-size:18px\cf6 \strokec6 ">\cf5 \strokec5 ##\{\{ IDX_0.data.pressure.relative.value | split: "." | first \}\}\cf6 \strokec6 <\cf7 \strokec7 span \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 s-unit\cf6 \strokec6 ">\cf5 \strokec5  hPa\cf6 \strokec6 </\cf7 \strokec7 span\cf6 \strokec6 ></\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+        \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 s-sub\cf6 \strokec6 ">\cf5 \strokec5 .##\{\{ IDX_0.data.pressure.relative.value | split: "." | last \}\}\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+      \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+      \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 sbox\cf6 \strokec6 ">\cf5 \strokec5 \
+        \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 s-lbl\cf6 \strokec6 ">\cf5 \strokec5 Humidity / Dew\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+        \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 s-val\cf6 \strokec6 ">\cf5 \strokec5 ##\{\{ IDX_0.data.outdoor.humidity.value \}\}\cf6 \strokec6 <\cf7 \strokec7 span \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 s-unit\cf6 \strokec6 ">\cf5 \strokec5 %\cf6 \strokec6 </\cf7 \strokec7 span\cf6 \strokec6 ></\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+        \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 s-sub\cf6 \strokec6 ">\cf5 \strokec5 Dew ##\{\{ IDX_0.data.outdoor.dew_point.value | split: "." | first \}\}\cf8 \strokec8 &deg;\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+      \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+      \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 sbox\cf6 \strokec6 ">\cf5 \strokec5 \
+        \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 s-lbl\cf6 \strokec6 ">\cf5 \strokec5 UV / Solar\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+        \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 s-val\cf6 \strokec6 ">\cf5 \strokec5 ##\{\{ IDX_0.data.solar_and_uvi.uvi.value \}\}\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+        \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 s-sub\cf6 \strokec6 ">\cf5 \strokec5 ##\{\{ IDX_0.data.solar_and_uvi.solar.value | split: "." | first \}\} W/m\cf8 \strokec8 &sup2;\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+      \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+    \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+  \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+\
+  \cf10 \strokec10 <!-- 
+\f6 \uc0\u9472 \u9472 
+\f1  COL 3: 7-Day Forecast 
+\f6 \uc0\u9472 \u9472 
+\f1  -->\cf5 \strokec5 \
+  \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 col\cf6 \strokec6 ">\cf5 \strokec5 \
+    \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 fc-grid\cf6 \strokec6 ">\cf5 \strokec5 \
+      ##\{% for i in (0..6) %\}\
+        ##\{% assign _fc = IDX_1.daily.weather_code[i] | plus: 0 %\}\
+        ##\{% if _fc == 0 %\}##\{% assign fcond = "Clear" %\}\
+        ##\{% elsif _fc == 1 %\}##\{% assign fcond = "Mostly Clr" %\}\
+        ##\{% elsif _fc == 2 %\}##\{% assign fcond = "Pt. Cloudy" %\}\
+        ##\{% elsif _fc == 3 %\}##\{% assign fcond = "Overcast" %\}\
+        ##\{% elsif _fc == 45 or _fc == 48 %\}##\{% assign fcond = "Fog" %\}\
+        ##\{% elsif _fc >= 51 and _fc <= 55 %\}##\{% assign fcond = "Drizzle" %\}\
+        ##\{% elsif _fc >= 61 and _fc <= 65 %\}##\{% assign fcond = "Rain" %\}\
+        ##\{% elsif _fc >= 71 and _fc <= 75 %\}##\{% assign fcond = "Snow" %\}\
+        ##\{% elsif _fc >= 80 and _fc <= 82 %\}##\{% assign fcond = "Showers" %\}\
+        ##\{% elsif _fc == 85 or _fc == 86 %\}##\{% assign fcond = "Snw Shwrs" %\}\
+        ##\{% elsif _fc >= 95 %\}##\{% assign fcond = "T-Storm" %\}\
+        ##\{% else %\}##\{% assign fcond = "\'97" %\}\
+        ##\{% endif %\}\
+        \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 fc-day\cf6 \strokec6 ">\cf5 \strokec5 \
+          \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 fc-dname\cf6 \strokec6 ">\cf5 \strokec5 ##\{\{ IDX_1.daily.time[i] | date: "%a" \}\}\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+          \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 fc-cond\cf6 \strokec6 ">\cf5 \strokec5 ##\{\{ fcond \}\}\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+          \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 fc-hi\cf6 \strokec6 ">\cf5 \strokec5 ##\{\{ IDX_1.daily.temperature_2m_max[i] | round \}\}\cf8 \strokec8 &deg;\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+          \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 fc-lo\cf6 \strokec6 ">\cf5 \strokec5 ##\{\{ IDX_1.daily.temperature_2m_min[i] | round \}\}\cf8 \strokec8 &deg;\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+          ##\{% assign _pr = IDX_1.daily.precipitation_sum[i] | plus: 0 %\}\
+          ##\{% if _pr > 0.1 %\}\
+          \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 fc-prcp\cf6 \strokec6 ">\cf5 \strokec5 ##\{\{ IDX_1.daily.precipitation_sum[i] | round: 1 \}\}mm\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+          ##\{% endif %\}\
+        \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+      ##\{% endfor %\}\
+    \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+  \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+\
+\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf10 \strokec10 <!-- 
+\f6 \uc0\u9472 \u9472 
+\f1  Footer 
+\f6 \uc0\u9472 \u9472 
+\f1  -->\cf5 \strokec5 \
+\pard\pardeftab720\partightenfactor0
+\cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 ftr\cf6 \strokec6 ">\cf5 \strokec5 \
+  \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 ftr-indoor\cf6 \strokec6 ">\cf5 \strokec5 \
+    Indoor: ##\{\{ IDX_0.data.indoor.temperature.value | split: "." | first \}\}\cf8 \strokec8 &deg;\cf5 \strokec5  \cf8 \strokec8 &nbsp;&bull;&nbsp;\cf5 \strokec5  ##\{\{ IDX_0.data.indoor.humidity.value \}\}% hum\
+  \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+  \cf6 \strokec6 <\cf7 \strokec7 div \cf12 \strokec12 class\cf6 \strokec6 ="\cf9 \strokec9 ftr-sun\cf6 \strokec6 ">\cf5 \strokec5 \
+    \cf8 \strokec8 &uarr;\cf5 \strokec5  ##\{\{ srtime \}\} \cf8 \strokec8 &nbsp;&nbsp;&darr;\cf5 \strokec5  ##\{\{ sstime \}\}\
+  \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf5 \strokec5 \
+\pard\pardeftab720\partightenfactor0
+\cf3 \strokec3 \
+\pard\pardeftab720\sa298\partightenfactor0
+
+\f0\b\fs36 \cf0 \strokec2 Notes\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\fs24 \cf0 EcoWitt data depth vs. Open-Meteo:
+\f1\b0  The current conditions panel (temp, feels, rain, wind, UV, pressure) all come from your physical station via EcoWitt. The Hi/Lo and 7-day forecast come from Open-Meteo since EcoWitt only provides real-time readings, not predictions.\
+
+\f0\b Polling interval:
+\f1\b0  TRMNL refreshes on your device's configured schedule (default ~15 min). EcoWitt updates every minute from the station; Open-Meteo forecasts update hourly, so both are always fresh.\
+
+\f0\b Pressure decimals:
+\f1\b0  The template shows the integer part in the big stat and the decimal as a sub-label. If EcoWitt returns e.g. 
+\f5\fs26 "1013.2"
+\f1\fs24 , it renders as 
+\f5\fs26 1013
+\f1\fs24  + 
+\f5\fs26 .2
+\f1\fs24 .\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f4\b\fs26 \cf0 date
+\f0\fs24  filter on forecast days:
+\f1\b0  The 
+\f5\fs26 | date: "%a"
+\f1\fs24  filter on Open-Meteo's 
+\f5\fs26 "2026-04-13"
+\f1\fs24  strings should work in TRMNL's Liquid. If day names show as blank, replace with a static array workaround (just hardcode Mon/Tue/Wed/Thu/Fri/Sat/Sun in order using forloop.index0).\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f0\b \cf0 Force Refresh:
+\f1\b0  After saving, click 
+\f0\b Force Refresh
+\f1\b0  on the plugin settings page to pull data and check the preview before it appears on device.\
+}

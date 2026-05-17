@@ -10,12 +10,12 @@
  */
 
 const DEVICE_KEY  = 'kw_40e818911c1980bcd56dc4aff37a820f811990a130eb771fd9e21a536edc55ea';
-const WINDOW_DAYS = 14;
+const WINDOW_DAYS = 21;
 const FETCH_TIMEOUT = 7;
 
 // Cache file — must be writable by the web server.
 // data/ dir should already exist from todo-device-api.php
-const CACHE_FILE = __DIR__ . '/data/cal-cache.json';
+const CACHE_FILE = __DIR__ . '/data/cal-cache-v3.json';
 
 // Rebuild cache if older than 20 minutes.
 const CACHE_TTL = 1200;
@@ -142,9 +142,36 @@ foreach ($days as &$day)
     usort($day['events'], fn($a,$b)=>strcmp($a['time']??'ZZ',$b['time']??'ZZ'));
 unset($day);
 
-$output = json_encode(['days'=>array_values($days),
-    'generated'=>(new DateTime('now',$tz))->format(DateTime::ATOM)],
-    JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+// ── Flatten to d0–d6 scalar keys — avoids TRMNL Liquid array-iteration issues ──
+// No nested objects, no arrays — every value is a plain string or int.
+// Events are pre-formatted as "HH:MM  Summary" (or just "Summary" if all-day).
+$flatDays = array_values($days);
+$out = ['generated' => (new DateTime('now', $tz))->format(DateTime::ATOM)];
+for ($i = 0; $i < 7; $i++) {
+    $day  = $flatDays[$i];
+    $evts = $day['events'];
+    $ec   = count($evts);
+    $out["d{$i}_dow"]   = $day['dow'];        // "Sun" … "Sat"
+    $out["d{$i}_dom"]   = $day['dom'];         // "17"
+    $out["d{$i}_today"] = $day['is_today']   ? 'today' : '';
+    $out["d{$i}_wknd"]  = $day['is_weekend'] ? 'wknd'  : '';
+    $out["d{$i}_hol"]   = $day['holiday'];     // "" or "Victoria Day"
+    // Split into timed events and all-day events
+    $timed  = array_values(array_filter($evts, fn($e) => $e['time'] !== null));
+    $allday = array_values(array_filter($evts, fn($e) => $e['time'] === null));
+    for ($j = 0; $j < 2; $j++) {
+        $out["d{$i}_tev{$j}t"] = $timed[$j]['time']    ?? '';  // "07:00"
+        $out["d{$i}_tev{$j}n"] = $timed[$j]['summary'] ?? '';  // "422 ZULU Day"
+    }
+    // Pre-compute "more" as a ready-to-display string — empty string when none
+    // This lets Liquid use a simple truthy check instead of numeric comparison
+    $out["d{$i}_tmore"] = count($timed)  > 2 ? '+' . (count($timed)  - 2) . ' more' : '';
+    for ($j = 0; $j < 3; $j++) {
+        $out["d{$i}_aev{$j}"] = $allday[$j]['summary'] ?? '';
+    }
+    $out["d{$i}_amore"] = count($allday) > 3 ? '+' . (count($allday) - 3) . ' more' : '';
+}
+$output = json_encode($out, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
 
 $dir=dirname(CACHE_FILE); if(!is_dir($dir)) @mkdir($dir,0755,true);
 @file_put_contents(CACHE_FILE,$output,LOCK_EX);
