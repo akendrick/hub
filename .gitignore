@@ -1,0 +1,10 @@
+# ── Live server data — never deploy these, they only exist on the server ──
+todo.json
+api-keys.json
+
+# ── Cache files written by PHP at runtime ──
+data/
+todo_*.tmp
+
+# ── macOS noise ──
+.DS_Store
