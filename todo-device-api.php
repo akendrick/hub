@@ -140,6 +140,18 @@ function cmp_rest(array $a, array $b): int {
     return strcmp($a['text'] ?? '', $b['text'] ?? '');
 }
 
+/**
+ * Build the sub-info line shown beneath a task: "Due · TAG1 TAG2"
+ * Returns '' if both due and tags are empty.
+ */
+function fmt_meta(string $due_label, array $tags): string {
+    $parts = [];
+    if ($due_label !== '') $parts[] = $due_label;
+    $tag_str = implode(' ', array_map('strtoupper', array_filter($tags)));
+    if ($tag_str !== '') $parts[] = $tag_str;
+    return implode('  ·  ', $parts);
+}
+
 // ── Filter ────────────────────────────────────────────────────────────────────
 // Exclude: done, recurring-by-weekday, recurring-by-day-of-month.
 // These match the same rules used in the browser's loadTodos() filtering.
@@ -179,31 +191,42 @@ usort($important, 'cmp_rest');
 usort($rest,      'cmp_rest');
 
 // ── Flatten to top-level scalars — TRMNL Liquid needs no IDX_0, no arrays ────
-// u0_text/u0_due … u3_text/u3_due  (urgent, up to 4)
-// i0_text/i0_due … i5_text/i5_due  (important, up to 6)
-// r0_text/r0_due … r7_text/r7_due  (rest, up to 8)
+// u0_text/u0_meta … u3  (urgent, up to 4)
+// i0_text/i0_meta … i5  (important, up to 6)
+// r0_text/r0_meta … r7  (rest, up to 8)
+// *_meta = pre-formatted "Due · TAG1 TAG2" sub-line ('' when empty)
+// *_more = '' or '+N more' string (truthy check works in Liquid)
 $flat = ['total' => count($urgent) + count($important) + count($rest)];
 
 $flat['u_count'] = count($urgent);
 for ($i = 0; $i < 4; $i++) {
     $flat["u{$i}_text"] = $urgent[$i]['text']      ?? '';
     $flat["u{$i}_due"]  = $urgent[$i]['due_label'] ?? '';
+    $flat["u{$i}_meta"] = isset($urgent[$i])
+        ? fmt_meta($urgent[$i]['due_label'], $urgent[$i]['tags'])
+        : '';
 }
-$flat['u_more'] = max(0, count($urgent) - 4);
+$flat['u_more'] = count($urgent) > 4 ? '+' . (count($urgent) - 4) . ' more' : '';
 
 $flat['i_count'] = count($important);
 for ($i = 0; $i < 6; $i++) {
     $flat["i{$i}_text"] = $important[$i]['text']      ?? '';
     $flat["i{$i}_due"]  = $important[$i]['due_label'] ?? '';
+    $flat["i{$i}_meta"] = isset($important[$i])
+        ? fmt_meta($important[$i]['due_label'], $important[$i]['tags'])
+        : '';
 }
-$flat['i_more'] = max(0, count($important) - 6);
+$flat['i_more'] = count($important) > 6 ? '+' . (count($important) - 6) . ' more' : '';
 
 $flat['r_count'] = count($rest);
 for ($i = 0; $i < 8; $i++) {
     $flat["r{$i}_text"] = $rest[$i]['text']      ?? '';
     $flat["r{$i}_due"]  = $rest[$i]['due_label'] ?? '';
+    $flat["r{$i}_meta"] = isset($rest[$i])
+        ? fmt_meta($rest[$i]['due_label'], $rest[$i]['tags'])
+        : '';
 }
-$flat['r_more'] = max(0, count($rest) - 8);
+$flat['r_more'] = count($rest) > 8 ? '+' . (count($rest) - 8) . ' more' : '';
 
 // ── Output ────────────────────────────────────────────────────────────────────
 echo json_encode($flat, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

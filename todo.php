@@ -511,7 +511,8 @@ function purgeDoneItems() {
   const cutoff = Date.now() - 24*60*60*1000;
   const before = items.length;
   items = items.filter(item => {
-    if (!item.done || !item.doneAt) return true;
+    if (!item.done) return true;           // keep all active items
+    if (!item.doneAt) return false;        // legacy done item with no timestamp — remove
     return new Date(item.doneAt).getTime() > cutoff;
   });
   if (items.length < before) markDirty();
@@ -559,6 +560,9 @@ async function saveAll() {
 function markDirty() {
   dirty = true;
   document.getElementById('saveBar').classList.add('visible');
+  // Auto-save 3 s after the last change — prevents data loss if Save All is missed
+  clearTimeout(window._autoSave);
+  window._autoSave = setTimeout(saveAll, 3000);
 }
 
 function uid() { return 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
