@@ -48,22 +48,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:
 .ul,.il,.rl{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
 
 /* ── Urgent items ── */
-.ui{flex:1;min-height:0;padding:7px 13px;overflow:hidden;display:flex;flex-direction:column;justify-content:center}
+.ui{flex:1 1 auto;min-height:46px;padding:7px 13px;display:flex;flex-direction:column;justify-content:center}
 .ui.z{background:#f2f2f2}
-.ut{font-size:22px;font-weight:800;line-height:1.25;overflow:hidden}
-.um{font-size:12px;color:#777;font-weight:500;margin-top:3px;overflow:hidden}
+.ut{font-size:22px;font-weight:800;line-height:1.25}
+.um{font-size:12px;color:#777;font-weight:500;margin-top:3px}
 
 /* ── Important items ── */
-.ii{flex:1;min-height:0;padding:5px 13px;overflow:hidden;display:flex;flex-direction:column;justify-content:center}
+.ii{flex:1 1 auto;min-height:36px;padding:5px 13px;display:flex;flex-direction:column;justify-content:center}
 .ii.z{background:#f2f2f2}
-.it{font-size:17px;font-weight:700;line-height:1.25;overflow:hidden}
-.im{font-size:11px;color:#888;margin-top:2px;overflow:hidden}
+.it{font-size:17px;font-weight:700;line-height:1.25}
+.im{font-size:11px;color:#888;margin-top:2px}
 
 /* ── Rest items ── */
-.ri{flex:1;min-height:0;padding:4px 13px;overflow:hidden;display:flex;flex-direction:column;justify-content:center}
+.ri{flex:1 1 auto;min-height:28px;padding:4px 13px;display:flex;flex-direction:column;justify-content:center}
 .ri.z{background:#f2f2f2}
-.rt{font-size:14px;font-weight:500;line-height:1.25;overflow:hidden}
-.rm{font-size:10px;color:#999;margin-top:1px;overflow:hidden}
+.rt{font-size:14px;font-weight:500;line-height:1.25}
+.rm{font-size:10px;color:#999;margin-top:1px}
 
 .empty{font-size:14px;color:#bbb;font-style:italic;padding:14px 13px}
 .more{font-size:11px;color:#aaa;padding:3px 13px;flex-shrink:0}
@@ -71,7 +71,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:
 
 <div class="hdr">
   <div class="hdr-t">TO DO &middot; KASLO</div>
-  <div class="hdr-r">##{{ total }} open &middot; ##{{ trmnl.user.time | date: "%H:%M %a %-d" }}</div>
+  <div class="hdr-r">{{ total }} open &middot; {{ trmnl.user.time | date: "%H:%M %a %-d" }}</div>
 </div>
 
 <div class="body">
@@ -79,15 +79,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:
   <div class="lcol">
     <div class="hd">Urgent</div>
     <div class="ul">
-      ##{% if u0_text %}
-        <div class="ui"><div class="ut">##{{ u0_text }}</div>##{% if u0_meta %}<div class="um">##{{ u0_meta }}</div>##{% endif %}</div>
-        ##{% if u1_text %}<div class="ui z"><div class="ut">##{{ u1_text }}</div>##{% if u1_meta %}<div class="um">##{{ u1_meta }}</div>##{% endif %}</div>##{% endif %}
-        ##{% if u2_text %}<div class="ui"><div class="ut">##{{ u2_text }}</div>##{% if u2_meta %}<div class="um">##{{ u2_meta }}</div>##{% endif %}</div>##{% endif %}
-        ##{% if u3_text %}<div class="ui z"><div class="ut">##{{ u3_text }}</div>##{% if u3_meta %}<div class="um">##{{ u3_meta }}</div>##{% endif %}</div>##{% endif %}
-        ##{% if u_more %}<div class="more">##{{ u_more }}</div>##{% endif %}
-      ##{% else %}
+      {% if u0_text %}
+        <div class="ui"><div class="ut">{{ u0_text }}</div>{% if u0_meta %}<div class="um">{{ u0_meta }}</div>{% endif %}</div>
+        {% if u1_text %}<div class="ui z"><div class="ut">{{ u1_text }}</div>{% if u1_meta %}<div class="um">{{ u1_meta }}</div>{% endif %}</div>{% endif %}
+        {% if u2_text %}<div class="ui"><div class="ut">{{ u2_text }}</div>{% if u2_meta %}<div class="um">{{ u2_meta }}</div>{% endif %}</div>{% endif %}
+        {% if u3_text %}<div class="ui z"><div class="ut">{{ u3_text }}</div>{% if u3_meta %}<div class="um">{{ u3_meta }}</div>{% endif %}</div>{% endif %}
+        {% if u_more %}<div class="more">{{ u_more }}</div>{% endif %}
+      {% else %}
         <div class="empty">Nothing urgent &mdash; good work</div>
-      ##{% endif %}
+      {% endif %}
     </div>
   </div>
 
@@ -96,36 +96,36 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:
     <div class="rsec">
       <div class="hd">Important</div>
       <div class="il">
-        ##{% if i0_text %}
-          <div class="ii"><div class="it">##{{ i0_text }}</div>##{% if i0_meta %}<div class="im">##{{ i0_meta }}</div>##{% endif %}</div>
-          ##{% if i1_text %}<div class="ii z"><div class="it">##{{ i1_text }}</div>##{% if i1_meta %}<div class="im">##{{ i1_meta }}</div>##{% endif %}</div>##{% endif %}
-          ##{% if i2_text %}<div class="ii"><div class="it">##{{ i2_text }}</div>##{% if i2_meta %}<div class="im">##{{ i2_meta }}</div>##{% endif %}</div>##{% endif %}
-          ##{% if i3_text %}<div class="ii z"><div class="it">##{{ i3_text }}</div>##{% if i3_meta %}<div class="im">##{{ i3_meta }}</div>##{% endif %}</div>##{% endif %}
-          ##{% if i4_text %}<div class="ii"><div class="it">##{{ i4_text }}</div>##{% if i4_meta %}<div class="im">##{{ i4_meta }}</div>##{% endif %}</div>##{% endif %}
-          ##{% if i5_text %}<div class="ii z"><div class="it">##{{ i5_text }}</div>##{% if i5_meta %}<div class="im">##{{ i5_meta }}</div>##{% endif %}</div>##{% endif %}
-          ##{% if i_more %}<div class="more">##{{ i_more }}</div>##{% endif %}
-        ##{% else %}
+        {% if i0_text %}
+          <div class="ii"><div class="it">{{ i0_text }}</div>{% if i0_meta %}<div class="im">{{ i0_meta }}</div>{% endif %}</div>
+          {% if i1_text %}<div class="ii z"><div class="it">{{ i1_text }}</div>{% if i1_meta %}<div class="im">{{ i1_meta }}</div>{% endif %}</div>{% endif %}
+          {% if i2_text %}<div class="ii"><div class="it">{{ i2_text }}</div>{% if i2_meta %}<div class="im">{{ i2_meta }}</div>{% endif %}</div>{% endif %}
+          {% if i3_text %}<div class="ii z"><div class="it">{{ i3_text }}</div>{% if i3_meta %}<div class="im">{{ i3_meta }}</div>{% endif %}</div>{% endif %}
+          {% if i4_text %}<div class="ii"><div class="it">{{ i4_text }}</div>{% if i4_meta %}<div class="im">{{ i4_meta }}</div>{% endif %}</div>{% endif %}
+          {% if i5_text %}<div class="ii z"><div class="it">{{ i5_text }}</div>{% if i5_meta %}<div class="im">{{ i5_meta }}</div>{% endif %}</div>{% endif %}
+          {% if i_more %}<div class="more">{{ i_more }}</div>{% endif %}
+        {% else %}
           <div class="empty">Nothing here</div>
-        ##{% endif %}
+        {% endif %}
       </div>
     </div>
 
     <div class="rsec">
       <div class="hd">Everything Else</div>
       <div class="rl">
-        ##{% if r0_text %}
-          <div class="ri"><div class="rt">##{{ r0_text }}</div>##{% if r0_meta %}<div class="rm">##{{ r0_meta }}</div>##{% endif %}</div>
-          ##{% if r1_text %}<div class="ri z"><div class="rt">##{{ r1_text }}</div>##{% if r1_meta %}<div class="rm">##{{ r1_meta }}</div>##{% endif %}</div>##{% endif %}
-          ##{% if r2_text %}<div class="ri"><div class="rt">##{{ r2_text }}</div>##{% if r2_meta %}<div class="rm">##{{ r2_meta }}</div>##{% endif %}</div>##{% endif %}
-          ##{% if r3_text %}<div class="ri z"><div class="rt">##{{ r3_text }}</div>##{% if r3_meta %}<div class="rm">##{{ r3_meta }}</div>##{% endif %}</div>##{% endif %}
-          ##{% if r4_text %}<div class="ri"><div class="rt">##{{ r4_text }}</div>##{% if r4_meta %}<div class="rm">##{{ r4_meta }}</div>##{% endif %}</div>##{% endif %}
-          ##{% if r5_text %}<div class="ri z"><div class="rt">##{{ r5_text }}</div>##{% if r5_meta %}<div class="rm">##{{ r5_meta }}</div>##{% endif %}</div>##{% endif %}
-          ##{% if r6_text %}<div class="ri"><div class="rt">##{{ r6_text }}</div>##{% if r6_meta %}<div class="rm">##{{ r6_meta }}</div>##{% endif %}</div>##{% endif %}
-          ##{% if r7_text %}<div class="ri z"><div class="rt">##{{ r7_text }}</div>##{% if r7_meta %}<div class="rm">##{{ r7_meta }}</div>##{% endif %}</div>##{% endif %}
-          ##{% if r_more %}<div class="more">##{{ r_more }}</div>##{% endif %}
-        ##{% else %}
+        {% if r0_text %}
+          <div class="ri"><div class="rt">{{ r0_text }}</div>{% if r0_meta %}<div class="rm">{{ r0_meta }}</div>{% endif %}</div>
+          {% if r1_text %}<div class="ri z"><div class="rt">{{ r1_text }}</div>{% if r1_meta %}<div class="rm">{{ r1_meta }}</div>{% endif %}</div>{% endif %}
+          {% if r2_text %}<div class="ri"><div class="rt">{{ r2_text }}</div>{% if r2_meta %}<div class="rm">{{ r2_meta }}</div>{% endif %}</div>{% endif %}
+          {% if r3_text %}<div class="ri z"><div class="rt">{{ r3_text }}</div>{% if r3_meta %}<div class="rm">{{ r3_meta }}</div>{% endif %}</div>{% endif %}
+          {% if r4_text %}<div class="ri"><div class="rt">{{ r4_text }}</div>{% if r4_meta %}<div class="rm">{{ r4_meta }}</div>{% endif %}</div>{% endif %}
+          {% if r5_text %}<div class="ri z"><div class="rt">{{ r5_text }}</div>{% if r5_meta %}<div class="rm">{{ r5_meta }}</div>{% endif %}</div>{% endif %}
+          {% if r6_text %}<div class="ri"><div class="rt">{{ r6_text }}</div>{% if r6_meta %}<div class="rm">{{ r6_meta }}</div>{% endif %}</div>{% endif %}
+          {% if r7_text %}<div class="ri z"><div class="rt">{{ r7_text }}</div>{% if r7_meta %}<div class="rm">{{ r7_meta }}</div>{% endif %}</div>{% endif %}
+          {% if r_more %}<div class="more">{{ r_more }}</div>{% endif %}
+        {% else %}
           <div class="empty">All clear</div>
-        ##{% endif %}
+        {% endif %}
       </div>
     </div>
 

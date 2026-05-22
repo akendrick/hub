@@ -134,10 +134,10 @@ if ($out['sunrise'] !== '—' && $out['sunset'] !== '—') {
     $out['daylight'] = '';
 }
 
-// 3-day forecast — array of plain objects, no parallel arrays
+// 5-day forecast — array of plain objects, no parallel arrays
 $tz = new DateTimeZone(WX_TZ);
 $forecast = [];
-for ($i = 0; $i < 3; $i++) {
+for ($i = 0; $i < 5; $i++) {
     $code    = (int)($md['weather_code'][$i] ?? 0);
     $timeStr = $md['time'][$i] ?? '';
     $dow     = $timeStr ? (DateTime::createFromFormat('Y-m-d', $timeStr, $tz)?->format('D') ?? '—') : '—';
@@ -153,7 +153,7 @@ for ($i = 0; $i < 3; $i++) {
         'mm_str'    => $mm > 0.1 ? $mm . 'mm' : '',
     ];
 }
-// Flatten forecast — no arrays, plain scalar keys f0_* f1_* f2_*
+// Flatten forecast — no arrays, plain scalar keys f0_* … f4_*
 foreach ($forecast as $i => $fc) {
     $out["f{$i}_dow"]       = $fc['dow'];
     $out["f{$i}_hi"]        = $fc['hi'];
