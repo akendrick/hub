@@ -163,6 +163,26 @@ foreach ($forecast as $i => $fc) {
     $out["f{$i}_mm_str"]    = $fc['mm_str'];
 }
 
+// ── Calendar events for forecast days (reads from cal cache) ─────────────────
+$calCacheFile = __DIR__ . '/data/cal-cache-v3.json';
+$calRaw = @file_get_contents($calCacheFile);
+if ($calRaw) {
+    $calData = json_decode($calRaw, true);
+    if (is_array($calData)) {
+        for ($i = 0; $i < 5; $i++) {
+            $out["f{$i}_hol"]   = $calData["d{$i}_hol"]   ?? '';
+            $out["f{$i}_tev0t"] = $calData["d{$i}_tev0t"] ?? '';
+            $out["f{$i}_tev0n"] = $calData["d{$i}_tev0n"] ?? '';
+            $out["f{$i}_tev1t"] = $calData["d{$i}_tev1t"] ?? '';
+            $out["f{$i}_tev1n"] = $calData["d{$i}_tev1n"] ?? '';
+            $out["f{$i}_tmore"] = $calData["d{$i}_tmore"] ?? '';
+            $out["f{$i}_aev0"]  = $calData["d{$i}_aev0"]  ?? '';
+            $out["f{$i}_aev1"]  = $calData["d{$i}_aev1"]  ?? '';
+            $out["f{$i}_amore"] = $calData["d{$i}_amore"] ?? '';
+        }
+    }
+}
+
 $json = json_encode($out, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
 $dir = dirname(CACHE_FILE);

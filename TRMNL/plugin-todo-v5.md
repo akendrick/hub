@@ -27,7 +27,7 @@
 html,body{width:100vw;height:100vh;overflow:hidden;background:#fff;color:#000}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:flex;flex-direction:column}
 
-.hdr{height:34px;display:flex;justify-content:space-between;align-items:center;padding:0 14px;border-bottom:3px solid #000;flex-shrink:0}
+.hdr{height:46px;display:flex;justify-content:space-between;align-items:center;padding:0 14px;border-bottom:3px solid #000;flex-shrink:0}
 .hdr-t{font-weight:800;font-size:15px;letter-spacing:.05em}
 .hdr-r{font-size:12px;color:#666}
 
@@ -42,28 +42,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:
 .rsec+.rsec{border-top:2px solid #000}
 
 /* ── Section headers — all-caps, inverted ── */
-.hd{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;padding:5px 13px;flex-shrink:0;background:#111;color:#fff}
+.hd{font-size:18px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;padding:5px 13px;flex-shrink:0;background:#111;color:#fff}
 
 /* ── Item lists ── */
 .ul,.il,.rl{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
 
 /* ── Urgent items ── */
-.ui{flex:1 1 auto;min-height:46px;padding:7px 13px;display:flex;flex-direction:column;justify-content:center}
+.ui{flex:1 1 auto;min-height:32px;padding:4px 5px;display:flex;flex-direction:column;justify-content:center}
 .ui.z{background:#f2f2f2}
-.ut{font-size:22px;font-weight:800;line-height:1.25}
-.um{font-size:12px;color:#777;font-weight:500;margin-top:3px}
+.ut{font-size:46px;font-weight:800;line-height:1}
+.um{font-size:14px;color:white;background-color:darkgray;font-weight:500;margin-top:3px}
 
 /* ── Important items ── */
 .ii{flex:1 1 auto;min-height:36px;padding:5px 13px;display:flex;flex-direction:column;justify-content:center}
 .ii.z{background:#f2f2f2}
-.it{font-size:17px;font-weight:700;line-height:1.25}
+.it::first-line{font-size:36px;font-weight:600;line-height:1.25}
+.it{font-size:20px;font-weight:300}
 .im{font-size:11px;color:#888;margin-top:2px}
 
 /* ── Rest items ── */
 .ri{flex:1 1 auto;min-height:28px;padding:4px 13px;display:flex;flex-direction:column;justify-content:center}
 .ri.z{background:#f2f2f2}
-.rt{font-size:14px;font-weight:500;line-height:1.25}
-.rm{font-size:10px;color:#999;margin-top:1px}
+.rt::first-line{font-size:36px;font-weight:700}
+.rt{font-size:30px;font-weight:500;line-height:1.2}
+.rm{font-size:10px;color:darkgray;margin-top:1px}
 
 .empty{font-size:14px;color:#bbb;font-style:italic;padding:14px 13px}
 .more{font-size:11px;color:#aaa;padding:3px 13px;flex-shrink:0}

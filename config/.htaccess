@@ -1,0 +1,3 @@
+# Block all web access to this directory (credentials are stored here)
+Order Deny,Allow
+Deny from all
