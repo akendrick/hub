@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SGF → EPUB Converter</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #111827;
+  color: #e0e0e0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 20px 60px;
+}
+h1 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: #fff;
+  margin-bottom: 6px;
+}
+.subtitle { color: #6b7280; margin-bottom: 40px; font-size: 0.9rem; }
+.card {
+  background: #1f2937;
+  border-radius: 14px;
+  padding: 36px;
+  width: 100%;
+  max-width: 580px;
+  border: 1px solid #374151;
+}
+.drop-zone {
+  border: 2px dashed #374151;
+  border-radius: 10px;
+  padding: 44px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  margin-bottom: 28px;
+  user-select: none;
+}
+.drop-zone:hover, .drop-zone.drag-over {
+  border-color: #6366f1;
+  background: rgba(99,102,241,0.06);
+}
+.drop-zone input { display: none; }
+.drop-icon { font-size: 2.8rem; margin-bottom: 14px; display: block; }
+.drop-text { color: #9ca3af; font-size: 0.9rem; line-height: 1.6; }
+.drop-text strong { color: #818cf8; }
+.file-name { margin-top: 12px; font-size: 0.82rem; color: #6ee7b7; word-break: break-all; }
+.field-row { margin-bottom: 18px; }
+label { display: block; font-size: 0.8rem; color: #9ca3af; margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+input[type="text"], select {
+  width: 100%;
+  background: #111827;
+  border: 1px solid #374151;
+  border-radius: 7px;
+  color: #e0e0e0;
+  padding: 10px 14px;
+  font-size: 0.92rem;
+  transition: border-color 0.2s;
+}
+input[type="text"]:focus, select:focus { outline: none; border-color: #6366f1; }
+.btn {
+  width: 100%;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: white;
+  border: none;
+  border-radius: 9px;
+  padding: 15px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+  margin-top: 4px;
+  letter-spacing: 0.3px;
+}
+.btn:hover:not(:disabled) { opacity: 0.92; }
+.btn:active:not(:disabled) { transform: scale(0.99); }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.progress { margin-top: 22px; display: none; }
+.progress-track {
+  background: #111827;
+  border-radius: 999px;
+  height: 5px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1, #a78bfa);
+  border-radius: 999px;
+  transition: width 0.25s;
+  width: 0%;
+}
+.progress-msg { font-size: 0.78rem; color: #6b7280; text-align: center; }
+.error-msg {
+  color: #f87171;
+  font-size: 0.84rem;
+  margin-top: 14px;
+  display: none;
+  background: rgba(239,68,68,0.08);
+  padding: 10px 14px;
+  border-radius: 7px;
+  border: 1px solid rgba(239,68,68,0.2);
+}
+.download-wrap { display: none; margin-top: 18px; text-align: center; }
+.download-wrap a {
+  color: #6ee7b7;
+  font-size: 0.9rem;
+  text-decoration: none;
+  border: 1px solid #059669;
+  padding: 11px 28px;
+  border-radius: 8px;
+  display: inline-block;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+.download-wrap a:hover { background: rgba(5,150,105,0.1); }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+hr { border: none; border-top: 1px solid #374151; margin: 24px 0; }
+</style>
+</head>
+<body>
+
+<h1>SGF → EPUB</h1>
+<p class="subtitle">Convert commented Go games for Kobo Sage &amp; e-ink readers</p>
+
+<div class="card">
+  <div class="drop-zone" id="dropZone">
+    <input type="file" id="fileInput" accept=".sgf">
+    <span class="drop-icon">⚫</span>
+    <div class="drop-text">Drop your <strong>.sgf file</strong> here<br>or click to browse</div>
+    <div class="file-name" id="fileName"></div>
+  </div>
+
+  <div class="field-row">
+    <label for="titleInput">Title override</label>
+    <input type="text" id="titleInput" placeholder="Auto-detected from SGF">
+  </div>
+
+  <div class="two-col">
+    <div class="field-row">
+      <label for="includeMode">Pages</label>
+      <select id="includeMode">
+        <option value="commented">Commented moves only</option>
+        <option value="all">Every move</option>
+      </select>
+    </div>
+    <div class="field-row">
+      <label for="boardTheme">Board style</label>
+      <select id="boardTheme">
+        <option value="ink">High contrast (e-ink)</option>
+        <option value="wood">Warm wood tone</option>
+      </select>
+    </div>
+  </div>
+
+  <button class="btn" id="convertBtn" disabled>Generate EPUB</button>
+
+  <div class="progress" id="progress">
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-msg" id="progressMsg">Processing…</div>
+  </div>
+
+  <div class="error-msg" id="errorMsg"></div>
+
+  <div class="download-wrap" id="downloadWrap">
+    <a id="downloadLink" href="#" download="">↓ Download EPUB</a>
+  </div>
+</div>
+
+<canvas id="offscreen" style="display:none"></canvas>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// SGF PARSER
+// ─────────────────────────────────────────────────────────────────────────────
+
+function parseSGF(text) {
+  let pos = 0;
+  const len = text.length;
+
+  function ws() {
+    while (pos < len && /\s/.test(text[pos])) pos++;
+  }
+
+  function readValue() {
+    pos++; // skip [
+    let val = '';
+    while (pos < len && text[pos] !== ']') {
+      if (text[pos] === '\\') {
+        pos++;
+        const ch = text[pos];
+        if (ch === '\r' || ch === '\n') {
+          // soft line break — consume \r\n or \n
+          if (ch === '\r' && text[pos + 1] === '\n') pos++;
+        } else {
+          val += ch;
+        }
+      } else {
+        val += text[pos];
+      }
+      pos++;
+    }
+    if (pos < len) pos++; // skip ]
+    return val;
+  }
+
+  function readNode() {
+    ws();
+    const props = {};
+    while (pos < len && /[A-Za-z]/.test(text[pos])) {
+      let name = '';
+      while (pos < len && /[A-Za-z]/.test(text[pos])) name += text[pos++];
+      name = name.toUpperCase();
+      props[name] = props[name] || [];
+      ws();
+      while (pos < len && text[pos] === '[') {
+        props[name].push(readValue());
+        ws();
+      }
+    }
+    return props;
+  }
+
+  function skipTree() {
+    // pos is at '('
+    pos++; // skip (
+    let depth = 1;
+    while (pos < len && depth > 0) {
+      const ch = text[pos++];
+      if (ch === '(') depth++;
+      else if (ch === ')') depth--;
+      else if (ch === '[') {
+        while (pos < len && text[pos] !== ']') {
+          if (text[pos] === '\\') pos++;
+          pos++;
+        }
+        pos++; // skip ]
+      }
+    }
+  }
+
+  function readTree() {
+    ws();
+    if (pos >= len || text[pos] !== '(') return [];
+    pos++; // (
+
+    let nodes = [];
+    ws();
+    while (pos < len && text[pos] === ';') {
+      pos++; // ;
+      nodes.push(readNode());
+      ws();
+    }
+
+    // Sub-trees: first = main continuation, rest = variations (skip)
+    let isFirst = true;
+    ws();
+    while (pos < len && text[pos] === '(') {
+      if (isFirst) {
+        nodes = nodes.concat(readTree());
+        isFirst = false;
+      } else {
+        skipTree();
+      }
+      ws();
+    }
+
+    ws();
+    if (pos < len && text[pos] === ')') pos++;
+    return nodes;
+  }
+
+  return readTree();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BOARD STATE
+// ─────────────────────────────────────────────────────────────────────────────
+
+class GoBoard {
+  constructor(size) {
+    this.size = size;
+    this.grid = new Uint8Array(size * size); // 0=empty 1=black 2=white
+  }
+
+  clone() {
+    const b = new GoBoard(this.size);
+    b.grid.set(this.grid);
+    return b;
+  }
+
+  idx(x, y) { return y * this.size + x; }
+
+  get(x, y) {
+    if (x < 0 || x >= this.size || y < 0 || y >= this.size) return -1;
+    return this.grid[this.idx(x, y)];
+  }
+
+  set(x, y, v) {
+    if (x >= 0 && x < this.size && y >= 0 && y < this.size)
+      this.grid[this.idx(x, y)] = v;
+  }
+
+  neighbors(x, y) {
+    const r = [];
+    if (x > 0)           r.push([x - 1, y]);
+    if (x < this.size-1) r.push([x + 1, y]);
+    if (y > 0)           r.push([x, y - 1]);
+    if (y < this.size-1) r.push([x, y + 1]);
+    return r;
+  }
+
+  group(x, y) {
+    const color = this.get(x, y);
+    if (color <= 0) return { stones: [], liberties: 0 };
+    const seen = new Set();
+    const stones = [];
+    const libs = new Set();
+    const stack = [[x, y]];
+    while (stack.length) {
+      const [cx, cy] = stack.pop();
+      const k = this.idx(cx, cy);
+      if (seen.has(k)) continue;
+      seen.add(k);
+      stones.push([cx, cy]);
+      for (const [nx, ny] of this.neighbors(cx, cy)) {
+        const v = this.get(nx, ny);
+        if (v === 0) libs.add(this.idx(nx, ny));
+        else if (v === color) stack.push([nx, ny]);
+      }
+    }
+    return { stones, liberties: libs.size };
+  }
+
+  play(color, x, y) {
+    if (x < 0 || y < 0) return; // pass
+    this.set(x, y, color);
+    const opp = 3 - color;
+    for (const [nx, ny] of this.neighbors(x, y)) {
+      if (this.get(nx, ny) === opp) {
+        const g = this.group(nx, ny);
+        if (g.liberties === 0)
+          for (const [gx, gy] of g.stones) this.set(gx, gy, 0);
+      }
+    }
+    // suicide safety
+    const own = this.group(x, y);
+    if (own.liberties === 0)
+      for (const [gx, gy] of own.stones) this.set(gx, gy, 0);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SGF COORD → BOARD COORD
+// ─────────────────────────────────────────────────────────────────────────────
+
+function coord(ch) {
+  if (!ch) return -1;
+  const c = ch.charCodeAt(0);
+  if (c >= 97 && c <= 122) return c - 97;       // a-z → 0-25
+  if (c >= 65 && c <= 90)  return c - 65 + 26;  // A-Z → 26-51
+  return -1;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BUILD MOVE SEQUENCE FROM PARSED SGF
+// ─────────────────────────────────────────────────────────────────────────────
+
+function buildMoves(nodes) {
+  const root = nodes[0] || {};
+  const boardSize = parseInt((root.SZ || ['19'])[0]) || 19;
+
+  const info = {
+    black:     (root.PB || ['Black'])[0],
+    white:     (root.PW || ['White'])[0],
+    blackRank: (root.BR || [''])[0],
+    whiteRank: (root.WR || [''])[0],
+    komi:      (root.KM || ['6.5'])[0],
+    result:    (root.RE || [''])[0],
+    date:      (root.DT || [''])[0],
+    event:     (root.EV || [''])[0],
+    title:     (root.GN || [''])[0],
+    boardSize,
+  };
+
+  const board = new GoBoard(boardSize);
+  const moves = [];
+  let moveNum = 0;
+
+  function applySetup(node, brd) {
+    for (const ab of (node.AB || [])) {
+      const x = coord(ab[0]), y = coord(ab[1]);
+      if (x >= 0 && y >= 0) brd.set(x, y, 1);
+    }
+    for (const aw of (node.AW || [])) {
+      const x = coord(aw[0]), y = coord(aw[1]);
+      if (x >= 0 && y >= 0) brd.set(x, y, 2);
+    }
+  }
+
+  applySetup(root, board);
+
+  const rootComment = (root.C || [''])[0];
+  moves.push({
+    moveNum: 0,
+    color: null,
+    x: -1, y: -1,
+    board: board.clone(),
+    comment: rootComment,
+    label: 'Game Info',
+    isSetup: true,
+  });
+
+  for (let i = 1; i < nodes.length; i++) {
+    const node = nodes[i];
+    applySetup(node, board);
+
+    let color = null, x = -1, y = -1;
+    if (node.B) {
+      color = 1;
+      const c = node.B[0] || '';
+      if (c.length >= 2) { x = coord(c[0]); y = coord(c[1]); }
+      moveNum++;
+    } else if (node.W) {
+      color = 2;
+      const c = node.W[0] || '';
+      if (c.length >= 2) { x = coord(c[0]); y = coord(c[1]); }
+      moveNum++;
+    }
+
+    if (color !== null) board.play(color, x, y);
+
+    const comment = (node.C || [''])[0];
+    const colorName = color === 1 ? 'Black' : color === 2 ? 'White' : '';
+    moves.push({
+      moveNum,
+      color,
+      x, y,
+      board: board.clone(),
+      comment,
+      label: moveNum > 0
+        ? `Move ${moveNum}${colorName ? '  —  ' + colorName : ''}`
+        : 'Setup',
+      isSetup: false,
+    });
+  }
+
+  return { info, moves };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BOARD RENDERER
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Fixed layout dims for Kobo Sage (1440×1920) and 8" devices
+const PW = 1440;
+const PH = 1920;
+const BOARD_PX = 1300; // board canvas square size
+const BML = Math.floor((PW - BOARD_PX) / 2); // left margin for board
+const BMT = 44;  // top margin for board
+// comment area: BMT + BOARD_PX + gap = comment start
+const COMMENT_TOP = BMT + BOARD_PX + 28;
+const COMMENT_PAD = 56; // horizontal padding
+
+function starPoints(size) {
+  if (size === 19) {
+    const p = [3, 9, 15];
+    return p.flatMap(r => p.map(c => [c, r]));
+  }
+  if (size === 13) return [[3,3],[9,3],[3,9],[9,9],[6,6]];
+  if (size === 9)  return [[2,2],[6,2],[2,6],[6,6],[4,4]];
+  return [];
+}
+
+function renderBoardToCanvas(canvas, boardState, lastX, lastY, theme) {
+  const sz = boardState.size;
+  canvas.width  = BOARD_PX;
+  canvas.height = BOARD_PX;
+  const ctx = canvas.getContext('2d');
+
+  const wood   = theme === 'wood';
+  const bgFill  = wood ? '#e8c97a' : '#f5f0e8';
+  const lineCol = '#1a1a1a';
+  const coordCol = '#4a4a4a';
+
+  // Margins for coordinate labels
+  const margin = 62;
+  const grid   = BOARD_PX - 2 * margin;
+  const cell   = grid / (sz - 1);
+  const r      = cell * 0.46;
+
+  // Background
+  ctx.fillStyle = bgFill;
+  ctx.fillRect(0, 0, BOARD_PX, BOARD_PX);
+
+  if (wood) {
+    // Subtle grain effect
+    for (let i = 0; i < 24; i++) {
+      const y0 = (i / 24) * BOARD_PX;
+      ctx.fillStyle = i % 2 === 0 ? 'rgba(0,0,0,0.012)' : 'rgba(255,255,255,0.012)';
+      ctx.fillRect(0, y0, BOARD_PX, BOARD_PX / 24);
+    }
+    ctx.strokeStyle = '#c8a44a';
+  } else {
+    ctx.strokeStyle = '#888';
+  }
+  ctx.lineWidth = 3;
+  ctx.strokeRect(margin, margin, grid, grid);
+
+  // Grid lines
+  ctx.strokeStyle = lineCol;
+  ctx.lineWidth = 1.2;
+  for (let i = 0; i < sz; i++) {
+    const gx = margin + i * cell;
+    const gy = margin + i * cell;
+    ctx.beginPath(); ctx.moveTo(gx, margin); ctx.lineTo(gx, margin + grid); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(margin, gy); ctx.lineTo(margin + grid, gy); ctx.stroke();
+  }
+
+  // Star points
+  ctx.fillStyle = lineCol;
+  for (const [sx, sy] of starPoints(sz)) {
+    ctx.beginPath();
+    ctx.arc(margin + sx * cell, margin + sy * cell, r * 0.2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Coordinate labels
+  const fontSize = Math.max(18, Math.round(cell * 0.34));
+  ctx.font = `600 ${fontSize}px 'Helvetica Neue', Arial, sans-serif`;
+  ctx.textAlign   = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle   = coordCol;
+  const COLS = 'ABCDEFGHJKLMNOPQRST';
+  for (let i = 0; i < sz; i++) {
+    const gx = margin + i * cell;
+    const rowLabel = String(sz - i);
+    ctx.fillText(COLS[i],    gx,             margin * 0.46);
+    ctx.fillText(COLS[i],    gx,             BOARD_PX - margin * 0.46);
+    ctx.fillText(rowLabel,   margin * 0.46,  margin + i * cell);
+    ctx.fillText(rowLabel,   BOARD_PX - margin * 0.46, margin + i * cell);
+  }
+
+  // Stones
+  for (let y = 0; y < sz; y++) {
+    for (let x = 0; x < sz; x++) {
+      const stone = boardState.get(x, y);
+      if (!stone) continue;
+      const px = margin + x * cell;
+      const py = margin + y * cell;
+
+      ctx.shadowColor   = 'rgba(0,0,0,0.45)';
+      ctx.shadowBlur    = r * 0.55;
+      ctx.shadowOffsetX = r * 0.12;
+      ctx.shadowOffsetY = r * 0.18;
+
+      if (stone === 1) { // black
+        ctx.fillStyle = '#111111';
+        ctx.beginPath();
+        ctx.arc(px, py, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0;
+        // gloss
+        const g = ctx.createRadialGradient(px - r * 0.32, py - r * 0.32, r * 0.04, px, py, r);
+        g.addColorStop(0, 'rgba(255,255,255,0.28)');
+        g.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2); ctx.fill();
+      } else { // white
+        ctx.fillStyle = '#f0f0f0';
+        ctx.beginPath();
+        ctx.arc(px, py, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#2a2a2a';
+        ctx.lineWidth   = r * 0.09;
+        ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2); ctx.stroke();
+        const g = ctx.createRadialGradient(px - r * 0.28, py - r * 0.28, r * 0.04, px, py, r);
+        g.addColorStop(0, 'rgba(255,255,255,0.9)');
+        g.addColorStop(0.6, 'rgba(240,240,240,0.4)');
+        g.addColorStop(1, 'rgba(200,200,200,0.0)');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+  }
+  ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0;
+
+  // Last-move marker
+  if (lastX >= 0 && lastY >= 0) {
+    const px = margin + lastX * cell;
+    const py = margin + lastY * cell;
+    const stone = boardState.get(lastX, lastY);
+    ctx.strokeStyle = stone === 1 ? 'rgba(255,255,255,0.85)' : '#c0392b';
+    ctx.lineWidth   = Math.max(2.5, r * 0.16);
+    ctx.beginPath();
+    ctx.arc(px, py, r * 0.36, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EPUB BUILDER
+// ─────────────────────────────────────────────────────────────────────────────
+
+function xml(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function commentToHtml(text) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\r?\n/g, '<br/>');
+}
+
+async function buildEPUB(info, allMoves, pages, theme, onProgress) {
+  const zip = new JSZip();
+  zip.file('mimetype', 'application/epub+zip', { compression: 'STORE' });
+
+  zip.file('META-INF/container.xml',
+`<?xml version="1.0"?>
+<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+  <rootfiles>
+    <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
+  </rootfiles>
+</container>`);
+
+  const title = info.title || `${info.black} vs ${info.white}`;
+  const canvas = document.getElementById('offscreen');
+
+  const moveFont    = 40;  // px, move label
+  const commentFont = 38;  // px, body text
+  const LABEL_H     = moveFont + 14 + 3 + 22; // font + pad-bottom + border + margin-bottom ≈ 79
+  const TEXT_TOP    = COMMENT_TOP + LABEL_H;
+  const TEXT_H      = PH - TEXT_TOP - 44;
+  const CWIDTH      = PW - 2 * COMMENT_PAD;
+
+  const manifest = [];
+  const spine    = [];
+
+  for (let i = 0; i < pages.length; i++) {
+    const move = pages[i];
+    const pad  = String(i + 1).padStart(4, '0');
+    onProgress(i / pages.length, `Rendering move ${move.moveNum} of ${allMoves[allMoves.length-1].moveNum}…`);
+
+    renderBoardToCanvas(canvas, move.board, move.x, move.y, theme);
+    const imgB64 = canvas.toDataURL('image/png').split(',')[1];
+    zip.file(`OEBPS/images/b${pad}.png`, imgB64, { base64: true });
+
+    const commentHtml = move.comment ? commentToHtml(move.comment) : '';
+
+    const page = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=${PW}, height=${PH}"/>
+  <title>${xml(move.label)}</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { width:${PW}px; height:${PH}px; background:#ffffff; }
+    .board {
+      position:absolute;
+      top:${BMT}px;
+      left:${BML}px;
+      width:${BOARD_PX}px;
+      height:${BOARD_PX}px;
+    }
+    .move-label {
+      position:absolute;
+      top:${COMMENT_TOP}px;
+      left:${COMMENT_PAD}px;
+      width:${CWIDTH}px;
+      font-size:${moveFont}px;
+      font-weight:bold;
+      font-family:'Helvetica Neue',Arial,sans-serif;
+      color:#111;
+      border-bottom:2.5px solid #222;
+      padding-bottom:14px;
+      letter-spacing:-0.3px;
+    }
+    .color-dot {
+      display:inline-block;
+      width:${Math.round(moveFont * 0.6)}px;
+      height:${Math.round(moveFont * 0.6)}px;
+      border-radius:50%;
+      vertical-align:middle;
+      margin-right:10px;
+      margin-bottom:3px;
+    }
+    .black-dot { background:#111; }
+    .white-dot { background:#fff; border:3px solid #111; }
+    .comment-text {
+      position:absolute;
+      top:${TEXT_TOP}px;
+      left:${COMMENT_PAD}px;
+      width:${CWIDTH}px;
+      height:${TEXT_H}px;
+      font-size:${commentFont}px;
+      line-height:1.56;
+      color:#1a1a1a;
+      font-family:Georgia,'Times New Roman',serif;
+      overflow:hidden;
+    }
+  </style>
+</head>
+<body>
+  <img class="board" src="../images/b${pad}.png" alt="Board at ${xml(move.label)}"/>
+  <div class="move-label">${
+    move.color === 1 ? `<span class="color-dot black-dot"></span>` :
+    move.color === 2 ? `<span class="color-dot white-dot"></span>` : ''
+  }${xml(move.label)}</div>
+  ${commentHtml ? `<div class="comment-text">${commentHtml}</div>` : ''}
+</body>
+</html>`;
+
+    zip.file(`OEBPS/pages/p${pad}.xhtml`, page);
+    manifest.push(`<item id="p${pad}" href="pages/p${pad}.xhtml" media-type="application/xhtml+xml"/>`);
+    manifest.push(`<item id="i${pad}" href="images/b${pad}.png"  media-type="image/png"/>`);
+    spine.push(`<itemref idref="p${pad}"/>`);
+
+    await new Promise(r => setTimeout(r, 0));
+  }
+
+  onProgress(0.95, 'Building cover…');
+
+  // Cover page
+  const brStr = info.blackRank ? ` (${info.blackRank})` : '';
+  const wrStr = info.whiteRank ? ` (${info.whiteRank})` : '';
+  zip.file('OEBPS/cover.xhtml', `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=${PW}, height=${PH}"/>
+  <title>${xml(title)}</title>
+  <style>
+    * { margin:0; padding:0; }
+    html, body { width:${PW}px; height:${PH}px; background:#ffffff;
+                 font-family:Georgia,'Times New Roman',serif; }
+    .wrap {
+      display:flex; flex-direction:column; align-items:center;
+      justify-content:center; height:100%; padding:100px 80px;
+      text-align:center;
+    }
+    .symbol { font-size:220px; line-height:1; margin-bottom:60px; opacity:0.12; }
+    h1 { font-size:88px; font-weight:bold; line-height:1.15;
+         font-family:'Helvetica Neue',Arial,sans-serif; margin-bottom:44px;
+         letter-spacing:-2px; }
+    .players { font-size:58px; margin-bottom:36px; color:#333; }
+    .sep { margin:0 20px; opacity:0.4; }
+    .meta { font-size:40px; line-height:2; color:#666; }
+    .total { margin-top:48px; font-size:36px; color:#999; font-style:italic; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="symbol">⚫</div>
+    <h1>${xml(title)}</h1>
+    <div class="players">
+      ⚫ ${xml(info.black)}${xml(brStr)}
+      <span class="sep">vs</span>
+      ○ ${xml(info.white)}${xml(wrStr)}
+    </div>
+    <div class="meta">
+      ${info.event  ? xml(info.event)  + '<br/>' : ''}
+      ${info.date   ? xml(info.date)   + '<br/>' : ''}
+      ${info.komi   ? 'Komi: '  + xml(info.komi)   + '<br/>' : ''}
+      ${info.result ? 'Result: ' + xml(info.result) : ''}
+    </div>
+    <div class="total">${pages.length} annotated position${pages.length !== 1 ? 's' : ''}</div>
+  </div>
+</body>
+</html>`);
+
+  // nav.xhtml
+  const navLi = pages.map((m, i) => {
+    const pad = String(i + 1).padStart(4, '0');
+    return `      <li><a href="pages/p${pad}.xhtml">${xml(m.label)}</a></li>`;
+  }).join('\n');
+
+  zip.file('OEBPS/nav.xhtml', `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+<head><meta charset="UTF-8"/><title>Contents</title></head>
+<body>
+  <nav epub:type="toc">
+    <ol>
+      <li><a href="cover.xhtml">Cover</a></li>
+${navLi}
+    </ol>
+  </nav>
+</body>
+</html>`);
+
+  // content.opf
+  const uid = `go-${Date.now()}`;
+  zip.file('OEBPS/content.opf', `<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:identifier id="uid">${uid}</dc:identifier>
+    <dc:title>${xml(title)}</dc:title>
+    <dc:creator>${xml(info.black)} vs ${xml(info.white)}</dc:creator>
+    <dc:language>en</dc:language>
+    <meta property="rendition:layout">pre-paginated</meta>
+    <meta property="rendition:orientation">portrait</meta>
+    <meta property="rendition:spread">none</meta>
+    <meta property="rendition:viewport">width=${PW}, height=${PH}</meta>
+  </metadata>
+  <manifest>
+    <item id="nav"   href="nav.xhtml"   media-type="application/xhtml+xml" properties="nav"/>
+    <item id="cover" href="cover.xhtml" media-type="application/xhtml+xml"/>
+    ${manifest.join('\n    ')}
+  </manifest>
+  <spine>
+    <itemref idref="cover"/>
+    ${spine.join('\n    ')}
+  </spine>
+</package>`);
+
+  onProgress(1.0, 'Packaging…');
+  const blob = await zip.generateAsync({
+    type: 'blob',
+    mimeType: 'application/epub+zip',
+    compression: 'DEFLATE',
+    compressionOptions: { level: 6 },
+  });
+  return { blob, title };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UI
+// ─────────────────────────────────────────────────────────────────────────────
+
+let currentFile = null;
+
+const dropZone    = document.getElementById('dropZone');
+const fileInput   = document.getElementById('fileInput');
+const fileNameEl  = document.getElementById('fileName');
+const convertBtn  = document.getElementById('convertBtn');
+const progressEl  = document.getElementById('progress');
+const fillEl      = document.getElementById('progressFill');
+const msgEl       = document.getElementById('progressMsg');
+const errorEl     = document.getElementById('errorMsg');
+const dlWrap      = document.getElementById('downloadWrap');
+const dlLink      = document.getElementById('downloadLink');
+
+dropZone.addEventListener('click',     () => fileInput.click());
+dropZone.addEventListener('dragover',  e  => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', ()  => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) setFile(fileInput.files[0]);
+});
+
+function setFile(f) {
+  currentFile = f;
+  fileNameEl.textContent = f.name;
+  convertBtn.disabled = false;
+  dlWrap.style.display = 'none';
+  errorEl.style.display = 'none';
+  // Auto-fill title from filename
+  const base = f.name.replace(/\.sgf$/i, '').replace(/[_-]+/g, ' ');
+  if (!document.getElementById('titleInput').value)
+    document.getElementById('titleInput').placeholder = base;
+}
+
+function setProgress(pct, msg) {
+  fillEl.style.width = Math.round(pct * 100) + '%';
+  msgEl.textContent  = msg;
+}
+
+convertBtn.addEventListener('click', async () => {
+  if (!currentFile) return;
+  convertBtn.disabled = true;
+  progressEl.style.display = 'block';
+  dlWrap.style.display    = 'none';
+  errorEl.style.display   = 'none';
+  setProgress(0, 'Parsing SGF…');
+
+  try {
+    const text  = await currentFile.text();
+    const nodes = parseSGF(text);
+    if (!nodes || nodes.length < 2) throw new Error('No moves found in SGF file');
+
+    const { info, moves } = buildMoves(nodes);
+
+    // Title override
+    const override = document.getElementById('titleInput').value.trim();
+    if (override) info.title = override;
+    if (!info.title || info.title === ' vs ') {
+      info.title = `${info.black || 'Black'} vs ${info.white || 'White'}`;
+    }
+
+    const mode  = document.getElementById('includeMode').value;
+    const theme = document.getElementById('boardTheme').value;
+
+    let pages;
+    if (mode === 'commented') {
+      pages = moves.filter(m => m.comment && m.comment.trim());
+      if (pages.length === 0) {
+        pages = moves; // fallback: no comments found, include all
+        msgEl.textContent = 'No comments found — including all moves.';
+      }
+    } else {
+      pages = moves;
+    }
+
+    const { blob, title } = await buildEPUB(info, moves, pages, theme, setProgress);
+
+    const url      = URL.createObjectURL(blob);
+    const filename = (title || 'go-game').replace(/[^\w\-]/g, '_').replace(/_+/g, '_') + '.epub';
+    dlLink.href     = url;
+    dlLink.download = filename;
+    dlLink.textContent = `↓ Download  ${filename}`;
+    dlWrap.style.display = 'block';
+    setProgress(1, `Done — ${pages.length} page${pages.length !== 1 ? 's' : ''} generated`);
+
+  } catch (err) {
+    errorEl.textContent  = '⚠ ' + err.message;
+    errorEl.style.display = 'block';
+    progressEl.style.display = 'none';
+    convertBtn.disabled = false;
+    console.error(err);
+  }
+});
+</script>
+</body>
+</html>
