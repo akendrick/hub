@@ -174,8 +174,6 @@ hr { border: none; border-top: 1px solid #374151; margin: 24px 0; }
   </div>
 </div>
 
-<canvas id="offscreen" style="display:none"></canvas>
-
 <script>
 // ─────────────────────────────────────────────────────────────────────────────
 // SGF PARSER
@@ -438,7 +436,8 @@ function buildMoves(nodes) {
     if (color !== null) board.play(color, x, y);
 
     const comment = (node.C || [''])[0];
-    const colorName = color === 1 ? 'Black' : color === 2 ? 'White' : '';
+    const playerName = color === 1 ? info.black : color === 2 ? info.white : '';
+    const colorWord  = color === 1 ? 'Black' : color === 2 ? 'White' : '';
     moves.push({
       moveNum,
       color,
@@ -446,7 +445,7 @@ function buildMoves(nodes) {
       board: board.clone(),
       comment,
       label: moveNum > 0
-        ? `Move ${moveNum}${colorName ? '  —  ' + colorName : ''}`
+        ? `Move ${moveNum}  —  ${playerName || colorWord}`
         : 'Setup',
       isSetup: false,
     });
@@ -479,131 +478,119 @@ function starPoints(size) {
   return [];
 }
 
-function renderBoardToCanvas(canvas, boardState, lastX, lastY, theme) {
-  const sz = boardState.size;
-  canvas.width  = BOARD_PX;
-  canvas.height = BOARD_PX;
-  const ctx = canvas.getContext('2d');
-
-  const wood   = theme === 'wood';
-  const bgFill  = wood ? '#e8c97a' : '#f5f0e8';
-  const lineCol = '#1a1a1a';
-  const coordCol = '#4a4a4a';
-
-  // Margins for coordinate labels
-  const margin = 62;
-  const grid   = BOARD_PX - 2 * margin;
-  const cell   = grid / (sz - 1);
-  const r      = cell * 0.46;
-
-  // Background
-  ctx.fillStyle = bgFill;
-  ctx.fillRect(0, 0, BOARD_PX, BOARD_PX);
-
-  if (wood) {
-    // Subtle grain effect
-    for (let i = 0; i < 24; i++) {
-      const y0 = (i / 24) * BOARD_PX;
-      ctx.fillStyle = i % 2 === 0 ? 'rgba(0,0,0,0.012)' : 'rgba(255,255,255,0.012)';
-      ctx.fillRect(0, y0, BOARD_PX, BOARD_PX / 24);
-    }
-    ctx.strokeStyle = '#c8a44a';
-  } else {
-    ctx.strokeStyle = '#888';
-  }
-  ctx.lineWidth = 3;
-  ctx.strokeRect(margin, margin, grid, grid);
-
-  // Grid lines
-  ctx.strokeStyle = lineCol;
-  ctx.lineWidth = 1.2;
-  for (let i = 0; i < sz; i++) {
-    const gx = margin + i * cell;
-    const gy = margin + i * cell;
-    ctx.beginPath(); ctx.moveTo(gx, margin); ctx.lineTo(gx, margin + grid); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(margin, gy); ctx.lineTo(margin + grid, gy); ctx.stroke();
-  }
-
-  // Star points
-  ctx.fillStyle = lineCol;
-  for (const [sx, sy] of starPoints(sz)) {
-    ctx.beginPath();
-    ctx.arc(margin + sx * cell, margin + sy * cell, r * 0.2, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // Coordinate labels
-  const fontSize = Math.max(18, Math.round(cell * 0.34));
-  ctx.font = `600 ${fontSize}px 'Helvetica Neue', Arial, sans-serif`;
-  ctx.textAlign   = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle   = coordCol;
+function renderBoardSVG(boardState, lastX, lastY, theme) {
+  const sz  = boardState.size;
+  const W   = BOARD_PX;
+  const mar = 62;
+  const grd = W - 2 * mar;
+  const cel = grd / (sz - 1);
+  const r   = cel * 0.46;
+  const n   = v => Math.round(v * 10) / 10; // 1-decimal precision
+  const bg  = theme === 'wood' ? '#c5ab68' : '#d0ccc5'; // 15% darker than original
+  const bc  = theme === 'wood' ? '#c8a44a' : '#888888';
+  const fs  = Math.max(18, Math.round(cel * 0.34));
+  const sw  = Math.max(2.5, r * 0.16);
   const COLS = 'ABCDEFGHJKLMNOPQRST';
-  for (let i = 0; i < sz; i++) {
-    const gx = margin + i * cell;
-    const rowLabel = String(sz - i);
-    ctx.fillText(COLS[i],    gx,             margin * 0.46);
-    ctx.fillText(COLS[i],    gx,             BOARD_PX - margin * 0.46);
-    ctx.fillText(rowLabel,   margin * 0.46,  margin + i * cell);
-    ctx.fillText(rowLabel,   BOARD_PX - margin * 0.46, margin + i * cell);
-  }
+  const ta  = 'text-anchor="middle" dominant-baseline="middle"';
+  const ff  = `font-family="Arial,sans-serif" font-size="${fs}" font-weight="600" fill="#4a4a4a"`;
 
-  // Stones
-  for (let y = 0; y < sz; y++) {
-    for (let x = 0; x < sz; x++) {
-      const stone = boardState.get(x, y);
-      if (!stone) continue;
-      const px = margin + x * cell;
-      const py = margin + y * cell;
+  const p = []; // parts
 
-      ctx.shadowColor   = 'rgba(0,0,0,0.45)';
-      ctx.shadowBlur    = r * 0.55;
-      ctx.shadowOffsetX = r * 0.12;
-      ctx.shadowOffsetY = r * 0.18;
+  // SVG positioned inline — no external CSS dependency for layout-critical placement
+  p.push(`<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:${BMT}px;left:${BML}px;display:block" width="${W}" height="${W}" viewBox="0 0 ${W} ${W}">`);
 
-      if (stone === 1) { // black
-        ctx.fillStyle = '#111111';
-        ctx.beginPath();
-        ctx.arc(px, py, r, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0;
-        // gloss
-        const g = ctx.createRadialGradient(px - r * 0.32, py - r * 0.32, r * 0.04, px, py, r);
-        g.addColorStop(0, 'rgba(255,255,255,0.28)');
-        g.addColorStop(1, 'rgba(255,255,255,0)');
-        ctx.fillStyle = g;
-        ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2); ctx.fill();
-      } else { // white
-        ctx.fillStyle = '#f0f0f0';
-        ctx.beginPath();
-        ctx.arc(px, py, r, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0;
-        ctx.strokeStyle = '#2a2a2a';
-        ctx.lineWidth   = r * 0.09;
-        ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2); ctx.stroke();
-        const g = ctx.createRadialGradient(px - r * 0.28, py - r * 0.28, r * 0.04, px, py, r);
-        g.addColorStop(0, 'rgba(255,255,255,0.9)');
-        g.addColorStop(0.6, 'rgba(240,240,240,0.4)');
-        g.addColorStop(1, 'rgba(200,200,200,0.0)');
-        ctx.fillStyle = g;
-        ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2); ctx.fill();
-      }
+  // ── defs ──
+  p.push(`<defs>`);
+  p.push(`<radialGradient id="bg" cx="35%" cy="30%" r="65%"><stop offset="0%" stop-color="#fff" stop-opacity="0.28"/><stop offset="100%" stop-color="#fff" stop-opacity="0"/></radialGradient>`);
+  p.push(`<radialGradient id="wg" cx="32%" cy="28%" r="65%"><stop offset="0%" stop-color="#fff" stop-opacity="0.9"/><stop offset="60%" stop-color="#fff" stop-opacity="0.3"/><stop offset="100%" stop-color="#fff" stop-opacity="0"/></radialGradient>`);
+  p.push(`<filter id="ds" x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="${n(r*0.12)}" dy="${n(r*0.18)}" stdDeviation="${n(r*0.28)}" flood-opacity="0.4"/></filter>`);
+  p.push(`</defs>`);
+
+  // ── background ──
+  p.push(`<rect width="${W}" height="${W}" fill="${bg}"/>`);
+
+  // ── wood grain (2 light stripes) ──
+  if (theme === 'wood') {
+    for (let i = 0; i < 3; i++) {
+      const y0 = n(W * (0.3 + i * 0.2));
+      p.push(`<rect x="0" y="${y0}" width="${W}" height="${n(W*0.06)}" fill="#c8a020" opacity="0.07"/>`);
     }
   }
-  ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0;
 
-  // Last-move marker
-  if (lastX >= 0 && lastY >= 0) {
-    const px = margin + lastX * cell;
-    const py = margin + lastY * cell;
-    const stone = boardState.get(lastX, lastY);
-    ctx.strokeStyle = stone === 1 ? 'rgba(255,255,255,0.85)' : '#c0392b';
-    ctx.lineWidth   = Math.max(2.5, r * 0.16);
-    ctx.beginPath();
-    ctx.arc(px, py, r * 0.36, 0, Math.PI * 2);
-    ctx.stroke();
+  // ── board border ──
+  p.push(`<rect x="${mar}" y="${mar}" width="${grd}" height="${grd}" fill="none" stroke="${bc}" stroke-width="2.5"/>`);
+
+  // ── grid lines ──
+  for (let i = 0; i < sz; i++) {
+    const q = n(mar + i * cel);
+    p.push(`<line x1="${q}" y1="${mar}" x2="${q}" y2="${n(mar+grd)}" stroke="#1a1a1a" stroke-width="1.2"/>`);
+    p.push(`<line x1="${mar}" y1="${q}" x2="${n(mar+grd)}" y2="${q}" stroke="#1a1a1a" stroke-width="1.2"/>`);
   }
+
+  // ── star points ──
+  for (const [sx, sy] of starPoints(sz)) {
+    p.push(`<circle cx="${n(mar+sx*cel)}" cy="${n(mar+sy*cel)}" r="${n(r*0.2)}" fill="#1a1a1a"/>`);
+  }
+
+  // ── coordinate labels ──
+  for (let i = 0; i < sz; i++) {
+    const q   = n(mar + i * cel);
+    const col = COLS[i];
+    const row = String(sz - i);
+    p.push(`<text x="${q}" y="${n(mar*0.46)}" ${ta} ${ff}>${col}</text>`);
+    p.push(`<text x="${q}" y="${n(W-mar*0.46)}" ${ta} ${ff}>${col}</text>`);
+    p.push(`<text x="${n(mar*0.46)}" y="${q}" ${ta} ${ff}>${row}</text>`);
+    p.push(`<text x="${n(W-mar*0.46)}" y="${q}" ${ta} ${ff}>${row}</text>`);
+  }
+
+  // ── black stones (shadow group first, then gloss overlay) ──
+  p.push(`<g filter="url(#ds)">`);
+  for (let y = 0; y < sz; y++)
+    for (let x = 0; x < sz; x++)
+      if (boardState.get(x, y) === 1)
+        p.push(`<circle cx="${n(mar+x*cel)}" cy="${n(mar+y*cel)}" r="${n(r)}" fill="#111"/>`);
+  p.push(`</g>`);
+  for (let y = 0; y < sz; y++)
+    for (let x = 0; x < sz; x++)
+      if (boardState.get(x, y) === 1)
+        p.push(`<circle cx="${n(mar+x*cel)}" cy="${n(mar+y*cel)}" r="${n(r)}" fill="url(#bg)"/>`);
+
+  // ── white stones — pure white fill, bold border (e-ink needs strong contrast) ──
+  p.push(`<g filter="url(#ds)">`);
+  for (let y = 0; y < sz; y++)
+    for (let x = 0; x < sz; x++)
+      if (boardState.get(x, y) === 2) {
+        const isLast = (x === lastX && y === lastY);
+        // last white stone gets a noticeably thicker/darker border as a first visual cue
+        const wsc = isLast ? '#000000' : '#1a1a1a';
+        const wsw = isLast ? n(r*0.14)  : n(r*0.10);
+        p.push(`<circle cx="${n(mar+x*cel)}" cy="${n(mar+y*cel)}" r="${n(r)}" fill="#ffffff" stroke="${wsc}" stroke-width="${wsw}"/>`);
+      }
+  p.push(`</g>`);
+  // white stone gloss
+  for (let y = 0; y < sz; y++)
+    for (let x = 0; x < sz; x++)
+      if (boardState.get(x, y) === 2)
+        p.push(`<circle cx="${n(mar+x*cel)}" cy="${n(mar+y*cel)}" r="${n(r)}" fill="url(#wg)"/>`);
+
+  // ── last-move markers ──
+  if (lastX >= 0 && lastY >= 0) {
+    const lx = n(mar + lastX * cel);
+    const ly = n(mar + lastY * cel);
+    const stone = boardState.get(lastX, lastY);
+    if (stone === 1) {
+      // New black stone: white outline around full stone + thin outer black ring to anchor + white center dot
+      p.push(`<circle cx="${lx}" cy="${ly}" r="${n(r)}" fill="none" stroke="#ffffff" stroke-width="${n(r*0.20)}"/>`);
+      p.push(`<circle cx="${lx}" cy="${ly}" r="${n(r*1.12)}" fill="none" stroke="#000000" stroke-width="${n(r*0.07)}"/>`);
+      p.push(`<circle cx="${lx}" cy="${ly}" r="${n(r*0.14)}" fill="#ffffff"/>`);
+    } else {
+      // New white stone: solid black dot (darker border already applied above in stone loop)
+      p.push(`<circle cx="${lx}" cy="${ly}" r="${n(r*0.22)}" fill="#000000"/>`);
+    }
+  }
+
+  p.push(`</svg>`);
+  return p.join('');
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -639,98 +626,59 @@ async function buildEPUB(info, allMoves, pages, theme, onProgress) {
 </container>`);
 
   const title = info.title || `${info.black} vs ${info.white}`;
-  const canvas = document.getElementById('offscreen');
 
-  const moveFont    = 40;  // px, move label
-  const commentFont = 38;  // px, body text
-  const LABEL_H     = moveFont + 14 + 3 + 22; // font + pad-bottom + border + margin-bottom ≈ 79
+  // ── Layout constants (baked into shared CSS once) ──
+  const moveFont    = 40;
+  const commentFont = 38;
+  const LABEL_H     = 79;  // moveFont(40) + padding(14) + border(3) + margin(22)
   const TEXT_TOP    = COMMENT_TOP + LABEL_H;
   const TEXT_H      = PH - TEXT_TOP - 44;
   const CWIDTH      = PW - 2 * COMMENT_PAD;
 
-  const manifest = [];
+  // ── Shared CSS written once ──
+  zip.file('OEBPS/style.css',
+`*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:${PW}px;height:${PH}px;background:#ffffff}
+.move-label{position:absolute;top:${COMMENT_TOP}px;left:${COMMENT_PAD}px;width:${CWIDTH}px;font-size:${moveFont}px;font-weight:300;font-family:'Helvetica Neue',Arial,sans-serif;color:#111;border-bottom:2.5px solid #222;padding-bottom:14px;letter-spacing:0.2px}
+.color-dot{display:inline-block;width:${Math.round(moveFont*0.6)}px;height:${Math.round(moveFont*0.6)}px;border-radius:50%;vertical-align:middle;margin-right:10px;margin-bottom:3px}
+.black-dot{background:#111}
+.white-dot{background:#fff;border:3px solid #111}
+.comment-text{position:absolute;top:${TEXT_TOP}px;left:${COMMENT_PAD}px;width:${CWIDTH}px;height:${TEXT_H}px;font-size:${commentFont}px;line-height:1.56;color:#1a1a1a;font-family:Georgia,'Times New Roman',serif;overflow:hidden}`
+  );
+
+  const manifest = [`<item id="css" href="style.css" media-type="text/css"/>`];
   const spine    = [];
 
   for (let i = 0; i < pages.length; i++) {
     const move = pages[i];
     const pad  = String(i + 1).padStart(4, '0');
-    onProgress(i / pages.length, `Rendering move ${move.moveNum} of ${allMoves[allMoves.length-1].moveNum}…`);
+    onProgress(i / pages.length, `Building page ${i+1} / ${pages.length}…`);
 
-    renderBoardToCanvas(canvas, move.board, move.x, move.y, theme);
-    const imgB64 = canvas.toDataURL('image/png').split(',')[1];
-    zip.file(`OEBPS/images/b${pad}.png`, imgB64, { base64: true });
-
+    const svgBoard   = renderBoardSVG(move.board, move.x, move.y, theme);
     const commentHtml = move.comment ? commentToHtml(move.comment) : '';
+    const dot = move.color === 1 ? `<span class="color-dot black-dot"></span>`
+              : move.color === 2 ? `<span class="color-dot white-dot"></span>` : '';
 
-    const page = `<?xml version="1.0" encoding="UTF-8"?>
+    const page =
+`<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=${PW}, height=${PH}"/>
-  <title>${xml(move.label)}</title>
-  <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    html, body { width:${PW}px; height:${PH}px; background:#ffffff; }
-    .board {
-      position:absolute;
-      top:${BMT}px;
-      left:${BML}px;
-      width:${BOARD_PX}px;
-      height:${BOARD_PX}px;
-    }
-    .move-label {
-      position:absolute;
-      top:${COMMENT_TOP}px;
-      left:${COMMENT_PAD}px;
-      width:${CWIDTH}px;
-      font-size:${moveFont}px;
-      font-weight:bold;
-      font-family:'Helvetica Neue',Arial,sans-serif;
-      color:#111;
-      border-bottom:2.5px solid #222;
-      padding-bottom:14px;
-      letter-spacing:-0.3px;
-    }
-    .color-dot {
-      display:inline-block;
-      width:${Math.round(moveFont * 0.6)}px;
-      height:${Math.round(moveFont * 0.6)}px;
-      border-radius:50%;
-      vertical-align:middle;
-      margin-right:10px;
-      margin-bottom:3px;
-    }
-    .black-dot { background:#111; }
-    .white-dot { background:#fff; border:3px solid #111; }
-    .comment-text {
-      position:absolute;
-      top:${TEXT_TOP}px;
-      left:${COMMENT_PAD}px;
-      width:${CWIDTH}px;
-      height:${TEXT_H}px;
-      font-size:${commentFont}px;
-      line-height:1.56;
-      color:#1a1a1a;
-      font-family:Georgia,'Times New Roman',serif;
-      overflow:hidden;
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=${PW}, height=${PH}"/>
+<title>${xml(move.label)}</title>
+<link rel="stylesheet" type="text/css" href="../style.css"/>
 </head>
 <body>
-  <img class="board" src="../images/b${pad}.png" alt="Board at ${xml(move.label)}"/>
-  <div class="move-label">${
-    move.color === 1 ? `<span class="color-dot black-dot"></span>` :
-    move.color === 2 ? `<span class="color-dot white-dot"></span>` : ''
-  }${xml(move.label)}</div>
-  ${commentHtml ? `<div class="comment-text">${commentHtml}</div>` : ''}
+${svgBoard}
+<div class="move-label">${dot}${xml(move.label)}</div>
+${commentHtml ? `<div class="comment-text">${commentHtml}</div>` : ''}
 </body>
 </html>`;
 
     zip.file(`OEBPS/pages/p${pad}.xhtml`, page);
-    manifest.push(`<item id="p${pad}" href="pages/p${pad}.xhtml" media-type="application/xhtml+xml"/>`);
-    manifest.push(`<item id="i${pad}" href="images/b${pad}.png"  media-type="image/png"/>`);
-    spine.push(`<itemref idref="p${pad}"/>`);
+    manifest.push(`<item id="p${pad}" href="pages/p${pad}.xhtml" media-type="application/xhtml+xml" properties="svg"/>`);
+    spine.push(`<itemref idref="p${pad}" properties="rendition:page-spread-center"/>`);
 
     await new Promise(r => setTimeout(r, 0));
   }
@@ -740,57 +688,50 @@ async function buildEPUB(info, allMoves, pages, theme, onProgress) {
   // Cover page
   const brStr = info.blackRank ? ` (${info.blackRank})` : '';
   const wrStr = info.whiteRank ? ` (${info.whiteRank})` : '';
-  zip.file('OEBPS/cover.xhtml', `<?xml version="1.0" encoding="UTF-8"?>
+  zip.file('OEBPS/cover.xhtml',
+`<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=${PW}, height=${PH}"/>
-  <title>${xml(title)}</title>
-  <style>
-    * { margin:0; padding:0; }
-    html, body { width:${PW}px; height:${PH}px; background:#ffffff;
-                 font-family:Georgia,'Times New Roman',serif; }
-    .wrap {
-      display:flex; flex-direction:column; align-items:center;
-      justify-content:center; height:100%; padding:100px 80px;
-      text-align:center;
-    }
-    .symbol { font-size:220px; line-height:1; margin-bottom:60px; opacity:0.12; }
-    h1 { font-size:88px; font-weight:bold; line-height:1.15;
-         font-family:'Helvetica Neue',Arial,sans-serif; margin-bottom:44px;
-         letter-spacing:-2px; }
-    .players { font-size:58px; margin-bottom:36px; color:#333; }
-    .sep { margin:0 20px; opacity:0.4; }
-    .meta { font-size:40px; line-height:2; color:#666; }
-    .total { margin-top:48px; font-size:36px; color:#999; font-style:italic; }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=${PW}, height=${PH}"/>
+<title>${xml(title)}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:${PW}px;height:${PH}px;background:#ffffff;font-family:Georgia,'Times New Roman',serif}
+.cover{width:${PW}px;padding-top:460px;text-align:center}
+.sym{font-size:180px;line-height:1;margin-bottom:50px;opacity:0.10;display:block}
+h1{font-size:88px;font-weight:bold;line-height:1.15;font-family:'Helvetica Neue',Arial,sans-serif;margin-bottom:40px;letter-spacing:-2px;padding:0 80px}
+.players{font-size:54px;margin-bottom:32px;color:#333;padding:0 60px}
+.sep{margin:0 18px;opacity:0.35}
+.meta{font-size:40px;line-height:2.1;color:#666;padding:0 60px}
+.total{margin-top:44px;font-size:34px;color:#999;font-style:italic}
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="symbol">⚫</div>
-    <h1>${xml(title)}</h1>
-    <div class="players">
-      ⚫ ${xml(info.black)}${xml(brStr)}
-      <span class="sep">vs</span>
-      ○ ${xml(info.white)}${xml(wrStr)}
-    </div>
-    <div class="meta">
-      ${info.event  ? xml(info.event)  + '<br/>' : ''}
-      ${info.date   ? xml(info.date)   + '<br/>' : ''}
-      ${info.komi   ? 'Komi: '  + xml(info.komi)   + '<br/>' : ''}
-      ${info.result ? 'Result: ' + xml(info.result) : ''}
-    </div>
-    <div class="total">${pages.length} annotated position${pages.length !== 1 ? 's' : ''}</div>
-  </div>
+<div class="cover">
+<span class="sym">⚫</span>
+<h1>${xml(title)}</h1>
+<div class="players">⚫ ${xml(info.black)}${xml(brStr)}<span class="sep">vs</span>○ ${xml(info.white)}${xml(wrStr)}</div>
+<div class="meta">${info.event ? xml(info.event)+'<br/>' : ''}${info.date ? xml(info.date)+'<br/>' : ''}${info.komi ? 'Komi: '+xml(info.komi)+'<br/>' : ''}${info.result ? 'Result: '+xml(info.result) : ''}</div>
+<div class="total">${pages.length} annotated position${pages.length !== 1 ? 's' : ''}</div>
+</div>
 </body>
 </html>`);
 
-  // nav.xhtml
-  const navLi = pages.map((m, i) => {
-    const pad = String(i + 1).padStart(4, '0');
-    return `      <li><a href="pages/p${pad}.xhtml">${xml(m.label)}</a></li>`;
-  }).join('\n');
+  // ── nav.xhtml — chapters every 10 moves ──
+  const chapterLi = ['      <li><a href="cover.xhtml">Cover</a></li>'];
+  if (pages.length > 0) {
+    const maxMove = pages[pages.length - 1].moveNum;
+    for (let m = 10; m <= maxMove; m += 10) {
+      // first page at or after this move number
+      const idx = pages.findIndex(pg => pg.moveNum >= m);
+      if (idx >= 0) {
+        const pad = String(idx + 1).padStart(4, '0');
+        chapterLi.push(`      <li><a href="pages/p${pad}.xhtml">Move ${m}</a></li>`);
+      }
+    }
+  }
 
   zip.file('OEBPS/nav.xhtml', `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
@@ -799,8 +740,7 @@ async function buildEPUB(info, allMoves, pages, theme, onProgress) {
 <body>
   <nav epub:type="toc">
     <ol>
-      <li><a href="cover.xhtml">Cover</a></li>
-${navLi}
+${chapterLi.join('\n')}
     </ol>
   </nav>
 </body>
@@ -825,8 +765,8 @@ ${navLi}
     <item id="cover" href="cover.xhtml" media-type="application/xhtml+xml"/>
     ${manifest.join('\n    ')}
   </manifest>
-  <spine>
-    <itemref idref="cover"/>
+  <spine page-progression-direction="ltr">
+    <itemref idref="cover" properties="rendition:page-spread-center"/>
     ${spine.join('\n    ')}
   </spine>
 </package>`);
