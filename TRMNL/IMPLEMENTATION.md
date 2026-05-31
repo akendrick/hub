@@ -8,14 +8,33 @@ Local mirror: /Users/kendrick/Documents/WEBhosting/knotwork.ca/
 
 ## CRITICAL LAYOUT RULE
 
-All plugins MUST use explicit pixel dimensions — NOT viewport units or percentages.
+Use `width:100%;height:100%` on html/body and compute ALL panel dimensions
+from `window.innerWidth/innerHeight` in JavaScript. Stamp explicit px values
+onto DOM elements after computing them. Never hardcode 800px or 480px —
+TRMNL's effective render viewport varies by device (scale_factor:1.8 gives ~444px wide).
+
 Reference: plugin-dgs-v3.md which renders correctly every time.
 
 ```css
-html,body { width:800px; height:480px; overflow:hidden; }
-body { display:grid; grid-template-rows:[header]px [content]px }
-.content { display:flex; flex-direction:row; width:800px; height:[content]px; overflow:hidden; }
-.panel { flex:0 0 [px]; width:[px]; height:[content]px; overflow:hidden; }
+/* CSS: adaptive, no hardcoded pixels */
+html,body { width:100%; height:100%; overflow:hidden; }
+body { display:flex; flex-direction:column; }
+.content { display:flex; flex-direction:row; flex:1; min-height:0; overflow:hidden; }
+.main-panel { flex-shrink:0; overflow:hidden; }  /* width set by JS */
+.side-panel { flex:1; min-width:0; overflow:hidden; }
+```
+
+```js
+/* JS: read actual viewport, compute, stamp onto elements */
+var VW = window.innerWidth  || 800;
+var VH = window.innerHeight || 480;
+var mainW  = Math.floor(VW * 0.67);
+var brdSz  = Math.min(mainW, VH - HDR_H);
+document.getElementById('main-panel').style.width = mainW + 'px';
+document.getElementById('bw-main').style.width    = brdSz + 'px';
+document.getElementById('bw-main').style.height   = brdSz + 'px';
+/* Board SVG rendered via innerHTML with explicit viewBox — NOT appendChild */
+element.innerHTML = '<svg width="'+brdSz+'" height="'+brdSz+'" viewBox="0 0 420 420" ...>';
 ```
 
 Board SVG uses innerHTML (NOT appendChild) with explicit viewBox:
