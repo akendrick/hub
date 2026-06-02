@@ -147,10 +147,11 @@ unset($day);
 // Events are pre-formatted as "HH:MM  Summary" (or just "Summary" if all-day).
 $flatDays = array_values($days);
 $out = ['generated' => (new DateTime('now', $tz))->format(DateTime::ATOM)];
-for ($i = 0; $i < 7; $i++) {
+for ($i = 0; $i < 21; $i++) {
     $day  = $flatDays[$i];
     $evts = $day['events'];
     $ec   = count($evts);
+    $out["d{$i}_date"]  = $day['date'];        // "2026-06-02"
     $out["d{$i}_dow"]   = $day['dow'];        // "Sun" … "Sat"
     $out["d{$i}_dom"]   = $day['dom'];         // "17"
     $out["d{$i}_today"] = $day['is_today']   ? 'today' : '';

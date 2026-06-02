@@ -134,10 +134,10 @@ if ($out['sunrise'] !== '—' && $out['sunset'] !== '—') {
     $out['daylight'] = '';
 }
 
-// 5-day forecast — array of plain objects, no parallel arrays
+// 7-day forecast — array of plain objects, no parallel arrays
 $tz = new DateTimeZone(WX_TZ);
 $forecast = [];
-for ($i = 0; $i < 5; $i++) {
+for ($i = 0; $i < 7; $i++) {
     $code    = (int)($md['weather_code'][$i] ?? 0);
     $timeStr = $md['time'][$i] ?? '';
     $dow     = $timeStr ? (DateTime::createFromFormat('Y-m-d', $timeStr, $tz)?->format('D') ?? '—') : '—';

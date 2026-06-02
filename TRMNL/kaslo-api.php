@@ -20,6 +20,7 @@
 
 //  Config 
 const DEVICE_KEY  = 'kw_40e818911c1980bcd56dc4aff37a820f811990a130eb771fd9e21a536edc55ea';
+const BASE        = 'https://knotwork.ca';
 const DATA_DIR    = __DIR__ . '/data';
 const TODO_FILE   = __DIR__ . '/todo.json';
 const CACHE_DIR   = '/tmp';
@@ -246,7 +247,8 @@ function cond_icon(string $s): string {
 //  5. Calendar (from cal-device-api cache)
 $cal_flat = read_cache(DATA_DIR . '/cal-cache-v3.json') ?? [];
 $cal_days = [];
-for ($i = 0; $i <= 6; $i++) {   // 7 days
+$prev_month_abbr = '';
+for ($i = 0; $i <= 20; $i++) {   // 21 days for Dashboard plugin
     $p = "d{$i}_";
     if (!isset($cal_flat["{$p}dow"])) break;
     $timed=[];
@@ -259,8 +261,13 @@ for ($i = 0; $i <= 6; $i++) {   // 7 days
         $s=$cal_flat["{$p}aev{$a}"]??'';
         if ($s!=='') $allday[]=['summary'=>$s];
     }
+    $date_str = $cal_flat["{$p}date"] ?? '';
+    $cur_month_abbr = $date_str ? (new DateTime($date_str, $tz))->format('M') : '';
+    $month_label = ($cur_month_abbr !== $prev_month_abbr) ? $cur_month_abbr : '';
+    $prev_month_abbr = $cur_month_abbr;
     $day=['dow'=>$cal_flat["{$p}dow"]??'','dom'=>$cal_flat["{$p}dom"]??'',
-          'date'=>$cal_flat["{$p}date"]??'',
+          'date'=>$date_str,
+          'month_label'=>$month_label,
           'is_today'=>($cal_flat["{$p}today"]??'')==='today',
           'is_weekend'=>($cal_flat["{$p}wknd"]??'')==='wknd',
           'holiday'=>$cal_flat["{$p}hol"]??'',
@@ -373,12 +380,12 @@ $out['moon_name']  = $moon['name']  ?? '';
 $out['todo_total'] = $todo['total'] ?? 0;
 $urgent = $todo['urgent'] ?? [];
 $rest   = $todo['rest']   ?? [];
-for ($i = 0; $i < 4; $i++) {
+for ($i = 0; $i < 6; $i++) {
     $it = $urgent[$i] ?? null;
     $out["todo_u{$i}_text"] = $it ? $it['text'] : '';
     $out["todo_u{$i}_meta"] = $it ? trim(($it['due_label'] ?? '').' '.($it['tags_str'] ?? '')) : '';
 }
-$out['todo_u_more'] = count($urgent) > 4 ? '+' . (count($urgent) - 4) . ' more' : '';
+$out['todo_u_more'] = count($urgent) > 6 ? '+' . (count($urgent) - 6) . ' more' : '';
 for ($i = 0; $i < 8; $i++) {
     $it = $rest[$i] ?? null;
     $out["todo_r{$i}_text"] = $it ? $it['text'] : '';
@@ -389,8 +396,10 @@ $out['todo_r_more'] = count($rest) > 8 ? '+' . (count($rest) - 8) . ' more' : ''
 // Calendar — flat indexed vars (matches cal-device-api proven format)
 foreach ($cal_days as $i => $day) {
     $p = "cal_d{$i}_";
-    $out["{$p}dow"]   = $day['dow']     ?? '';
-    $out["{$p}dom"]   = $day['dom']     ?? '';
+    $out["{$p}dow"]         = $day['dow']          ?? '';
+    $out["{$p}dom"]         = $day['dom']          ?? '';
+    $out["{$p}date"]        = $day['date']         ?? '';
+    $out["{$p}month_label"] = $day['month_label']  ?? '';
     $out["{$p}today"] = ($day['is_today']   ?? false) ? 'today' : '';
     $out["{$p}wknd"]  = ($day['is_weekend'] ?? false) ? 'wknd'  : '';
     $out["{$p}hol"]   = $day['holiday'] ?? '';
