@@ -92,6 +92,7 @@ body{display:flex;flex-direction:column}
   </div>
 </div>
 
+
 <script>
 (function(){
 var HDR_H=36;
@@ -107,11 +108,13 @@ var bwEl=document.getElementById('bw-main');
 if(bwEl){bwEl.style.width=brdSz+'px';bwEl.style.height=brdSz+'px';}
 var spEl=document.getElementById('side-panel');
 if(spEl){spEl.style.width=sideW+'px';}
+
 var BK=JSON.parse('{{ go_board_black_json }}'||'[]');
 var WH=JSON.parse('{{ go_board_white_json }}'||'[]');
 var LC=parseInt('{{ go_last_col }}');
 var LR=parseInt('{{ go_last_row }}');
 var LCOL='{{ go_last_color }}';
+
 (function(){
 var VBsz=420,pad=14,lblPad=18,gridPx=VBsz-pad*2-lblPad,cell=gridPx/18;
 var sr=Math.min(cell*0.47,11),ox=pad+lblPad,oy=pad;
@@ -127,9 +130,10 @@ var hr=Math.max(1.2,cell*0.1);
 [[3,3],[3,9],[3,15],[9,3],[9,9],[9,15],[15,3],[15,9],[15,15]].forEach(function(s){S.push('<circle cx="'+(ox+s[0]*cell).toFixed(1)+'" cy="'+(oy+s[1]*cell).toFixed(1)+'" r="'+hr.toFixed(1)+'" fill="#3A2000"/>');});
 BK.forEach(function(s){var cx=(ox+s[0]*cell).toFixed(1),cy=(oy+s[1]*cell).toFixed(1);S.push('<circle cx="'+cx+'" cy="'+cy+'" r="'+sr.toFixed(1)+'" fill="#111" stroke="#000" stroke-width="0.4"/>');S.push('<ellipse cx="'+(ox+s[0]*cell-sr*0.28).toFixed(1)+'" cy="'+(oy+s[1]*cell-sr*0.28).toFixed(1)+'" rx="'+(sr*0.22).toFixed(1)+'" ry="'+(sr*0.14).toFixed(1)+'" fill="rgba(255,255,255,0.18)" transform="rotate(-30,'+cx+','+cy+')"/>');});
 WH.forEach(function(s){S.push('<circle cx="'+(ox+s[0]*cell).toFixed(1)+'" cy="'+(oy+s[1]*cell).toFixed(1)+'" r="'+sr.toFixed(1)+'" fill="#f8f8f8" stroke="#444" stroke-width="1"/>');});
-if(LC>=0&&LR>=0)S.push('<circle cx="'+(ox+LC*cell).toFixed(1)+'" cy="'+(oy+LR*cell).toFixed(1)+'" r="'+(sr*0.32).toFixed(1)+'" fill="'+(LCOL==='B'?'#fff':'#222')+'"/>');
+if(LC>=0&&LR>=0)S.push('<circle cx="'+(ox+LC*cell).toFixed(1)+'" cy="'+(oy+LR*cell).toFixed(1)+'" r="'+(sr*0.32).toFixed(1)+'" fill="'+(LCOL==="B"?"#fff":"#222")+'"/>');
 document.getElementById('bw-main').innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="'+brdSz+'" height="'+brdSz+'" viewBox="0 0 420 420" preserveAspectRatio="xMinYMin meet" style="display:block">'+S.join('')+'</svg>';
 })();
 })();
 </script>
+
 ```

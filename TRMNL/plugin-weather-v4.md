@@ -1,7 +1,7 @@
 # Plugin: Kaslo Weather (v4 — flat top-level vars, no IDX_0, no loops)
 #
 # Polling URL (one only):
-#   https://knotwork.ca/weather-device-api.php?key=kw_40e818911c1980bcd56dc4aff37a820f811990a130eb771fd9e21a536edc55ea
+#   https://knotwork.ca/kaslo-api.php?key=kw_40e818911c1980bcd56dc4aff37a820f811990a130eb771fd9e21a536edc55ea
 #
 # Layout:
 #   TOP 2/3  — three equal panels: WEATHER | MOON PHASE | SOLAR CLOCK

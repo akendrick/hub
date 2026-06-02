@@ -28,7 +28,7 @@ const DGS_SGF_BASE = 'https://www.dragongoserver.net/sgf.php?gid=';
 
 const OPEN_METEO_URL =
     'https://api.open-meteo.com/v1/forecast?latitude=49.912&longitude=-116.908'
-    . '&daily=moon_phase&hourly=surface_pressure'
+    . '&hourly=surface_pressure'
     . '&timezone=America%2FVancouver&forecast_days=1&past_days=3';
 
 const TTL_OM  = 3600;   // 1 hour - moon phase + pressure
@@ -108,9 +108,16 @@ if (!$om_cache) {
     if ($om_raw) {
         $om = json_decode($om_raw, true);
         if (is_array($om)) {
-            $phase = (float)($om['daily']['moon_phase'][0] ?? 0);
-            $names = ['New Moon','Waxing Crescent','First Quarter','Waxing Gibbous',
-                      'Full Moon','Waning Gibbous','Last Quarter','Waning Crescent'];
+            $phase = compute_moon_phase();
+            // Same name lookup as plugin-weather-v4.md JS (age-based, not phase*8)
+            $age_days = $phase * 29.53058867;
+            $names    = ['New Moon','Waxing Crescent','First Quarter','Waxing Gibbous',
+                         'Full Moon','Waning Gibbous','Last Quarter','Waning Crescent'];
+            $bounds   = [1.85, 7.38, 9.22, 14.77, 16.61, 22.15, 23.99, 29.53];
+            $name_idx = count($bounds) - 1;
+            foreach ($bounds as $bi => $bv) {
+                if ($age_days < $bv) { $name_idx = $bi; break; }
+            }
             $ph    = array_values($om['hourly']['surface_pressure'] ?? []);
             $pn    = count($ph);
             $cp    = $pn > 0 ? (float)$ph[$pn-1] : 0;
@@ -118,7 +125,7 @@ if (!$om_cache) {
             $delta = $cp - $pp;
             $om_cache = [
                 'phase'    => $phase,
-                'name'     => $names[(int)round($phase * 8) % 8],
+                'name'     => $names[$name_idx],
                 'p_json'   => json_encode($ph, JSON_UNESCAPED_SLASHES),
                 'p_now'    => round($cp, 1),
                 'p_trend'  => $delta > 0.5 ? 'rising' : ($delta < -0.5 ? 'falling' : 'steady'),
@@ -140,12 +147,16 @@ if ($game !== null) {
     $gid = $dgs["g{$g}_id"] ?? ($dgs['g0_id'] ?? null);
 
     $board = ['last_col'=>-1,'last_row'=>-1,'last_color'=>'',
-              'board_black_json'=>'[]','board_white_json'=>'[]'];
+              'board_black_json'=>'[]','board_white_json'=>'[]','sgf'=>''];
     if ($gid) {
-        $bc = tmp_cache_get('board_'.$gid, TTL_SGF);
+        $bc = tmp_cache_get('brd_'.$gid, TTL_SGF);
         if (!$bc) {
-            $sgf = http_get(DGS_SGF_BASE . $gid);
-            if ($sgf) { $bc = replay_sgf($sgf); tmp_cache_set('board_'.$gid, $bc); }
+            $sgf_raw = http_get(DGS_SGF_BASE . $gid);
+            if ($sgf_raw) {
+                $bc = replay_sgf($sgf_raw);
+                $bc['sgf'] = $sgf_raw;   // store raw SGF for JS fallback
+                tmp_cache_set('brd_'.$gid, $bc);
+            }
         }
         if ($bc) $board = $bc;
     }
@@ -201,10 +212,41 @@ if (file_exists(TODO_FILE)) {
     $todo = ['urgent'=>$urgent,'rest'=>$rest,'total'=>count($urgent)+count($rest)];
 }
 
+// Moon phase — Julian Date calculation matching plugin-weather-v4.md JS exactly
+function compute_moon_phase(): float {
+    $SYN    = 29.53058867;
+    $JD_REF = 2451549.76; // Jan 6 2000 new moon
+    $tz     = new DateTimeZone('America/Vancouver');
+    $now    = new DateTime('now', $tz);
+    $y = (int)$now->format('Y');
+    $m = (int)$now->format('n');
+    $d = (int)$now->format('j');
+    $h = (int)$now->format('H') / 24 + (int)$now->format('i') / 1440;
+    if ($m <= 2) { $y--; $m += 12; }
+    $A  = (int)($y / 100);
+    $JD = floor(365.25 * ($y + 4716)) + floor(30.6001 * ($m + 1)) + $d + $h + 2 - $A + floor($A / 4) - 1524.5;
+    $age = fmod($JD - $JD_REF, $SYN);
+    if ($age < 0) $age += $SYN;
+    return round($age / $SYN, 4); // 0=new, 0.5=full
+}
+
+function cond_icon(string $s): string {
+    $c = strtolower(trim($s));
+    if (!$c) return '';
+    if (strpos($c,'clear')!==false)   return '&#x2600;';
+    if (strpos($c,'mostly clear')!==false||strpos($c,'partly')!==false) return '&#x26C5;';
+    if (strpos($c,'drizzle')!==false) return '&#x2602;';
+    if (strpos($c,'snow')!==false)    return '&#x2744;';
+    if (strpos($c,'thunder')!==false||strpos($c,'storm')!==false) return '&#x26A1;';
+    if (strpos($c,'rain')!==false||strpos($c,'shower')!==false) return '&#x2614;';
+    if (strpos($c,'fog')!==false||strpos($c,'cloud')!==false||strpos($c,'overcast')!==false) return '&#x2601;';
+    return '&#x2601;';
+}
+
 //  5. Calendar (from cal-device-api cache)
 $cal_flat = read_cache(DATA_DIR . '/cal-cache-v3.json') ?? [];
 $cal_days = [];
-for ($i = 0; $i <= 4; $i++) {   // 5 days — matches weather 5-day forecast
+for ($i = 0; $i <= 6; $i++) {   // 7 days
     $p = "d{$i}_";
     if (!isset($cal_flat["{$p}dow"])) break;
     $timed=[];
@@ -288,6 +330,7 @@ if ($go) {
     $out['go_my_turn']          = $go['my_turn']       ? 'true' : '';
     $out['go_my_turn_count']    = $go['my_turn_count'] ?? 0;
     $out['go_total_games']      = $go['total_games']   ?? 0;
+    $out['go_sgf_b64']          = base64_encode($go['sgf'] ?? '');
     $out['go_board_black_json'] = $go['board_black_json'] ?? '[]';
     $out['go_board_white_json'] = $go['board_white_json'] ?? '[]';
     $out['go_last_col']         = $go['last_col']      ?? -1;
@@ -302,11 +345,14 @@ $wx_keys = ['temp','temp_full','feels','condition','hi','lo','humidity','dew',
             'sunrise','sunset','daylight'];
 foreach ($wx_keys as $k) {
     $out['wx_'.$k] = $wx_flat[$k] ?? '';
+    $out[$k]       = $wx_flat[$k] ?? '';  // bare alias for plugin-weather-v4 backward compat
 }
 
 // 7-day forecast - pass through f0_* to f6_* directly from weather cache
 for ($i = 0; $i <= 6; $i++) {
-    foreach (['dow','hi','lo','condition','pop_str','mm_str'] as $field) {
+    foreach (['dow','hi','lo','condition','pop_str','mm_str',
+              'hol','tev0n','tev0t','tev1n','tev1t','tmore',
+              'aev0','aev1','aev2','amore'] as $field) {
         $key = "f{$i}_{$field}";
         $out[$key] = $wx_flat[$key] ?? '';
     }
@@ -359,9 +405,11 @@ foreach ($cal_days as $i => $day) {
         $out["{$p}aev{$a}"] = $day['events_allday'][$a]['summary'] ?? '';
     }
     $out["{$p}f_cond"] = $wx_flat["f{$i}_condition"] ?? '';
+    $out["{$p}f_icon"] = cond_icon($wx_flat["f{$i}_condition"] ?? '');
     $out["{$p}f_hi"]   = $wx_flat["f{$i}_hi"]        ?? '';
     $out["{$p}f_lo"]   = $wx_flat["f{$i}_lo"]        ?? '';
     $out["{$p}f_pop"]  = $wx_flat["f{$i}_pop_str"]   ?? '';
+    $out["{$p}f_mm"]   = $wx_flat["f{$i}_mm_str"]    ?? '';
 }
 
 echo json_encode($out, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

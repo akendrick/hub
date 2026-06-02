@@ -1,208 +1,123 @@
-##{% comment %}
-================================================================================
-  Kaslo Weather · TRMNL Private Plugin
-  Layout:  3-column full screen (800×480 B&W e-ink)
-  IDX_0 =  EcoWitt real-time station (IKASLO6)
-  IDX_1 =  Open-Meteo 7-day forecast
-================================================================================
-##{% endcomment %}
+# Kaslo Weather · TRMNL Full-Screen Plugin
+#
+# Polling URL (single):
+#   https://knotwork.ca/kaslo-api.php?key=YOUR_DEVICE_KEY
+#   (no &game= needed — skips DGS board fetch)
+#
+# All variables come from kaslo-api.php flat output.
+# No ## prefix needed — single polling URL uses plain {{ }} syntax.
+#
+# Settings: Strategy: Polling | Verb: GET | Remove bleed margin: Yes
 
-##{% comment %} ── Wind direction: degrees → 8-point compass ── ##{% endcomment %}
-##{% assign _wd = IDX_0.data.wind.wind_direction.value | plus: 0 %}
-##{% if _wd < 23 or _wd >= 338 %}##{% assign wdir = "N" %}
-##{% elsif _wd < 68 %}##{% assign wdir = "NE" %}
-##{% elsif _wd < 113 %}##{% assign wdir = "E" %}
-##{% elsif _wd < 158 %}##{% assign wdir = "SE" %}
-##{% elsif _wd < 203 %}##{% assign wdir = "S" %}
-##{% elsif _wd < 248 %}##{% assign wdir = "SW" %}
-##{% elsif _wd < 293 %}##{% assign wdir = "W" %}
-##{% else %}##{% assign wdir = "NW" %}
-##{% endif %}
+## Markup (Full tab)
 
-##{% comment %} ── WMO code → condition label (current) ── ##{% endcomment %}
-##{% assign _wc = IDX_1.current.weather_code | plus: 0 %}
-##{% if _wc == 0 %}##{% assign wxlbl = "Clear" %}
-##{% elsif _wc == 1 %}##{% assign wxlbl = "Mostly Clear" %}
-##{% elsif _wc == 2 %}##{% assign wxlbl = "Partly Cloudy" %}
-##{% elsif _wc == 3 %}##{% assign wxlbl = "Overcast" %}
-##{% elsif _wc == 45 or _wc == 48 %}##{% assign wxlbl = "Fog" %}
-##{% elsif _wc >= 51 and _wc <= 55 %}##{% assign wxlbl = "Drizzle" %}
-##{% elsif _wc >= 61 and _wc <= 65 %}##{% assign wxlbl = "Rain" %}
-##{% elsif _wc >= 71 and _wc <= 75 %}##{% assign wxlbl = "Snow" %}
-##{% elsif _wc >= 80 and _wc <= 82 %}##{% assign wxlbl = "Rain Showers" %}
-##{% elsif _wc == 85 or _wc == 86 %}##{% assign wxlbl = "Snow Showers" %}
-##{% elsif _wc >= 95 %}##{% assign wxlbl = "Thunderstorm" %}
-##{% else %}##{% assign wxlbl = "—" %}
-##{% endif %}
-
-##{% comment %} ── Extract HH:MM from ISO datetime strings ── ##{% endcomment %}
-##{% assign srtime = IDX_1.daily.sunrise[0] | split: "T" | last %}
-##{% assign sstime = IDX_1.daily.sunset[0] | split: "T" | last %}
-
+```html
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 800px; height: 480px; overflow: hidden; background: #fff; color: #000; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 12px; display: flex; flex-direction: column; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:800px;height:480px;overflow:hidden;background:#fff;color:#000}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:12px;display:flex;flex-direction:column}
 
-/* ── Header ── */
-.hdr {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 0 10px; height: 28px; border-bottom: 2px solid #000;
-  flex-shrink: 0;
-}
-.hdr-title { font-weight: 700; font-size: 13px; letter-spacing: 0.04em; }
-.hdr-time  { font-size: 11px; color: #555; }
+.hdr{display:flex;justify-content:space-between;align-items:center;padding:0 10px;height:28px;border-bottom:2px solid #000;flex-shrink:0}
+.hdr-title{font-weight:700;font-size:13px;letter-spacing:.04em}
+.hdr-time{font-size:11px;color:#555}
 
-/* ── Main 3-column grid ── */
-.main {
-  display: grid;
-  grid-template-columns: 230px 190px 1fr;
-  flex: 1;
-  min-height: 0;
-}
-.col { overflow: hidden; }
-.col + .col { border-left: 1px solid #bbb; }
+.main{display:grid;grid-template-columns:230px 190px 1fr;flex:1;min-height:0}
+.col{overflow:hidden}
+.col+.col{border-left:1px solid #bbb}
 
-/* ── Col 1: Current Conditions ── */
-.col1 { padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
-.big-temp { font-size: 68px; font-weight: 200; line-height: 1; }
-.big-temp sup { font-size: 26px; vertical-align: 0.6em; font-weight: 300; }
-.wx-desc  { font-size: 15px; font-weight: 700; margin-top: 2px; }
-.sub-row  { font-size: 11px; color: #555; }
-.hi-lo    { font-size: 13px; font-weight: 600; color: #000; }
-.divider  { border: none; border-top: 1px solid #e0e0e0; margin: 4px 0; }
+/* Col 1: Current conditions */
+.col1{padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.big-temp{font-size:68px;font-weight:200;line-height:1}
+.big-temp sup{font-size:26px;vertical-align:.6em;font-weight:300}
+.wx-desc{font-size:15px;font-weight:700;margin-top:2px}
+.sub-row{font-size:11px;color:#555}
+.hi-lo{font-size:13px;font-weight:600;color:#000}
+.divider{border:none;border-top:1px solid #e0e0e0;margin:4px 0}
 
-/* ── Col 2: Stats 2×2 grid ── */
-.stats-grid {
-  display: grid; grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  height: 100%;
-  gap: 0;
-}
-.sbox {
-  padding: 10px 10px 8px;
-  border-right: 1px solid #e0e0e0;
-  border-bottom: 1px solid #e0e0e0;
-  display: flex; flex-direction: column; justify-content: center;
-}
-.sbox:nth-child(2n)  { border-right: none; }
-.sbox:nth-child(3),
-.sbox:nth-child(4)   { border-bottom: none; }
-.s-lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 0.09em; color: #888; margin-bottom: 3px; }
-.s-val { font-size: 22px; font-weight: 700; line-height: 1; }
-.s-unit { font-size: 11px; font-weight: 400; }
-.s-sub { font-size: 10px; color: #555; margin-top: 3px; }
+/* Col 2: Stats 2x2 */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:100%}
+.sbox{padding:10px 10px 8px;border-right:1px solid #e0e0e0;border-bottom:1px solid #e0e0e0;display:flex;flex-direction:column;justify-content:center}
+.sbox:nth-child(2n){border-right:none}
+.sbox:nth-child(3),.sbox:nth-child(4){border-bottom:none}
+.s-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:#888;margin-bottom:3px}
+.s-val{font-size:22px;font-weight:700;line-height:1}
+.s-unit{font-size:11px;font-weight:400}
+.s-sub{font-size:10px;color:#555;margin-top:3px}
 
-/* ── Col 3: 7-Day Forecast ── */
-.fc-grid {
-  display: grid; grid-template-columns: repeat(7, 1fr);
-  height: 100%;
-}
-.fc-day {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 6px 2px; border-right: 1px solid #e8e8e8; gap: 2px;
-}
-.fc-day:last-child { border-right: none; }
-.fc-dname { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
-.fc-cond  { font-size: 9px; color: #444; text-align: center; line-height: 1.2; }
-.fc-hi    { font-size: 15px; font-weight: 700; }
-.fc-lo    { font-size: 12px; color: #777; }
-.fc-prcp  { font-size: 9px; color: #999; }
+/* Col 3: 7-day forecast */
+.fc-grid{display:grid;grid-template-columns:repeat(7,1fr);height:100%}
+.fc-day{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 2px;border-right:1px solid #e8e8e8;gap:2px}
+.fc-day:last-child{border-right:none}
+.fc-dname{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.fc-cond{font-size:9px;color:#444;text-align:center;line-height:1.2}
+.fc-hi{font-size:15px;font-weight:700}
+.fc-lo{font-size:12px;color:#777}
+.fc-prcp{font-size:9px;color:#999}
 
-/* ── Footer ── */
-.ftr {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 0 12px; height: 32px; border-top: 1px solid #bbb; flex-shrink: 0;
-  font-size: 11px;
-}
-.ftr-indoor { font-weight: 600; }
-.ftr-sun { color: #444; }
+.ftr{display:flex;justify-content:space-between;align-items:center;padding:0 12px;height:32px;border-top:1px solid #bbb;flex-shrink:0;font-size:11px}
+.ftr-indoor{font-weight:600}
 </style>
 
 <div class="hdr">
   <div class="hdr-title">IKASLO6 &middot; Kaslo BC</div>
-  <div class="hdr-time">##{{ trmnl.user.time | date: "%a %b %-d &middot; %H:%M" }}</div>
+  <div class="hdr-time">{{ trmnl.user.time | date: "%a %b %-d &middot; %H:%M" }}</div>
 </div>
 
 <div class="main">
 
-  <!-- ── COL 1: Current Conditions ── -->
+  <!-- Col 1: Current conditions -->
   <div class="col col1">
-    <div class="big-temp">##{{ IDX_0.data.outdoor.temperature.value | split: "." | first }}<sup>&deg;</sup></div>
-    <div class="wx-desc">##{{ wxlbl }}</div>
-    <div class="sub-row">Feels ##{{ IDX_0.data.outdoor.feels_like.value | split: "." | first }}&deg;</div>
+    <div class="big-temp">{{ wx_temp }}<sup>&deg;</sup></div>
+    <div class="wx-desc">{{ wx_condition }}</div>
+    <div class="sub-row">Feels {{ wx_feels }}&deg;</div>
     <hr class="divider">
-    <div class="hi-lo">Hi ##{{ IDX_1.daily.temperature_2m_max[0] | round }}&deg; &middot; Lo ##{{ IDX_1.daily.temperature_2m_min[0] | round }}&deg;</div>
-    <div class="sub-row">Rain ##{{ IDX_0.data.rainfall.daily.value }} mm &nbsp;&bull;&nbsp; Rate ##{{ IDX_0.data.rainfall.rain_rate.value }} mm/h</div>
-    <div class="sub-row">Weekly ##{{ IDX_0.data.rainfall.weekly.value }} mm</div>
+    <div class="hi-lo">Hi {{ f0_hi }}&deg; &middot; Lo {{ f0_lo }}&deg;</div>
+    <div class="sub-row">Rain {{ wx_rain_day }} mm &nbsp;&bull;&nbsp; Rate {{ wx_rain_rate }} mm/h</div>
+    <div class="sub-row">Weekly {{ wx_rain_week }} mm</div>
   </div>
 
-  <!-- ── COL 2: Stats Grid ── -->
+  <!-- Col 2: Stats grid -->
   <div class="col">
     <div class="stats-grid">
       <div class="sbox">
         <div class="s-lbl">Wind</div>
-        <div class="s-val">##{{ IDX_0.data.wind.wind_speed.value | split: "." | first }}<span class="s-unit"> km/h</span></div>
-        <div class="s-sub">##{{ wdir }} &bull; ##{{ IDX_0.data.wind.wind_gust.value | split: "." | first }} gust</div>
+        <div class="s-val">{{ wx_wind_kmh }}<span class="s-unit"> km/h</span></div>
+        <div class="s-sub">{{ wx_wdir }} &bull; {{ wx_gust_kmh }} gust</div>
       </div>
       <div class="sbox">
         <div class="s-lbl">Pressure</div>
-        <div class="s-val" style="font-size:18px">##{{ IDX_0.data.pressure.relative.value | split: "." | first }}<span class="s-unit"> hPa</span></div>
-        <div class="s-sub">.##{{ IDX_0.data.pressure.relative.value | split: "." | last }}</div>
+        <div class="s-val" style="font-size:18px">{{ wx_pressure }}<span class="s-unit"> hPa</span></div>
       </div>
       <div class="sbox">
         <div class="s-lbl">Humidity / Dew</div>
-        <div class="s-val">##{{ IDX_0.data.outdoor.humidity.value }}<span class="s-unit">%</span></div>
-        <div class="s-sub">Dew ##{{ IDX_0.data.outdoor.dew_point.value | split: "." | first }}&deg;</div>
+        <div class="s-val">{{ wx_humidity }}<span class="s-unit">%</span></div>
+        <div class="s-sub">Dew {{ wx_dew }}&deg;</div>
       </div>
       <div class="sbox">
         <div class="s-lbl">UV / Solar</div>
-        <div class="s-val">##{{ IDX_0.data.solar_and_uvi.uvi.value }}</div>
-        <div class="s-sub">##{{ IDX_0.data.solar_and_uvi.solar.value | split: "." | first }} W/m&sup2;</div>
+        <div class="s-val">{{ wx_uvi }}</div>
+        <div class="s-sub">{{ wx_solar }} W/m&sup2;</div>
       </div>
     </div>
   </div>
 
-  <!-- ── COL 3: 7-Day Forecast ── -->
+  <!-- Col 3: 7-day forecast -->
   <div class="col">
     <div class="fc-grid">
-      ##{% for i in (0..6) %}
-        ##{% assign _fc = IDX_1.daily.weather_code[i] | plus: 0 %}
-        ##{% if _fc == 0 %}##{% assign fcond = "Clear" %}
-        ##{% elsif _fc == 1 %}##{% assign fcond = "Mostly Clr" %}
-        ##{% elsif _fc == 2 %}##{% assign fcond = "Pt. Cloudy" %}
-        ##{% elsif _fc == 3 %}##{% assign fcond = "Overcast" %}
-        ##{% elsif _fc == 45 or _fc == 48 %}##{% assign fcond = "Fog" %}
-        ##{% elsif _fc >= 51 and _fc <= 55 %}##{% assign fcond = "Drizzle" %}
-        ##{% elsif _fc >= 61 and _fc <= 65 %}##{% assign fcond = "Rain" %}
-        ##{% elsif _fc >= 71 and _fc <= 75 %}##{% assign fcond = "Snow" %}
-        ##{% elsif _fc >= 80 and _fc <= 82 %}##{% assign fcond = "Showers" %}
-        ##{% elsif _fc == 85 or _fc == 86 %}##{% assign fcond = "Snw Shwrs" %}
-        ##{% elsif _fc >= 95 %}##{% assign fcond = "T-Storm" %}
-        ##{% else %}##{% assign fcond = "—" %}
-        ##{% endif %}
-        <div class="fc-day">
-          <div class="fc-dname">##{{ IDX_1.daily.time[i] | date: "%a" }}</div>
-          <div class="fc-cond">##{{ fcond }}</div>
-          <div class="fc-hi">##{{ IDX_1.daily.temperature_2m_max[i] | round }}&deg;</div>
-          <div class="fc-lo">##{{ IDX_1.daily.temperature_2m_min[i] | round }}&deg;</div>
-          ##{% assign _pr = IDX_1.daily.precipitation_sum[i] | plus: 0 %}
-          ##{% if _pr > 0.1 %}
-          <div class="fc-prcp">##{{ IDX_1.daily.precipitation_sum[i] | round: 1 }}mm</div>
-          ##{% endif %}
-        </div>
-      ##{% endfor %}
+      <div class="fc-day"><div class="fc-dname">{{ f0_dow }}</div><div class="fc-cond">{{ f0_condition }}</div><div class="fc-hi">{{ f0_hi }}&deg;</div><div class="fc-lo">{{ f0_lo }}&deg;</div>{% if f0_mm_str != "" %}<div class="fc-prcp">{{ f0_mm_str }}</div>{% endif %}</div>
+      <div class="fc-day"><div class="fc-dname">{{ f1_dow }}</div><div class="fc-cond">{{ f1_condition }}</div><div class="fc-hi">{{ f1_hi }}&deg;</div><div class="fc-lo">{{ f1_lo }}&deg;</div>{% if f1_mm_str != "" %}<div class="fc-prcp">{{ f1_mm_str }}</div>{% endif %}</div>
+      <div class="fc-day"><div class="fc-dname">{{ f2_dow }}</div><div class="fc-cond">{{ f2_condition }}</div><div class="fc-hi">{{ f2_hi }}&deg;</div><div class="fc-lo">{{ f2_lo }}&deg;</div>{% if f2_mm_str != "" %}<div class="fc-prcp">{{ f2_mm_str }}</div>{% endif %}</div>
+      <div class="fc-day"><div class="fc-dname">{{ f3_dow }}</div><div class="fc-cond">{{ f3_condition }}</div><div class="fc-hi">{{ f3_hi }}&deg;</div><div class="fc-lo">{{ f3_lo }}&deg;</div>{% if f3_mm_str != "" %}<div class="fc-prcp">{{ f3_mm_str }}</div>{% endif %}</div>
+      <div class="fc-day"><div class="fc-dname">{{ f4_dow }}</div><div class="fc-cond">{{ f4_condition }}</div><div class="fc-hi">{{ f4_hi }}&deg;</div><div class="fc-lo">{{ f4_lo }}&deg;</div>{% if f4_mm_str != "" %}<div class="fc-prcp">{{ f4_mm_str }}</div>{% endif %}</div>
+      <div class="fc-day"><div class="fc-dname">{{ f5_dow }}</div><div class="fc-cond">{{ f5_condition }}</div><div class="fc-hi">{{ f5_hi }}&deg;</div><div class="fc-lo">{{ f5_lo }}&deg;</div>{% if f5_mm_str != "" %}<div class="fc-prcp">{{ f5_mm_str }}</div>{% endif %}</div>
+      <div class="fc-day"><div class="fc-dname">{{ f6_dow }}</div><div class="fc-cond">{{ f6_condition }}</div><div class="fc-hi">{{ f6_hi }}&deg;</div><div class="fc-lo">{{ f6_lo }}&deg;</div>{% if f6_mm_str != "" %}<div class="fc-prcp">{{ f6_mm_str }}</div>{% endif %}</div>
     </div>
   </div>
 
 </div>
 
-<!-- ── Footer ── -->
 <div class="ftr">
-  <div class="ftr-indoor">
-    Indoor: ##{{ IDX_0.data.indoor.temperature.value | split: "." | first }}&deg; &nbsp;&bull;&nbsp; ##{{ IDX_0.data.indoor.humidity.value }}% hum
-  </div>
-  <div class="ftr-sun">
-    &uarr; ##{{ srtime }} &nbsp;&nbsp;&darr; ##{{ sstime }}
-  </div>
+  <div class="ftr-indoor">Indoor: {{ wx_indoor_temp }}&deg; &nbsp;&bull;&nbsp; {{ wx_indoor_hum }}% hum</div>
+  <div>&uarr; {{ sun_rise }} &nbsp;&nbsp;&darr; {{ sun_set }}</div>
 </div>
+```

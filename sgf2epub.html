@@ -122,7 +122,6 @@ input[type="text"]:focus, select:focus { outline: none; border-color: #6366f1; }
 }
 .download-wrap a:hover { background: rgba(5,150,105,0.1); }
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-hr { border: none; border-top: 1px solid #374151; margin: 24px 0; }
 </style>
 </head>
 <body>
@@ -145,7 +144,7 @@ hr { border: none; border-top: 1px solid #374151; margin: 24px 0; }
 
   <div class="two-col">
     <div class="field-row">
-      <label for="includeMode">Pages</label>
+      <label for="includeMode">Main line pages</label>
       <select id="includeMode">
         <option value="commented">Commented moves only</option>
         <option value="all">Every move</option>
@@ -176,16 +175,16 @@ hr { border: none; border-top: 1px solid #374151; margin: 24px 0; }
 
 <script>
 // ─────────────────────────────────────────────────────────────────────────────
-// SGF PARSER
+// SGF PARSER  — returns main line + all variations
 // ─────────────────────────────────────────────────────────────────────────────
 
 function parseSGF(text) {
   let pos = 0;
   const len = text.length;
+  const mainNodes = [];      // flat main-line node props
+  const variationList = [];  // { afterIndex, nodes }
 
-  function ws() {
-    while (pos < len && /\s/.test(text[pos])) pos++;
-  }
+  function ws() { while (pos < len && /\s/.test(text[pos])) pos++; }
 
   function readValue() {
     pos++; // skip [
@@ -194,15 +193,9 @@ function parseSGF(text) {
       if (text[pos] === '\\') {
         pos++;
         const ch = text[pos];
-        if (ch === '\r' || ch === '\n') {
-          // soft line break — consume \r\n or \n
-          if (ch === '\r' && text[pos + 1] === '\n') pos++;
-        } else {
-          val += ch;
-        }
-      } else {
-        val += text[pos];
-      }
+        if (ch === '\r' || ch === '\n') { if (ch === '\r' && text[pos+1] === '\n') pos++; }
+        else val += ch;
+      } else { val += text[pos]; }
       pos++;
     }
     if (pos < len) pos++; // skip ]
@@ -218,64 +211,70 @@ function parseSGF(text) {
       name = name.toUpperCase();
       props[name] = props[name] || [];
       ws();
-      while (pos < len && text[pos] === '[') {
-        props[name].push(readValue());
-        ws();
-      }
+      while (pos < len && text[pos] === '[') { props[name].push(readValue()); ws(); }
     }
     return props;
   }
 
   function skipTree() {
-    // pos is at '('
     pos++; // skip (
     let depth = 1;
     while (pos < len && depth > 0) {
       const ch = text[pos++];
-      if (ch === '(') depth++;
+      if      (ch === '(') depth++;
       else if (ch === ')') depth--;
       else if (ch === '[') {
-        while (pos < len && text[pos] !== ']') {
-          if (text[pos] === '\\') pos++;
-          pos++;
-        }
+        while (pos < len && text[pos] !== ']') { if (text[pos] === '\\') pos++; pos++; }
         pos++; // skip ]
       }
     }
   }
 
-  function readTree() {
+  // Read a variation line into target[] — follows first sub-tree as continuation
+  function readVariation(target) {
     ws();
-    if (pos >= len || text[pos] !== '(') return [];
-    pos++; // (
-
-    let nodes = [];
+    if (pos >= len || text[pos] !== '(') return;
+    pos++;
     ws();
-    while (pos < len && text[pos] === ';') {
-      pos++; // ;
-      nodes.push(readNode());
-      ws();
-    }
-
-    // Sub-trees: first = main continuation, rest = variations (skip)
-    let isFirst = true;
+    while (pos < len && text[pos] === ';') { pos++; target.push(readNode()); ws(); }
+    let first = true;
     ws();
     while (pos < len && text[pos] === '(') {
-      if (isFirst) {
-        nodes = nodes.concat(readTree());
-        isFirst = false;
-      } else {
-        skipTree();
+      if (first) { const sub = []; readVariation(sub); target.push(...sub); first = false; }
+      else skipTree();
+      ws();
+    }
+    ws();
+    if (pos < len && text[pos] === ')') pos++;
+  }
+
+  // Read main tree — first sub-tree = main continuation, rest = variations
+  function readTree() {
+    ws();
+    if (pos >= len || text[pos] !== '(') return;
+    pos++;
+    let local = [];
+    ws();
+    while (pos < len && text[pos] === ';') { pos++; local.push(readNode()); ws(); }
+    for (const n of local) mainNodes.push(n);
+    const branchAt = mainNodes.length - 1; // last node of this sequence
+    let first = true;
+    ws();
+    while (pos < len && text[pos] === '(') {
+      if (first) { readTree(); first = false; }
+      else {
+        const varNodes = [];
+        readVariation(varNodes);
+        if (varNodes.length > 0) variationList.push({ afterIndex: branchAt, nodes: varNodes });
       }
       ws();
     }
-
     ws();
     if (pos < len && text[pos] === ')') pos++;
-    return nodes;
   }
 
-  return readTree();
+  readTree();
+  return { mainNodes, variations: variationList };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -283,96 +282,58 @@ function parseSGF(text) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class GoBoard {
-  constructor(size) {
-    this.size = size;
-    this.grid = new Uint8Array(size * size); // 0=empty 1=black 2=white
-  }
-
-  clone() {
-    const b = new GoBoard(this.size);
-    b.grid.set(this.grid);
-    return b;
-  }
-
-  idx(x, y) { return y * this.size + x; }
-
-  get(x, y) {
-    if (x < 0 || x >= this.size || y < 0 || y >= this.size) return -1;
-    return this.grid[this.idx(x, y)];
-  }
-
-  set(x, y, v) {
-    if (x >= 0 && x < this.size && y >= 0 && y < this.size)
-      this.grid[this.idx(x, y)] = v;
-  }
-
+  constructor(size) { this.size = size; this.grid = new Uint8Array(size * size); }
+  clone()       { const b = new GoBoard(this.size); b.grid.set(this.grid); return b; }
+  idx(x, y)    { return y * this.size + x; }
+  get(x, y)    { if (x<0||x>=this.size||y<0||y>=this.size) return -1; return this.grid[this.idx(x,y)]; }
+  set(x, y, v) { if (x>=0&&x<this.size&&y>=0&&y<this.size) this.grid[this.idx(x,y)] = v; }
   neighbors(x, y) {
     const r = [];
-    if (x > 0)           r.push([x - 1, y]);
-    if (x < this.size-1) r.push([x + 1, y]);
-    if (y > 0)           r.push([x, y - 1]);
-    if (y < this.size-1) r.push([x, y + 1]);
+    if (x > 0)           r.push([x-1,y]);
+    if (x < this.size-1) r.push([x+1,y]);
+    if (y > 0)           r.push([x,y-1]);
+    if (y < this.size-1) r.push([x,y+1]);
     return r;
   }
-
   group(x, y) {
-    const color = this.get(x, y);
-    if (color <= 0) return { stones: [], liberties: 0 };
-    const seen = new Set();
-    const stones = [];
-    const libs = new Set();
-    const stack = [[x, y]];
+    const color = this.get(x,y); if (color<=0) return {stones:[],liberties:0};
+    const seen = new Set(), stones = [], libs = new Set(), stack = [[x,y]];
     while (stack.length) {
-      const [cx, cy] = stack.pop();
-      const k = this.idx(cx, cy);
-      if (seen.has(k)) continue;
-      seen.add(k);
-      stones.push([cx, cy]);
-      for (const [nx, ny] of this.neighbors(cx, cy)) {
-        const v = this.get(nx, ny);
-        if (v === 0) libs.add(this.idx(nx, ny));
-        else if (v === color) stack.push([nx, ny]);
+      const [cx,cy] = stack.pop(), k = this.idx(cx,cy);
+      if (seen.has(k)) continue; seen.add(k); stones.push([cx,cy]);
+      for (const [nx,ny] of this.neighbors(cx,cy)) {
+        const v = this.get(nx,ny);
+        if (v===0) libs.add(this.idx(nx,ny)); else if (v===color) stack.push([nx,ny]);
       }
     }
-    return { stones, liberties: libs.size };
+    return {stones, liberties:libs.size};
   }
-
   play(color, x, y) {
-    if (x < 0 || y < 0) return; // pass
-    this.set(x, y, color);
-    const opp = 3 - color;
-    for (const [nx, ny] of this.neighbors(x, y)) {
-      if (this.get(nx, ny) === opp) {
-        const g = this.group(nx, ny);
-        if (g.liberties === 0)
-          for (const [gx, gy] of g.stones) this.set(gx, gy, 0);
-      }
+    if (x<0||y<0) return;
+    this.set(x,y,color);
+    const opp = 3-color;
+    for (const [nx,ny] of this.neighbors(x,y)) {
+      if (this.get(nx,ny)===opp) { const g=this.group(nx,ny); if(g.liberties===0) for(const[gx,gy]of g.stones) this.set(gx,gy,0); }
     }
-    // suicide safety
-    const own = this.group(x, y);
-    if (own.liberties === 0)
-      for (const [gx, gy] of own.stones) this.set(gx, gy, 0);
+    const own = this.group(x,y); if (own.liberties===0) for(const[gx,gy]of own.stones) this.set(gx,gy,0);
   }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// SGF COORD → BOARD COORD
-// ─────────────────────────────────────────────────────────────────────────────
 
 function coord(ch) {
   if (!ch) return -1;
   const c = ch.charCodeAt(0);
-  if (c >= 97 && c <= 122) return c - 97;       // a-z → 0-25
-  if (c >= 65 && c <= 90)  return c - 65 + 26;  // A-Z → 26-51
+  if (c>=97&&c<=122) return c-97;
+  if (c>=65&&c<=90)  return c-65+26;
   return -1;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BUILD MOVE SEQUENCE FROM PARSED SGF
+// BUILD MOVE SEQUENCE  — main line + variations, with marks
 // ─────────────────────────────────────────────────────────────────────────────
 
-function buildMoves(nodes) {
-  const root = nodes[0] || {};
+function buildMoves(parsed) {
+  const { mainNodes, variations } = parsed;
+  const root = mainNodes[0] || {};
   const boardSize = parseInt((root.SZ || ['19'])[0]) || 19;
 
   const info = {
@@ -388,204 +349,229 @@ function buildMoves(nodes) {
     boardSize,
   };
 
-  const board = new GoBoard(boardSize);
-  const moves = [];
-  let moveNum = 0;
-
   function applySetup(node, brd) {
-    for (const ab of (node.AB || [])) {
-      const x = coord(ab[0]), y = coord(ab[1]);
-      if (x >= 0 && y >= 0) brd.set(x, y, 1);
-    }
-    for (const aw of (node.AW || [])) {
-      const x = coord(aw[0]), y = coord(aw[1]);
-      if (x >= 0 && y >= 0) brd.set(x, y, 2);
-    }
+    for (const ab of (node.AB||[])) { const x=coord(ab[0]),y=coord(ab[1]); if(x>=0&&y>=0) brd.set(x,y,1); }
+    for (const aw of (node.AW||[])) { const x=coord(aw[0]),y=coord(aw[1]); if(x>=0&&y>=0) brd.set(x,y,2); }
   }
 
-  applySetup(root, board);
+  function extractMarks(node) {
+    // LB values are "xy:label"
+    const labels = (node.LB||[]).map(v => ({
+      x: coord(v[0]), y: coord(v[1]),
+      text: v.length >= 3 && v[2] === ':' ? v.slice(3) : '?'
+    })).filter(m => m.x>=0 && m.y>=0);
+    const pts = prop => (node[prop]||[]).map(v=>({x:coord(v[0]),y:coord(v[1])})).filter(m=>m.x>=0&&m.y>=0);
+    return { labels, triangles: pts('TR'), squares: pts('SQ'), circles: pts('CR'), xmarks: pts('MA') };
+  }
 
-  const rootComment = (root.C || [''])[0];
-  moves.push({
-    moveNum: 0,
-    color: null,
-    x: -1, y: -1,
-    board: board.clone(),
-    comment: rootComment,
-    label: 'Game Info',
-    isSetup: true,
+  // Build a flat move array from a sequence of nodes starting from a given board/moveNum
+  function buildLine(nodes, startBoard, startMoveNum) {
+    const board = startBoard.clone();
+    const result = [];
+    let moveNum = startMoveNum;
+    for (const node of nodes) {
+      applySetup(node, board);
+      let color = null, x = -1, y = -1;
+      if (node.B) {
+        color = 1; const c = node.B[0]||'';
+        if (c.length>=2) { x=coord(c[0]); y=coord(c[1]); }
+        moveNum++;
+      } else if (node.W) {
+        color = 2; const c = node.W[0]||'';
+        if (c.length>=2) { x=coord(c[0]); y=coord(c[1]); }
+        moveNum++;
+      }
+      if (color!==null) board.play(color, x, y);
+      const playerName = color===1 ? info.black : color===2 ? info.white : '';
+      const colorWord  = color===1 ? 'Black'    : color===2 ? 'White'    : '';
+      result.push({
+        moveNum, color, x, y,
+        board: board.clone(),
+        comment: (node.C||[''])[0],
+        marks:   extractMarks(node),
+        label:   color!==null ? `Move ${moveNum}  —  ${playerName||colorWord}` : 'Setup',
+      });
+    }
+    return result;
+  }
+
+  // Root setup page
+  const rootBoard = new GoBoard(boardSize);
+  applySetup(root, rootBoard);
+  const mainMoves = [{
+    moveNum:0, color:null, x:-1, y:-1,
+    board:   rootBoard.clone(),
+    comment: (root.C||[''])[0],
+    marks:   extractMarks(root),
+    label:   'Game Info',
+  }];
+  mainMoves.push(...buildLine(mainNodes.slice(1), rootBoard, 0));
+
+  // Variations — each branches from a board state in the main line
+  const varSections = variations.map((v, vi) => {
+    const bIdx      = Math.min(v.afterIndex, mainMoves.length-1);
+    const bMove     = mainMoves[bIdx];
+    const letter    = vi < 26 ? String.fromCharCode(65+vi) : `V${vi+1}`;
+    const varMoves  = buildLine(v.nodes, bMove.board, bMove.moveNum);
+    return {
+      id:             vi+1,
+      letter,
+      label:          `Variation ${letter}`,
+      branchMoveNum:  bMove.moveNum,
+      branchMainIdx:  bIdx,
+      moves:          varMoves,
+    };
   });
 
-  for (let i = 1; i < nodes.length; i++) {
-    const node = nodes[i];
-    applySetup(node, board);
-
-    let color = null, x = -1, y = -1;
-    if (node.B) {
-      color = 1;
-      const c = node.B[0] || '';
-      if (c.length >= 2) { x = coord(c[0]); y = coord(c[1]); }
-      moveNum++;
-    } else if (node.W) {
-      color = 2;
-      const c = node.W[0] || '';
-      if (c.length >= 2) { x = coord(c[0]); y = coord(c[1]); }
-      moveNum++;
-    }
-
-    if (color !== null) board.play(color, x, y);
-
-    const comment = (node.C || [''])[0];
-    const playerName = color === 1 ? info.black : color === 2 ? info.white : '';
-    const colorWord  = color === 1 ? 'Black' : color === 2 ? 'White' : '';
-    moves.push({
-      moveNum,
-      color,
-      x, y,
-      board: board.clone(),
-      comment,
-      label: moveNum > 0
-        ? `Move ${moveNum}  —  ${playerName || colorWord}`
-        : 'Setup',
-      isSetup: false,
-    });
-  }
-
-  return { info, moves };
+  return { info, mainMoves, varSections };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BOARD RENDERER
+// BOARD RENDERER  — SVG, inline-positioned, includes marks
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Fixed layout dims for Kobo Sage (1440×1920) and 8" devices
-const PW = 1440;
-const PH = 1920;
-const BOARD_PX = 1300; // board canvas square size
-const BML = Math.floor((PW - BOARD_PX) / 2); // left margin for board
-const BMT = 44;  // top margin for board
-// comment area: BMT + BOARD_PX + gap = comment start
+const PW = 1440, PH = 1920;
+const BOARD_PX = 1300;
+const BML = Math.floor((PW - BOARD_PX) / 2);
+const BMT = 44;
 const COMMENT_TOP = BMT + BOARD_PX + 28;
-const COMMENT_PAD = 56; // horizontal padding
+const COMMENT_PAD = 56;
 
 function starPoints(size) {
-  if (size === 19) {
-    const p = [3, 9, 15];
-    return p.flatMap(r => p.map(c => [c, r]));
-  }
-  if (size === 13) return [[3,3],[9,3],[3,9],[9,9],[6,6]];
-  if (size === 9)  return [[2,2],[6,2],[2,6],[6,6],[4,4]];
+  if (size===19) { const p=[3,9,15]; return p.flatMap(r=>p.map(c=>[c,r])); }
+  if (size===13) return [[3,3],[9,3],[3,9],[9,9],[6,6]];
+  if (size===9)  return [[2,2],[6,2],[2,6],[6,6],[4,4]];
   return [];
 }
 
-function renderBoardSVG(boardState, lastX, lastY, theme) {
+function renderBoardSVG(boardState, lastX, lastY, theme, marks) {
   const sz  = boardState.size;
   const W   = BOARD_PX;
   const mar = 62;
-  const grd = W - 2 * mar;
-  const cel = grd / (sz - 1);
+  const grd = W - 2*mar;
+  const cel = grd / (sz-1);
   const r   = cel * 0.46;
-  const n   = v => Math.round(v * 10) / 10; // 1-decimal precision
-  const bg  = theme === 'wood' ? '#c5ab68' : '#d0ccc5'; // 15% darker than original
-  const bc  = theme === 'wood' ? '#c8a44a' : '#888888';
-  const fs  = Math.max(18, Math.round(cel * 0.34));
-  const sw  = Math.max(2.5, r * 0.16);
+  const n   = v => Math.round(v*10)/10;
+  const bg  = theme==='wood' ? '#c5ab68' : '#d0ccc5';
+  const bc  = theme==='wood' ? '#c8a44a' : '#888888';
+  const fs  = Math.max(18, Math.round(cel*0.34));
+  const mSW = Math.max(2.5, n(r*0.13));  // mark stroke width
+  const mFS = Math.max(16, Math.round(r*0.62)); // mark font size
   const COLS = 'ABCDEFGHJKLMNOPQRST';
   const ta  = 'text-anchor="middle" dominant-baseline="middle"';
   const ff  = `font-family="Arial,sans-serif" font-size="${fs}" font-weight="600" fill="#4a4a4a"`;
 
-  const p = []; // parts
-
-  // SVG positioned inline — no external CSS dependency for layout-critical placement
+  const p = [];
   p.push(`<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:${BMT}px;left:${BML}px;display:block" width="${W}" height="${W}" viewBox="0 0 ${W} ${W}">`);
 
-  // ── defs ──
+  // defs
   p.push(`<defs>`);
   p.push(`<radialGradient id="bg" cx="35%" cy="30%" r="65%"><stop offset="0%" stop-color="#fff" stop-opacity="0.28"/><stop offset="100%" stop-color="#fff" stop-opacity="0"/></radialGradient>`);
   p.push(`<radialGradient id="wg" cx="32%" cy="28%" r="65%"><stop offset="0%" stop-color="#fff" stop-opacity="0.9"/><stop offset="60%" stop-color="#fff" stop-opacity="0.3"/><stop offset="100%" stop-color="#fff" stop-opacity="0"/></radialGradient>`);
   p.push(`<filter id="ds" x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="${n(r*0.12)}" dy="${n(r*0.18)}" stdDeviation="${n(r*0.28)}" flood-opacity="0.4"/></filter>`);
   p.push(`</defs>`);
 
-  // ── background ──
+  // background + grain
   p.push(`<rect width="${W}" height="${W}" fill="${bg}"/>`);
-
-  // ── wood grain (2 light stripes) ──
-  if (theme === 'wood') {
-    for (let i = 0; i < 3; i++) {
-      const y0 = n(W * (0.3 + i * 0.2));
-      p.push(`<rect x="0" y="${y0}" width="${W}" height="${n(W*0.06)}" fill="#c8a020" opacity="0.07"/>`);
+  if (theme==='wood') {
+    for (let i=0; i<3; i++) {
+      p.push(`<rect x="0" y="${n(W*(0.3+i*0.2))}" width="${W}" height="${n(W*0.06)}" fill="#c8a020" opacity="0.07"/>`);
     }
   }
 
-  // ── board border ──
+  // board border + grid
   p.push(`<rect x="${mar}" y="${mar}" width="${grd}" height="${grd}" fill="none" stroke="${bc}" stroke-width="2.5"/>`);
-
-  // ── grid lines ──
-  for (let i = 0; i < sz; i++) {
-    const q = n(mar + i * cel);
+  for (let i=0; i<sz; i++) {
+    const q = n(mar+i*cel);
     p.push(`<line x1="${q}" y1="${mar}" x2="${q}" y2="${n(mar+grd)}" stroke="#1a1a1a" stroke-width="1.2"/>`);
     p.push(`<line x1="${mar}" y1="${q}" x2="${n(mar+grd)}" y2="${q}" stroke="#1a1a1a" stroke-width="1.2"/>`);
   }
 
-  // ── star points ──
-  for (const [sx, sy] of starPoints(sz)) {
+  // star points
+  for (const [sx,sy] of starPoints(sz))
     p.push(`<circle cx="${n(mar+sx*cel)}" cy="${n(mar+sy*cel)}" r="${n(r*0.2)}" fill="#1a1a1a"/>`);
-  }
 
-  // ── coordinate labels ──
-  for (let i = 0; i < sz; i++) {
-    const q   = n(mar + i * cel);
-    const col = COLS[i];
-    const row = String(sz - i);
+  // coordinate labels
+  for (let i=0; i<sz; i++) {
+    const q=n(mar+i*cel), col=COLS[i], row=String(sz-i);
     p.push(`<text x="${q}" y="${n(mar*0.46)}" ${ta} ${ff}>${col}</text>`);
     p.push(`<text x="${q}" y="${n(W-mar*0.46)}" ${ta} ${ff}>${col}</text>`);
     p.push(`<text x="${n(mar*0.46)}" y="${q}" ${ta} ${ff}>${row}</text>`);
     p.push(`<text x="${n(W-mar*0.46)}" y="${q}" ${ta} ${ff}>${row}</text>`);
   }
 
-  // ── black stones (shadow group first, then gloss overlay) ──
+  // black stones — shadow group then gloss
   p.push(`<g filter="url(#ds)">`);
-  for (let y = 0; y < sz; y++)
-    for (let x = 0; x < sz; x++)
-      if (boardState.get(x, y) === 1)
-        p.push(`<circle cx="${n(mar+x*cel)}" cy="${n(mar+y*cel)}" r="${n(r)}" fill="#111"/>`);
+  for (let y=0;y<sz;y++) for (let x=0;x<sz;x++)
+    if (boardState.get(x,y)===1) p.push(`<circle cx="${n(mar+x*cel)}" cy="${n(mar+y*cel)}" r="${n(r)}" fill="#111"/>`);
   p.push(`</g>`);
-  for (let y = 0; y < sz; y++)
-    for (let x = 0; x < sz; x++)
-      if (boardState.get(x, y) === 1)
-        p.push(`<circle cx="${n(mar+x*cel)}" cy="${n(mar+y*cel)}" r="${n(r)}" fill="url(#bg)"/>`);
+  for (let y=0;y<sz;y++) for (let x=0;x<sz;x++)
+    if (boardState.get(x,y)===1) p.push(`<circle cx="${n(mar+x*cel)}" cy="${n(mar+y*cel)}" r="${n(r)}" fill="url(#bg)"/>`);
 
-  // ── white stones — pure white fill, bold border (e-ink needs strong contrast) ──
+  // white stones — shadow group, bold e-ink border, then gloss
   p.push(`<g filter="url(#ds)">`);
-  for (let y = 0; y < sz; y++)
-    for (let x = 0; x < sz; x++)
-      if (boardState.get(x, y) === 2) {
-        const isLast = (x === lastX && y === lastY);
-        // last white stone gets a noticeably thicker/darker border as a first visual cue
-        const wsc = isLast ? '#000000' : '#1a1a1a';
-        const wsw = isLast ? n(r*0.14)  : n(r*0.10);
-        p.push(`<circle cx="${n(mar+x*cel)}" cy="${n(mar+y*cel)}" r="${n(r)}" fill="#ffffff" stroke="${wsc}" stroke-width="${wsw}"/>`);
-      }
+  for (let y=0;y<sz;y++) for (let x=0;x<sz;x++) {
+    if (boardState.get(x,y)!==2) continue;
+    const isLast = (x===lastX && y===lastY);
+    p.push(`<circle cx="${n(mar+x*cel)}" cy="${n(mar+y*cel)}" r="${n(r)}" fill="#ffffff" stroke="${isLast?'#000':'#1a1a1a'}" stroke-width="${isLast?n(r*0.14):n(r*0.10)}"/>`);
+  }
   p.push(`</g>`);
-  // white stone gloss
-  for (let y = 0; y < sz; y++)
-    for (let x = 0; x < sz; x++)
-      if (boardState.get(x, y) === 2)
-        p.push(`<circle cx="${n(mar+x*cel)}" cy="${n(mar+y*cel)}" r="${n(r)}" fill="url(#wg)"/>`);
+  for (let y=0;y<sz;y++) for (let x=0;x<sz;x++)
+    if (boardState.get(x,y)===2) p.push(`<circle cx="${n(mar+x*cel)}" cy="${n(mar+y*cel)}" r="${n(r)}" fill="url(#wg)"/>`);
 
-  // ── last-move markers ──
-  if (lastX >= 0 && lastY >= 0) {
-    const lx = n(mar + lastX * cel);
-    const ly = n(mar + lastY * cel);
-    const stone = boardState.get(lastX, lastY);
-    if (stone === 1) {
-      // New black stone: white outline around full stone + thin outer black ring to anchor + white center dot
+  // last-move markers
+  if (lastX>=0 && lastY>=0) {
+    const lx=n(mar+lastX*cel), ly=n(mar+lastY*cel);
+    if (boardState.get(lastX,lastY)===1) {
+      // Black: white outline around full stone + outer black ring + white centre dot
       p.push(`<circle cx="${lx}" cy="${ly}" r="${n(r)}" fill="none" stroke="#ffffff" stroke-width="${n(r*0.20)}"/>`);
       p.push(`<circle cx="${lx}" cy="${ly}" r="${n(r*1.12)}" fill="none" stroke="#000000" stroke-width="${n(r*0.07)}"/>`);
       p.push(`<circle cx="${lx}" cy="${ly}" r="${n(r*0.14)}" fill="#ffffff"/>`);
     } else {
-      // New white stone: solid black dot (darker border already applied above in stone loop)
+      // White: solid black dot
       p.push(`<circle cx="${lx}" cy="${ly}" r="${n(r*0.22)}" fill="#000000"/>`);
+    }
+  }
+
+  // ── board marks (LB, TR, SQ, CR, MA) ──
+  if (marks) {
+    const markFill = (x, y) => boardState.get(x,y)===1 ? '#ffffff' : '#000000';
+
+    // Labels (LB)
+    for (const {x, y, text} of marks.labels) {
+      const cx=n(mar+x*cel), cy=n(mar+y*cel);
+      const stone = boardState.get(x,y);
+      const fill  = markFill(x,y);
+      // On empty intersection: draw a small board-coloured background disc
+      if (stone===0) p.push(`<circle cx="${cx}" cy="${cy}" r="${n(r*0.50)}" fill="${bg}" stroke="#1a1a1a" stroke-width="1.2"/>`);
+      p.push(`<text x="${cx}" y="${cy}" ${ta} font-family="Arial,sans-serif" font-size="${mFS}" font-weight="bold" fill="${fill}">${text}</text>`);
+    }
+
+    // Triangles (TR)
+    for (const {x, y} of marks.triangles) {
+      const cx=n(mar+x*cel), cy=n(mar+y*cel);
+      const h=n(r*0.52), hw=n(r*0.46);
+      p.push(`<polygon points="${cx},${n(cy-h)} ${n(cx-hw)},${n(cy+h*0.5)} ${n(cx+hw)},${n(cy+h*0.5)}" fill="none" stroke="${markFill(x,y)}" stroke-width="${mSW}"/>`);
+    }
+
+    // Squares (SQ)
+    for (const {x, y} of marks.squares) {
+      const cx=n(mar+x*cel), cy=n(mar+y*cel), hs=n(r*0.40);
+      p.push(`<rect x="${n(cx-hs)}" y="${n(cy-hs)}" width="${n(hs*2)}" height="${n(hs*2)}" fill="none" stroke="${markFill(x,y)}" stroke-width="${mSW}"/>`);
+    }
+
+    // Circles (CR)
+    for (const {x, y} of marks.circles) {
+      const cx=n(mar+x*cel), cy=n(mar+y*cel);
+      p.push(`<circle cx="${cx}" cy="${cy}" r="${n(r*0.42)}" fill="none" stroke="${markFill(x,y)}" stroke-width="${mSW}"/>`);
+    }
+
+    // X marks (MA)
+    for (const {x, y} of marks.xmarks) {
+      const cx=n(mar+x*cel), cy=n(mar+y*cel), d=n(r*0.36);
+      const mc = markFill(x,y);
+      p.push(`<line x1="${n(cx-d)}" y1="${n(cy-d)}" x2="${n(cx+d)}" y2="${n(cy+d)}" stroke="${mc}" stroke-width="${mSW}"/>`);
+      p.push(`<line x1="${n(cx+d)}" y1="${n(cy-d)}" x2="${n(cx-d)}" y2="${n(cy+d)}" stroke="${mc}" stroke-width="${mSW}"/>`);
     }
   }
 
@@ -598,25 +584,17 @@ function renderBoardSVG(boardState, lastX, lastY, theme) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function xml(s) {
-  return String(s || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function commentToHtml(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\r?\n/g,'<br/>');
 }
 
-function commentToHtml(text) {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/\r?\n/g, '<br/>');
-}
+async function buildEPUB(info, mainMoves, varSections, mainPages, theme, onProgress) {
+  const zip   = new JSZip();
+  const title = info.title || `${info.black} vs ${info.white}`;
 
-async function buildEPUB(info, allMoves, pages, theme, onProgress) {
-  const zip = new JSZip();
-  zip.file('mimetype', 'application/epub+zip', { compression: 'STORE' });
-
+  zip.file('mimetype', 'application/epub+zip', { compression:'STORE' });
   zip.file('META-INF/container.xml',
 `<?xml version="1.0"?>
 <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
@@ -625,17 +603,15 @@ async function buildEPUB(info, allMoves, pages, theme, onProgress) {
   </rootfiles>
 </container>`);
 
-  const title = info.title || `${info.black} vs ${info.white}`;
-
-  // ── Layout constants (baked into shared CSS once) ──
+  // Layout constants
   const moveFont    = 40;
   const commentFont = 38;
-  const LABEL_H     = 79;  // moveFont(40) + padding(14) + border(3) + margin(22)
+  const LABEL_H     = 79;
   const TEXT_TOP    = COMMENT_TOP + LABEL_H;
-  const TEXT_H      = PH - TEXT_TOP - 44;
-  const CWIDTH      = PW - 2 * COMMENT_PAD;
+  const TEXT_H      = PH - TEXT_TOP - 60; // leave 60px at bottom for skip links
+  const CWIDTH      = PW - 2*COMMENT_PAD;
 
-  // ── Shared CSS written once ──
+  // Shared CSS
   zip.file('OEBPS/style.css',
 `*{margin:0;padding:0;box-sizing:border-box}
 html,body{width:${PW}px;height:${PH}px;background:#ffffff}
@@ -643,24 +619,16 @@ html,body{width:${PW}px;height:${PH}px;background:#ffffff}
 .color-dot{display:inline-block;width:${Math.round(moveFont*0.6)}px;height:${Math.round(moveFont*0.6)}px;border-radius:50%;vertical-align:middle;margin-right:10px;margin-bottom:3px}
 .black-dot{background:#111}
 .white-dot{background:#fff;border:3px solid #111}
-.comment-text{position:absolute;top:${TEXT_TOP}px;left:${COMMENT_PAD}px;width:${CWIDTH}px;height:${TEXT_H}px;font-size:${commentFont}px;line-height:1.56;color:#1a1a1a;font-family:Georgia,'Times New Roman',serif;overflow:hidden}`
+.comment-text{position:absolute;top:${TEXT_TOP}px;left:${COMMENT_PAD}px;width:${CWIDTH}px;height:${TEXT_H}px;font-size:${commentFont}px;line-height:1.56;color:#1a1a1a;font-family:Georgia,'Times New Roman',serif;overflow:hidden}
+.skip-link{position:absolute;bottom:22px;right:${COMMENT_PAD}px;font-size:30px;font-weight:300;font-family:'Helvetica Neue',Arial,sans-serif;color:#888;text-decoration:none;font-style:italic}`
   );
 
   const manifest = [`<item id="css" href="style.css" media-type="text/css"/>`];
   const spine    = [];
 
-  for (let i = 0; i < pages.length; i++) {
-    const move = pages[i];
-    const pad  = String(i + 1).padStart(4, '0');
-    onProgress(i / pages.length, `Building page ${i+1} / ${pages.length}…`);
-
-    const svgBoard   = renderBoardSVG(move.board, move.x, move.y, theme);
-    const commentHtml = move.comment ? commentToHtml(move.comment) : '';
-    const dot = move.color === 1 ? `<span class="color-dot black-dot"></span>`
-              : move.color === 2 ? `<span class="color-dot white-dot"></span>` : '';
-
-    const page =
-`<?xml version="1.0" encoding="UTF-8"?>
+  // ── Helper: build one XHTML page ──
+  function makePage(svgBoard, move, dot, commentHtml, skipLinkHtml) {
+    return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
 <head>
@@ -673,19 +641,68 @@ html,body{width:${PW}px;height:${PH}px;background:#ffffff}
 ${svgBoard}
 <div class="move-label">${dot}${xml(move.label)}</div>
 ${commentHtml ? `<div class="comment-text">${commentHtml}</div>` : ''}
+${skipLinkHtml}
 </body>
 </html>`;
+  }
 
-    zip.file(`OEBPS/pages/p${pad}.xhtml`, page);
+  // ── Main line pages ──
+  const totalMain = mainPages.length;
+  const totalVar  = varSections.reduce((s, vs) => s + vs.moves.length, 0);
+  const totalAll  = totalMain + totalVar;
+
+  for (let i=0; i<mainPages.length; i++) {
+    const move = mainPages[i];
+    const pad  = String(i+1).padStart(4,'0');
+    onProgress(i/totalAll, `Main line page ${i+1}/${totalMain}…`);
+
+    const svgBoard    = renderBoardSVG(move.board, move.x, move.y, theme, move.marks);
+    const commentHtml = move.comment ? commentToHtml(move.comment) : '';
+    const dot = move.color===1 ? `<span class="color-dot black-dot"></span>`
+              : move.color===2 ? `<span class="color-dot white-dot"></span>` : '';
+
+    zip.file(`OEBPS/pages/p${pad}.xhtml`, makePage(svgBoard, move, dot, commentHtml, ''));
     manifest.push(`<item id="p${pad}" href="pages/p${pad}.xhtml" media-type="application/xhtml+xml" properties="svg"/>`);
     spine.push(`<itemref idref="p${pad}" properties="rendition:page-spread-center"/>`);
+    await new Promise(r => setTimeout(r,0));
+  }
 
-    await new Promise(r => setTimeout(r, 0));
+  // ── Variation pages ──
+  // Precompute return target for each variation:
+  // first mainPages entry with moveNum > branchMoveNum, else last main page
+  let varPageCount = 0;
+  for (let vi=0; vi<varSections.length; vi++) {
+    const vs = varSections[vi];
+    const retIdx = mainPages.findIndex(p => p.moveNum > vs.branchMoveNum);
+    const retPad = retIdx>=0 ? String(retIdx+1).padStart(4,'0') : String(mainPages.length).padStart(4,'0');
+    const retMoveNum = retIdx>=0 ? mainPages[retIdx].moveNum : mainPages[mainPages.length-1].moveNum;
+    const skipLink = `<a class="skip-link" href="../pages/p${retPad}.xhtml">↩ Move ${retMoveNum}</a>`;
+    const varPrefix = `v${String(vi+1).padStart(2,'0')}`;
+
+    for (let j=0; j<vs.moves.length; j++) {
+      const move = vs.moves[j];
+      const pad  = String(j+1).padStart(4,'0');
+      const fid  = `${varPrefix}_${pad}`;
+      varPageCount++;
+      onProgress((totalMain+varPageCount)/totalAll, `Var ${vs.letter}, move ${j+1}…`);
+
+      // Prefix the label with variation identifier
+      const labelledMove = { ...move, label: `Var ${vs.letter}  ·  ${move.label}` };
+      const svgBoard    = renderBoardSVG(move.board, move.x, move.y, theme, move.marks);
+      const commentHtml = move.comment ? commentToHtml(move.comment) : '';
+      const dot = move.color===1 ? `<span class="color-dot black-dot"></span>`
+                : move.color===2 ? `<span class="color-dot white-dot"></span>` : '';
+
+      zip.file(`OEBPS/pages/${fid}.xhtml`, makePage(svgBoard, labelledMove, dot, commentHtml, skipLink));
+      manifest.push(`<item id="${fid}" href="pages/${fid}.xhtml" media-type="application/xhtml+xml" properties="svg"/>`);
+      spine.push(`<itemref idref="${fid}" properties="rendition:page-spread-center"/>`);
+      await new Promise(r => setTimeout(r,0));
+    }
   }
 
   onProgress(0.95, 'Building cover…');
 
-  // Cover page
+  // ── Cover ──
   const brStr = info.blackRank ? ` (${info.blackRank})` : '';
   const wrStr = info.whiteRank ? ` (${info.whiteRank})` : '';
   zip.file('OEBPS/cover.xhtml',
@@ -713,27 +730,37 @@ h1{font-size:88px;font-weight:bold;line-height:1.15;font-family:'Helvetica Neue'
 <span class="sym">⚫</span>
 <h1>${xml(title)}</h1>
 <div class="players">⚫ ${xml(info.black)}${xml(brStr)}<span class="sep">vs</span>○ ${xml(info.white)}${xml(wrStr)}</div>
-<div class="meta">${info.event ? xml(info.event)+'<br/>' : ''}${info.date ? xml(info.date)+'<br/>' : ''}${info.komi ? 'Komi: '+xml(info.komi)+'<br/>' : ''}${info.result ? 'Result: '+xml(info.result) : ''}</div>
-<div class="total">${pages.length} annotated position${pages.length !== 1 ? 's' : ''}</div>
+<div class="meta">${info.event?xml(info.event)+'<br/>':''}${info.date?xml(info.date)+'<br/>':''}${info.komi?'Komi: '+xml(info.komi)+'<br/>':''}${info.result?'Result: '+xml(info.result):''}</div>
+<div class="total">${mainPages.length} main position${mainPages.length!==1?'s':''} · ${varSections.length} variation${varSections.length!==1?'s':''}</div>
 </div>
 </body>
 </html>`);
 
-  // ── nav.xhtml — chapters every 10 moves ──
+  // ── nav.xhtml — chapters every 10 moves + variation sections ──
   const chapterLi = ['      <li><a href="cover.xhtml">Cover</a></li>'];
-  if (pages.length > 0) {
-    const maxMove = pages[pages.length - 1].moveNum;
-    for (let m = 10; m <= maxMove; m += 10) {
-      // first page at or after this move number
-      const idx = pages.findIndex(pg => pg.moveNum >= m);
-      if (idx >= 0) {
-        const pad = String(idx + 1).padStart(4, '0');
+
+  if (mainPages.length > 0) {
+    const maxMove = mainPages[mainPages.length-1].moveNum;
+    for (let m=10; m<=maxMove; m+=10) {
+      const idx = mainPages.findIndex(pg => pg.moveNum>=m);
+      if (idx>=0) {
+        const pad = String(idx+1).padStart(4,'0');
         chapterLi.push(`      <li><a href="pages/p${pad}.xhtml">Move ${m}</a></li>`);
       }
     }
   }
 
-  zip.file('OEBPS/nav.xhtml', `<?xml version="1.0" encoding="UTF-8"?>
+  // Variation entries
+  if (varSections.length > 0) {
+    for (let vi=0; vi<varSections.length; vi++) {
+      const vs = varSections[vi];
+      const firstPad = `v${String(vi+1).padStart(2,'0')}_0001`;
+      chapterLi.push(`      <li><a href="pages/${firstPad}.xhtml">Var ${vs.letter} at Move ${vs.branchMoveNum}</a></li>`);
+    }
+  }
+
+  zip.file('OEBPS/nav.xhtml',
+`<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
 <head><meta charset="UTF-8"/><title>Contents</title></head>
@@ -746,9 +773,10 @@ ${chapterLi.join('\n')}
 </body>
 </html>`);
 
-  // content.opf
+  // ── content.opf ──
   const uid = `go-${Date.now()}`;
-  zip.file('OEBPS/content.opf', `<?xml version="1.0" encoding="UTF-8"?>
+  zip.file('OEBPS/content.opf',
+`<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
     <dc:identifier id="uid">${uid}</dc:identifier>
@@ -773,10 +801,8 @@ ${chapterLi.join('\n')}
 
   onProgress(1.0, 'Packaging…');
   const blob = await zip.generateAsync({
-    type: 'blob',
-    mimeType: 'application/epub+zip',
-    compression: 'DEFLATE',
-    compressionOptions: { level: 6 },
+    type: 'blob', mimeType: 'application/epub+zip',
+    compression: 'DEFLATE', compressionOptions: { level:6 },
   });
   return { blob, title };
 }
@@ -787,28 +813,25 @@ ${chapterLi.join('\n')}
 
 let currentFile = null;
 
-const dropZone    = document.getElementById('dropZone');
-const fileInput   = document.getElementById('fileInput');
-const fileNameEl  = document.getElementById('fileName');
-const convertBtn  = document.getElementById('convertBtn');
-const progressEl  = document.getElementById('progress');
-const fillEl      = document.getElementById('progressFill');
-const msgEl       = document.getElementById('progressMsg');
-const errorEl     = document.getElementById('errorMsg');
-const dlWrap      = document.getElementById('downloadWrap');
-const dlLink      = document.getElementById('downloadLink');
+const dropZone   = document.getElementById('dropZone');
+const fileInput  = document.getElementById('fileInput');
+const fileNameEl = document.getElementById('fileName');
+const convertBtn = document.getElementById('convertBtn');
+const progressEl = document.getElementById('progress');
+const fillEl     = document.getElementById('progressFill');
+const msgEl      = document.getElementById('progressMsg');
+const errorEl    = document.getElementById('errorMsg');
+const dlWrap     = document.getElementById('downloadWrap');
+const dlLink     = document.getElementById('downloadLink');
 
 dropZone.addEventListener('click',     () => fileInput.click());
 dropZone.addEventListener('dragover',  e  => { e.preventDefault(); dropZone.classList.add('drag-over'); });
 dropZone.addEventListener('dragleave', ()  => dropZone.classList.remove('drag-over'));
 dropZone.addEventListener('drop', e => {
-  e.preventDefault();
-  dropZone.classList.remove('drag-over');
+  e.preventDefault(); dropZone.classList.remove('drag-over');
   if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
 });
-fileInput.addEventListener('change', () => {
-  if (fileInput.files[0]) setFile(fileInput.files[0]);
-});
+fileInput.addEventListener('change', () => { if (fileInput.files[0]) setFile(fileInput.files[0]); });
 
 function setFile(f) {
   currentFile = f;
@@ -816,14 +839,13 @@ function setFile(f) {
   convertBtn.disabled = false;
   dlWrap.style.display = 'none';
   errorEl.style.display = 'none';
-  // Auto-fill title from filename
-  const base = f.name.replace(/\.sgf$/i, '').replace(/[_-]+/g, ' ');
+  const base = f.name.replace(/\.sgf$/i,'').replace(/[_-]+/g,' ');
   if (!document.getElementById('titleInput').value)
     document.getElementById('titleInput').placeholder = base;
 }
 
 function setProgress(pct, msg) {
-  fillEl.style.width = Math.round(pct * 100) + '%';
+  fillEl.style.width = Math.round(pct*100)+'%';
   msgEl.textContent  = msg;
 }
 
@@ -831,53 +853,48 @@ convertBtn.addEventListener('click', async () => {
   if (!currentFile) return;
   convertBtn.disabled = true;
   progressEl.style.display = 'block';
-  dlWrap.style.display    = 'none';
-  errorEl.style.display   = 'none';
+  dlWrap.style.display = 'none';
+  errorEl.style.display = 'none';
   setProgress(0, 'Parsing SGF…');
 
   try {
-    const text  = await currentFile.text();
-    const nodes = parseSGF(text);
-    if (!nodes || nodes.length < 2) throw new Error('No moves found in SGF file');
+    const text   = await currentFile.text();
+    const parsed = parseSGF(text);
+    if (!parsed.mainNodes || parsed.mainNodes.length < 2) throw new Error('No moves found in SGF file');
 
-    const { info, moves } = buildMoves(nodes);
+    const { info, mainMoves, varSections } = buildMoves(parsed);
 
-    // Title override
     const override = document.getElementById('titleInput').value.trim();
     if (override) info.title = override;
-    if (!info.title || info.title === ' vs ') {
-      info.title = `${info.black || 'Black'} vs ${info.white || 'White'}`;
-    }
+    if (!info.title || info.title.trim()==='vs') info.title = `${info.black||'Black'} vs ${info.white||'White'}`;
 
     const mode  = document.getElementById('includeMode').value;
     const theme = document.getElementById('boardTheme').value;
 
-    let pages;
-    if (mode === 'commented') {
-      pages = moves.filter(m => m.comment && m.comment.trim());
-      if (pages.length === 0) {
-        pages = moves; // fallback: no comments found, include all
-        msgEl.textContent = 'No comments found — including all moves.';
-      }
+    let mainPages;
+    if (mode==='commented') {
+      mainPages = mainMoves.filter(m => m.comment && m.comment.trim());
+      if (mainPages.length===0) { mainPages = mainMoves; msgEl.textContent='No comments found — including all moves.'; }
     } else {
-      pages = moves;
+      mainPages = mainMoves;
     }
 
-    const { blob, title } = await buildEPUB(info, moves, pages, theme, setProgress);
+    const { blob, title } = await buildEPUB(info, mainMoves, varSections, mainPages, theme, setProgress);
 
     const url      = URL.createObjectURL(blob);
-    const filename = (title || 'go-game').replace(/[^\w\-]/g, '_').replace(/_+/g, '_') + '.epub';
+    const filename = (title||'go-game').replace(/[^\w\-]/g,'_').replace(/_+/g,'_')+'.epub';
     dlLink.href     = url;
     dlLink.download = filename;
     dlLink.textContent = `↓ Download  ${filename}`;
     dlWrap.style.display = 'block';
-    setProgress(1, `Done — ${pages.length} page${pages.length !== 1 ? 's' : ''} generated`);
+    const varCount = varSections.length;
+    setProgress(1, `Done — ${mainPages.length} main pages · ${varCount} variation${varCount!==1?'s':''}`);
 
   } catch (err) {
-    errorEl.textContent  = '⚠ ' + err.message;
+    errorEl.textContent   = '⚠ '+err.message;
     errorEl.style.display = 'block';
     progressEl.style.display = 'none';
-    convertBtn.disabled = false;
+    convertBtn.disabled   = false;
     console.error(err);
   }
 });
