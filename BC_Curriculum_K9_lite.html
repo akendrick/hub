@@ -136,7 +136,37 @@ body {
 .grade-heading h2 { font-family:'Lora',serif; font-size:28px; color:var(--navy); }
 
 /* subjects grid */
-.subjects-grid {
+/* Subject nav strip */
+.subj-nav {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  padding: 12px 0 16px;
+  border-bottom: 2px solid var(--rule);
+  margin-bottom: 18px; align-items: center;
+}
+.subj-nav-btn {
+  font-family: inherit; font-size: 12px; font-weight: 700;
+  padding: 5px 13px; border-radius: 20px;
+  border: 1.5px solid var(--accent);
+  background: var(--bg); color: var(--accent);
+  cursor: pointer; letter-spacing: .03em;
+  transition: background .15s, color .15s;
+}
+.subj-nav-btn:hover, .subj-nav-btn.active-subj {
+  background: var(--accent); color: #fff;
+}
+.open-all-btn {
+  font-family: inherit; font-size: 12px; font-weight: 700;
+  padding: 5px 16px; border-radius: 20px;
+  border: 1.5px solid var(--navy);
+  background: transparent; color: var(--navy);
+  cursor: pointer; margin-left: auto;
+  transition: background .15s, color .15s;
+}
+.open-all-btn:hover, .open-all-btn.active { background: var(--navy); color: #fff; }
+
+/* Accordion subject list */
+.subjects-list { display: flex; flex-direction: column; gap: 8px; }
+.subjects-list.open-all-mode {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   gap: 18px;
@@ -149,10 +179,15 @@ body {
   transition: box-shadow .2s;
 }
 .subj-card:hover { box-shadow: 0 5px 20px rgba(0,0,0,.11); }
+
+/* Header is now a button */
 .subj-header {
-  background: var(--accent); padding: 10px 14px;
+  width: 100%; background: var(--accent); padding: 10px 14px;
   display: flex; align-items: center; gap: 9px;
+  border: none; cursor: pointer; text-align: left;
+  transition: filter .15s;
 }
+.subj-header:hover { filter: brightness(1.08); }
 .subj-tag {
   background: rgba(255,255,255,.2); color:#fff;
   font-size:10px; font-weight:700; letter-spacing:.7px;
@@ -160,9 +195,18 @@ body {
   white-space:nowrap; flex-shrink:0;
 }
 .subj-header h3 { color:#fff; font-size:13px; font-weight:600; line-height:1.3; }
-.subj-body {
-  padding: 13px 15px; max-height: 420px; overflow-y: auto;
+.subj-chevron {
+  margin-left: auto; color: rgba(255,255,255,.75);
+  font-size: 18px; flex-shrink: 0;
+  transition: transform .22s ease;
+  display: inline-block;
 }
+.subj-header[aria-expanded="true"] .subj-chevron { transform: rotate(180deg); }
+.open-all-mode .subj-chevron { display: none; }
+
+/* Body: no scroll in accordion; scrollable in open-all */
+.subj-body { padding: 13px 15px; }
+.open-all-mode .subj-body { max-height: 420px; overflow-y: auto; }
 .subj-body::-webkit-scrollbar { width:3px; }
 .subj-body::-webkit-scrollbar-thumb {
   background: color-mix(in srgb, var(--accent) 28%, transparent); border-radius:2px;
@@ -185,7 +229,7 @@ body {
 .subj-body .bd { font-size:12.5px; color:#555; margin:4px 0; font-style:italic; }
 
 @media (max-width:560px) {
-  .subjects-grid { grid-template-columns:1fr; }
+  .subjects-list.open-all-mode { grid-template-columns:1fr; }
   .grade-grid { gap:8px; }
   .grade-btn { min-width:62px; padding:10px 10px 8px; }
 }
@@ -265,7 +309,7 @@ function loadGrade(b64) {
 
 function renderGrade(gdata, gradeLabel) {
   const num = gradeLabel === 'Kindergarten' ? 'K' : gradeLabel.replace('Grade ', '');
-  let cards = '';
+  let navBtns = '', cards = '';
   for (const subj of SUBJECTS) {
     const items = gdata[subj];
     if (!items || !items.length) continue;
@@ -289,17 +333,100 @@ function renderGrade(gdata, gradeLabel) {
       }
     }
     if (inList) body += '</ul>';
-    cards += `<div class="subj-card" style="--accent:${c.color};--bg:${c.bg}">
-      <div class="subj-header">
+    navBtns += `<button class="subj-nav-btn" data-target="${subj}" style="--accent:${c.color};--bg:${c.bg}">${c.short}</button>`;
+    cards += `<div class="subj-card" data-subject="${subj}" style="--accent:${c.color};--bg:${c.bg}">
+      <button class="subj-header" aria-expanded="false">
         <span class="subj-tag">${c.short}</span><h3>${subj}</h3>
-      </div>
-      <div class="subj-body">${body}</div>
+        <span class="subj-chevron">&#9660;</span>
+      </button>
+      <div class="subj-body" hidden>${body}</div>
     </div>`;
   }
   return `<div class="grade-heading">
     <div class="grade-badge">${num}</div><h2>${gradeLabel}</h2>
   </div>
-  <div class="subjects-grid">${cards}</div>`;
+  <div class="subj-nav">${navBtns}
+    <button class="open-all-btn">Open All</button>
+  </div>
+  <div class="subjects-list" id="subjects-container">${cards}</div>`;
+}
+
+function setupAccordion(view) {
+  const container = view.querySelector('#subjects-container');
+  if (!container) return;
+  const openAllBtn = view.querySelector('.open-all-btn');
+  let openAllMode = false;
+
+  function getCards() { return [...container.querySelectorAll('.subj-card')]; }
+
+  function openSubject(card, scroll) {
+    /* close all */
+    getCards().forEach(c => {
+      c.querySelector('.subj-header').setAttribute('aria-expanded','false');
+      c.querySelector('.subj-body').hidden = true;
+    });
+    view.querySelectorAll('.subj-nav-btn').forEach(b => b.classList.remove('active-subj'));
+    /* move chosen card to top */
+    container.insertBefore(card, container.firstChild);
+    /* open it */
+    card.querySelector('.subj-header').setAttribute('aria-expanded','true');
+    card.querySelector('.subj-body').hidden = false;
+    /* highlight matching nav btn */
+    const subj = card.dataset.subject;
+    const nb = view.querySelector(`.subj-nav-btn[data-target="${subj}"]`);
+    if (nb) nb.classList.add('active-subj');
+    if (scroll !== false) card.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  /* accordion toggle via header click */
+  container.addEventListener('click', e => {
+    if (openAllMode) return;
+    const hdr = e.target.closest('.subj-header');
+    if (!hdr) return;
+    const card = hdr.closest('.subj-card');
+    const isOpen = hdr.getAttribute('aria-expanded') === 'true';
+    if (isOpen) {
+      hdr.setAttribute('aria-expanded','false');
+      card.querySelector('.subj-body').hidden = true;
+      view.querySelectorAll('.subj-nav-btn').forEach(b => b.classList.remove('active-subj'));
+    } else {
+      openSubject(card);
+    }
+  });
+
+  /* subject nav buttons */
+  view.querySelectorAll('.subj-nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (openAllMode) {
+        /* exit open-all first */
+        openAllMode = false;
+        container.classList.remove('open-all-mode');
+        openAllBtn.textContent = 'Open All';
+        openAllBtn.classList.remove('active');
+        getCards().forEach(c => {
+          c.querySelector('.subj-header').setAttribute('aria-expanded','false');
+          c.querySelector('.subj-body').hidden = true;
+        });
+      }
+      const card = container.querySelector(`.subj-card[data-subject="${btn.dataset.target}"]`);
+      if (card) openSubject(card);
+    });
+  });
+
+  /* Open All toggle */
+  if (openAllBtn) {
+    openAllBtn.addEventListener('click', () => {
+      openAllMode = !openAllMode;
+      container.classList.toggle('open-all-mode', openAllMode);
+      openAllBtn.textContent = openAllMode ? 'Collapse All' : 'Open All';
+      openAllBtn.classList.toggle('active', openAllMode);
+      getCards().forEach(c => {
+        c.querySelector('.subj-header').setAttribute('aria-expanded', openAllMode ? 'true' : 'false');
+        c.querySelector('.subj-body').hidden = !openAllMode;
+      });
+      view.querySelectorAll('.subj-nav-btn').forEach(b => b.classList.remove('active-subj'));
+    });
+  }
 }
 
 const cache = {};
@@ -328,6 +455,7 @@ document.querySelectorAll('.grade-btn').forEach(btn => {
 
     if (cache[gradeId]) {
       view.innerHTML = cache[gradeId];
+      setupAccordion(view);
       view.scrollIntoView({behavior:'smooth', block:'start'});
       return;
     }
@@ -343,6 +471,7 @@ document.querySelectorAll('.grade-btn').forEach(btn => {
       cache[gradeId] = renderGrade(gdata, label);
       if (activeBtn === btn) {
         view.innerHTML = cache[gradeId];
+        setupAccordion(view);
         view.scrollIntoView({behavior:'smooth', block:'start'});
       }
     } catch(e) {
