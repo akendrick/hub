@@ -28,12 +28,12 @@ body{display:flex;flex-direction:column}
 
 /* Left col: 2 sub-cols (weather | moon+sun) */
 .col-left-inner{flex:1;display:grid;grid-template-columns:55% 45%;min-height:0;overflow:hidden}
-.wx-sub-col{overflow:hidden;padding:0 6px 4px;display:flex;flex-direction:column}
-.moon-sub-col{overflow:hidden;padding:0 6px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.w-temp{font-size:52px;font-weight:200;line-height:1;flex-shrink:0}
-.w-temp sup{font-size:16px;vertical-align:.6em;font-weight:300}
-.w-cond{font-size:13px;font-weight:700;flex-shrink:0;margin-top:1px}
-.w-sub{font-size:10px;color:#555;flex-shrink:0;line-height:1.45}
+.wx-sub-col{overflow:hidden;padding:0 6px 4px;display:flex;flex-direction:column;align-items:center}
+.moon-sub-col{overflow:hidden;padding:0 6px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#e8e8e8;border-radius:4px;margin:3px 4px 3px 0}
+.w-temp{font-size:52px;font-weight:300;line-height:1;flex-shrink:0;text-align:center}
+.w-temp sup{font-size:16px;vertical-align:.6em;font-weight:400}
+.w-cond{font-size:13px;font-weight:700;flex-shrink:0;margin-top:1px;text-align:center}
+.w-sub{font-size:10px;color:#555;flex-shrink:0;line-height:1.45;text-align:center}
 .moon-icon-wrap{flex-shrink:0}
 .moon-nm{font-size:9px;color:#444;font-style:italic;text-align:center;margin-top:3px;flex-shrink:0}
 .sun-times-v{font-size:10px;font-weight:700;text-align:center;color:#333;margin-top:4px;flex-shrink:0;line-height:1.6}
@@ -55,48 +55,71 @@ body{display:flex;flex-direction:column}
 .indoor-hum{font-size:14px;color:#555;text-align:center;margin-top:4px}
 
 /* Forecast strip  horizontal icon+temps layout */
-.fc-strip{flex-shrink:0;display:grid;grid-template-columns:repeat(7,1fr);border-bottom:none;overflow:hidden;background:#f9f9f9;min-height:88px}
-.fc-col{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3px 2px;border-right:1px solid #ddd;overflow:hidden;gap:2px}
+.fc-strip{flex-shrink:0;display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid #aaa;overflow:hidden;background:#fff;min-height:88px}
+.fc-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:0 2px 3px;border-right:1px solid #ddd;overflow:hidden;gap:2px;position:relative;background:#fff}
 .fc-col:last-child{border-right:none}
-.fc-col:nth-child(even){background:#ebebeb}
-.fc-col:nth-child(odd){background:#f9f9f9}
-.fc-dov{display:flex;flex-direction:row;align-items:baseline;gap:3px;flex-shrink:0}
-.fc-dow{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.02em}
-.fc-date{font-size:20px;font-weight:900;line-height:1}
+.fc-col.wknd{background:#e8e8e8}
+.fc-col.alt{background:#f2f2f2}
+.fc-col.hol{background:#c8c8c8}
+.fc-col.today{background:#484848}
+.fc-col.today .fc-hi{color:#fff}
+.fc-col.today .fc-lo{color:#ccc}
+.fc-col.today .fc-pop{color:#bbb}
+.fc-col.today .fc-date{color:#fff}
+.fc-week-band{flex-shrink:0;align-self:stretch;background:#444;color:#fff;font-size:20px;font-weight:900;text-align:center;padding:3px 2px;margin-bottom:3px;white-space:nowrap;overflow:hidden}
+.fc-col.wknd .fc-week-band,.fc-col.alt .fc-week-band{background:#555}
+.fc-col.today .fc-week-band{background:#333}
+.fc-dov{display:flex;flex-direction:row;align-items:baseline;flex-shrink:0;margin-top:auto;padding:2px 0 0}
+.fc-date{font-size:24px;font-weight:900;line-height:1}
 .fc-mid{display:flex;align-items:center;gap:4px;flex-shrink:0}
-.fc-icon{width:32px;height:32px;flex-shrink:0;overflow:visible}
+.fc-icon{width:46px;height:46px;flex-shrink:0;overflow:visible}
 .fc-temps-v{display:flex;flex-direction:column;line-height:1}
-.fc-hi{font-size:15px;font-weight:800;color:#000}
-.fc-lo{font-size:12px;font-weight:400;color:#888}
-.fc-pop{font-size:8px;color:#666;flex-shrink:0;text-align:center}
+.fc-hi{font-size:22px;font-weight:800;color:#000}
+.fc-lo{font-size:17px;font-weight:400;color:#888}
+.fc-pop{font-size:12px;color:#666;flex-shrink:0;text-align:center}
 .fc-bar-wrap{width:75%;height:6px;flex-shrink:0}
+.fc-rain-row{display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.fc-rain-bar{position:absolute;top:30px;right:3px;flex-shrink:0}
+.fc-wx-badge{flex-shrink:0}
 
 /* Calendar  bottom 2/3 */
-.cal{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;border-top:2px solid #000}
+.cal{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
 .cal-row{flex-shrink:0;display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid #aaa;overflow:hidden}
+.cal-row:nth-child(1){border-bottom:4px solid #fff}
+.cal-row:nth-child(2){border-bottom:2px solid #555}
+.cal-row:nth-child(3){border-bottom:2px solid #555}
 .cal-row:last-child{border-bottom:none}
 
 /* Day cells */
 .day{overflow:hidden;display:flex;flex-direction:column;border-right:1px solid #ddd;padding:2px 3px;background:#fff}
 .day:last-child{border-right:none}
-.day.wknd{background:#ededED}
-.day.hol{background:#d5d5d5}
-.day.today{background:#222;color:#fff}
-.d-hdr{flex-shrink:0}
-.d-month{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#777;line-height:1.2}
-.day.today .d-month{color:#aaa}
-.d-dayline{display:flex;align-items:baseline;gap:3px}
-.d-dow{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;opacity:.65}
-.d-dom{font-size:20px;font-weight:900;line-height:1}
-.d-evts{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+.day.wknd{background:#e8e8e8}
+.day.alt{background:#f2f2f2}
+.day.hol{background:#c8c8c8}
+.day.today{background:#484848;color:#fff}
+.d-hdr{flex-shrink:0;background:#444;margin:-2px -3px 2px;padding:1px 3px}
+.cal-row:nth-child(n+2) .d-hdr{background:#686868}
+.day.today .d-hdr{background:transparent}
+.d-dayline{display:flex;align-items:baseline}
+.d-dom{font-size:20px;font-weight:900;line-height:1;color:#fff;padding-left:10px}
+.day.today .d-dom{color:#fff}
+.cal-row:nth-child(1) .d-ev{font-size:18px;line-height:1.35}
+.cal-row:nth-child(1) .d-ev .t{font-size:12px}
+.cal-row:nth-child(1) .d-ev.ehs{font-size:13px;padding:2px 5px;line-height:1.5}
+.cal-row:nth-child(1) .d-allday{margin-top:4px;gap:2px}
+.cal-row:nth-child(1) .d-aev,.cal-row:nth-child(1) .d-hol{font-size:10px;padding:2px 4px}
+.d-evts{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:1px}
 .d-ev{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.35;color:#222}
 .day.today .d-ev{color:#fff}
 .d-ev .t{font-size:9px;color:#888;margin-right:1px}
 .day.today .d-ev .t{color:#ccc}
-.d-allday{flex-shrink:0;display:flex;flex-wrap:nowrap;overflow:hidden;gap:1px;margin-top:auto;padding-top:1px}
+.d-ev.ehs{font-size:7px;font-weight:800;background:#111;color:#fff;padding:1px 3px;border-radius:1px;line-height:1.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.d-ev.ehs .t{display:none}
+.d-allday{flex-shrink:0;display:flex;flex-wrap:nowrap;overflow:hidden;gap:1px;margin-top:4px;padding-top:1px}
 .d-hol{font-size:7px;font-weight:800;background:#555;color:#fff;padding:1px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:1px}
-.d-aev{font-size:7px;font-weight:800;background:#333;color:#fff;padding:1px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:1px}
-.day.today .d-hol,.day.today .d-aev{background:#000}
+.d-aev{font-size:7px;font-weight:800;background:#444;color:#fff;padding:1px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:1px}
+.day.today .d-ev.ehs{background:#fff;color:#111}
+.day.today .d-hol,.day.today .d-aev{background:#bbb;color:#222}
 </style>
 
 
@@ -158,7 +181,7 @@ body{display:flex;flex-direction:column}
         <div style="font-size:52px;font-weight:200;line-height:1;color:#000;text-align:center">{{ indoor_temp }}<sup style="font-size:22px;vertical-align:.5em;font-weight:300">&deg;</sup></div>
         <div style="font-size:12px;color:#555;margin-top:3px">{{ indoor_hum }}% hum</div>
       </div>
-      <div style="border-left:1px solid #e0e0e0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px">
+      <div style="border-left:1px solid #e0e0e0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px;background:#e8e8e8;border-radius:4px;margin:3px 4px 3px 0">
         <svg id="sdial" width="110" height="62" style="display:block"></svg>
         <div style="font-size:9px;font-weight:700;color:#333;text-align:center;margin-top:2px">&uarr;{{ sunrise }} &darr;{{ sunset }}</div>
       </div>
@@ -169,47 +192,61 @@ body{display:flex;flex-direction:column}
 
 <!-- 7-day Forecast Strip -->
 <div class="fc-strip">
-  <div class="fc-col" id="fc0" data-cond="{{ f0_condition }}" data-hi="{{ f0_hi }}" data-lo="{{ f0_lo }}">
-    <div class="fc-dov"><span class="fc-dow">{{ cal_d0_dow }}</span><span class="fc-date">{{ cal_d0_dom }}</span></div>
+  <div class="fc-col {{ cal_d0_today }} {{ cal_d0_wknd }}{% if cal_d0_dow == "Tue" or cal_d0_dow == "Thu" %} alt{% endif %}{% if cal_d0_hol != "" %} hol{% endif %}" id="fc0" data-cond="{{ f0_condition }}" data-hi="{{ f0_hi }}" data-lo="{{ f0_lo }}" data-mm="{{ f0_mm_str }}">
+    <div class="fc-week-band">{{ cal_d0_dow }}</div>
     <div class="fc-mid"><svg class="fc-icon" id="fi0" viewBox="0 0 54 54"></svg><div class="fc-temps-v"><span class="fc-hi">{{ f0_hi }}&deg;</span><span class="fc-lo">{{ f0_lo }}&deg;</span></div></div>
     {% if f0_pop_str != "" %}<div class="fc-pop">{{ f0_pop_str }}{{ f0_mm_str | prepend: " " }}</div>{% endif %}
     <svg class="fc-bar-wrap" id="fb0" viewBox="0 0 100 6" preserveAspectRatio="none"></svg>
+    <svg class="fc-rain-bar" id="frb0" viewBox="0 0 12 30" width="12" height="30" preserveAspectRatio="none"></svg>
+    <div class="fc-rain-row"><svg class="fc-wx-badge" id="fwb0" viewBox="0 0 14 14" width="14" height="14"></svg></div>
   </div>
-  <div class="fc-col" id="fc1" data-cond="{{ f1_condition }}" data-hi="{{ f1_hi }}" data-lo="{{ f1_lo }}">
-    <div class="fc-dov"><span class="fc-dow">{{ cal_d1_dow }}</span><span class="fc-date">{{ cal_d1_dom }}</span></div>
+  <div class="fc-col {{ cal_d1_today }} {{ cal_d1_wknd }}{% if cal_d1_dow == "Tue" or cal_d1_dow == "Thu" %} alt{% endif %}{% if cal_d1_hol != "" %} hol{% endif %}" id="fc1" data-cond="{{ f1_condition }}" data-hi="{{ f1_hi }}" data-lo="{{ f1_lo }}" data-mm="{{ f1_mm_str }}">
+    <div class="fc-week-band">{{ cal_d1_dow }}</div>
     <div class="fc-mid"><svg class="fc-icon" id="fi1" viewBox="0 0 54 54"></svg><div class="fc-temps-v"><span class="fc-hi">{{ f1_hi }}&deg;</span><span class="fc-lo">{{ f1_lo }}&deg;</span></div></div>
     {% if f1_pop_str != "" %}<div class="fc-pop">{{ f1_pop_str }}{{ f1_mm_str | prepend: " " }}</div>{% endif %}
     <svg class="fc-bar-wrap" id="fb1" viewBox="0 0 100 6" preserveAspectRatio="none"></svg>
+    <svg class="fc-rain-bar" id="frb1" viewBox="0 0 12 30" width="12" height="30" preserveAspectRatio="none"></svg>
+    <div class="fc-rain-row"><svg class="fc-wx-badge" id="fwb1" viewBox="0 0 14 14" width="14" height="14"></svg></div>
   </div>
-  <div class="fc-col" id="fc2" data-cond="{{ f2_condition }}" data-hi="{{ f2_hi }}" data-lo="{{ f2_lo }}">
-    <div class="fc-dov"><span class="fc-dow">{{ cal_d2_dow }}</span><span class="fc-date">{{ cal_d2_dom }}</span></div>
+  <div class="fc-col {{ cal_d2_today }} {{ cal_d2_wknd }}{% if cal_d2_dow == "Tue" or cal_d2_dow == "Thu" %} alt{% endif %}{% if cal_d2_hol != "" %} hol{% endif %}" id="fc2" data-cond="{{ f2_condition }}" data-hi="{{ f2_hi }}" data-lo="{{ f2_lo }}" data-mm="{{ f2_mm_str }}">
+    <div class="fc-week-band">{{ cal_d2_dow }}</div>
     <div class="fc-mid"><svg class="fc-icon" id="fi2" viewBox="0 0 54 54"></svg><div class="fc-temps-v"><span class="fc-hi">{{ f2_hi }}&deg;</span><span class="fc-lo">{{ f2_lo }}&deg;</span></div></div>
     {% if f2_pop_str != "" %}<div class="fc-pop">{{ f2_pop_str }}{{ f2_mm_str | prepend: " " }}</div>{% endif %}
     <svg class="fc-bar-wrap" id="fb2" viewBox="0 0 100 6" preserveAspectRatio="none"></svg>
+    <svg class="fc-rain-bar" id="frb2" viewBox="0 0 12 30" width="12" height="30" preserveAspectRatio="none"></svg>
+    <div class="fc-rain-row"><svg class="fc-wx-badge" id="fwb2" viewBox="0 0 14 14" width="14" height="14"></svg></div>
   </div>
-  <div class="fc-col" id="fc3" data-cond="{{ f3_condition }}" data-hi="{{ f3_hi }}" data-lo="{{ f3_lo }}">
-    <div class="fc-dov"><span class="fc-dow">{{ cal_d3_dow }}</span><span class="fc-date">{{ cal_d3_dom }}</span></div>
+  <div class="fc-col {{ cal_d3_today }} {{ cal_d3_wknd }}{% if cal_d3_dow == "Tue" or cal_d3_dow == "Thu" %} alt{% endif %}{% if cal_d3_hol != "" %} hol{% endif %}" id="fc3" data-cond="{{ f3_condition }}" data-hi="{{ f3_hi }}" data-lo="{{ f3_lo }}" data-mm="{{ f3_mm_str }}">
+    <div class="fc-week-band">{{ cal_d3_dow }}</div>
     <div class="fc-mid"><svg class="fc-icon" id="fi3" viewBox="0 0 54 54"></svg><div class="fc-temps-v"><span class="fc-hi">{{ f3_hi }}&deg;</span><span class="fc-lo">{{ f3_lo }}&deg;</span></div></div>
     {% if f3_pop_str != "" %}<div class="fc-pop">{{ f3_pop_str }}{{ f3_mm_str | prepend: " " }}</div>{% endif %}
     <svg class="fc-bar-wrap" id="fb3" viewBox="0 0 100 6" preserveAspectRatio="none"></svg>
+    <svg class="fc-rain-bar" id="frb3" viewBox="0 0 12 30" width="12" height="30" preserveAspectRatio="none"></svg>
+    <div class="fc-rain-row"><svg class="fc-wx-badge" id="fwb3" viewBox="0 0 14 14" width="14" height="14"></svg></div>
   </div>
-  <div class="fc-col" id="fc4" data-cond="{{ f4_condition }}" data-hi="{{ f4_hi }}" data-lo="{{ f4_lo }}">
-    <div class="fc-dov"><span class="fc-dow">{{ cal_d4_dow }}</span><span class="fc-date">{{ cal_d4_dom }}</span></div>
+  <div class="fc-col {{ cal_d4_today }} {{ cal_d4_wknd }}{% if cal_d4_dow == "Tue" or cal_d4_dow == "Thu" %} alt{% endif %}{% if cal_d4_hol != "" %} hol{% endif %}" id="fc4" data-cond="{{ f4_condition }}" data-hi="{{ f4_hi }}" data-lo="{{ f4_lo }}" data-mm="{{ f4_mm_str }}">
+    <div class="fc-week-band">{{ cal_d4_dow }}</div>
     <div class="fc-mid"><svg class="fc-icon" id="fi4" viewBox="0 0 54 54"></svg><div class="fc-temps-v"><span class="fc-hi">{{ f4_hi }}&deg;</span><span class="fc-lo">{{ f4_lo }}&deg;</span></div></div>
     {% if f4_pop_str != "" %}<div class="fc-pop">{{ f4_pop_str }}{{ f4_mm_str | prepend: " " }}</div>{% endif %}
     <svg class="fc-bar-wrap" id="fb4" viewBox="0 0 100 6" preserveAspectRatio="none"></svg>
+    <svg class="fc-rain-bar" id="frb4" viewBox="0 0 12 30" width="12" height="30" preserveAspectRatio="none"></svg>
+    <div class="fc-rain-row"><svg class="fc-wx-badge" id="fwb4" viewBox="0 0 14 14" width="14" height="14"></svg></div>
   </div>
-  <div class="fc-col" id="fc5" data-cond="{{ f5_condition }}" data-hi="{{ f5_hi }}" data-lo="{{ f5_lo }}">
-    <div class="fc-dov"><span class="fc-dow">{{ cal_d5_dow }}</span><span class="fc-date">{{ cal_d5_dom }}</span></div>
+  <div class="fc-col {{ cal_d5_today }} {{ cal_d5_wknd }}{% if cal_d5_dow == "Tue" or cal_d5_dow == "Thu" %} alt{% endif %}{% if cal_d5_hol != "" %} hol{% endif %}" id="fc5" data-cond="{{ f5_condition }}" data-hi="{{ f5_hi }}" data-lo="{{ f5_lo }}" data-mm="{{ f5_mm_str }}">
+    <div class="fc-week-band">{{ cal_d5_dow }}</div>
     <div class="fc-mid"><svg class="fc-icon" id="fi5" viewBox="0 0 54 54"></svg><div class="fc-temps-v"><span class="fc-hi">{{ f5_hi }}&deg;</span><span class="fc-lo">{{ f5_lo }}&deg;</span></div></div>
     {% if f5_pop_str != "" %}<div class="fc-pop">{{ f5_pop_str }}{{ f5_mm_str | prepend: " " }}</div>{% endif %}
     <svg class="fc-bar-wrap" id="fb5" viewBox="0 0 100 6" preserveAspectRatio="none"></svg>
+    <svg class="fc-rain-bar" id="frb5" viewBox="0 0 12 30" width="12" height="30" preserveAspectRatio="none"></svg>
+    <div class="fc-rain-row"><svg class="fc-wx-badge" id="fwb5" viewBox="0 0 14 14" width="14" height="14"></svg></div>
   </div>
-  <div class="fc-col" id="fc6" data-cond="{{ f6_condition }}" data-hi="{{ f6_hi }}" data-lo="{{ f6_lo }}">
-    <div class="fc-dov"><span class="fc-dow">{{ cal_d6_dow }}</span><span class="fc-date">{{ cal_d6_dom }}</span></div>
+  <div class="fc-col {{ cal_d6_today }} {{ cal_d6_wknd }}{% if cal_d6_dow == "Tue" or cal_d6_dow == "Thu" %} alt{% endif %}{% if cal_d6_hol != "" %} hol{% endif %}" id="fc6" data-cond="{{ f6_condition }}" data-hi="{{ f6_hi }}" data-lo="{{ f6_lo }}" data-mm="{{ f6_mm_str }}">
+    <div class="fc-week-band">{{ cal_d6_dow }}</div>
     <div class="fc-mid"><svg class="fc-icon" id="fi6" viewBox="0 0 54 54"></svg><div class="fc-temps-v"><span class="fc-hi">{{ f6_hi }}&deg;</span><span class="fc-lo">{{ f6_lo }}&deg;</span></div></div>
     {% if f6_pop_str != "" %}<div class="fc-pop">{{ f6_pop_str }}{{ f6_mm_str | prepend: " " }}</div>{% endif %}
     <svg class="fc-bar-wrap" id="fb6" viewBox="0 0 100 6" preserveAspectRatio="none"></svg>
+    <svg class="fc-rain-bar" id="frb6" viewBox="0 0 12 30" width="12" height="30" preserveAspectRatio="none"></svg>
+    <div class="fc-rain-row"><svg class="fc-wx-badge" id="fwb6" viewBox="0 0 14 14" width="14" height="14"></svg></div>
   </div>
 </div>
 
@@ -217,10 +254,12 @@ body{display:flex;flex-direction:column}
 <div class="cal">
 
   <div class="cal-row">
-<div class="day {{ cal_d0_today }} {{ cal_d0_wknd }}{% if cal_d0_hol != "" %} hol{% endif %}">
+<div class="day {{ cal_d0_today }} {{ cal_d0_wknd }}{% if cal_d0_dow == "Tue" or cal_d0_dow == "Thu" %} alt{% endif %}{% if cal_d0_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d0_today == "today" %}<span class="d-dom">{{ cal_d0_month_abbr }} {{ cal_d0_dom }}</span>{% elsif cal_d0_month_label != "" %}<span class="d-dom">{{cal_d0_month_label}}</span>{% else %}<span class="d-dom">{{cal_d0_dom}}</span>{% endif %}</div>
   <div class="d-evts">
-    {% if cal_d0_tev0n != "" %}<div class="d-ev"><span class="t">{{cal_d0_tev0t}}</span>{{cal_d0_tev0n}}</div>{% endif %}
-    {% if cal_d0_tev1n != "" %}<div class="d-ev"><span class="t">{{cal_d0_tev1t}}</span>{{cal_d0_tev1n}}</div>{% endif %}
+    {% if cal_d0_tev0n != "" %}{% if cal_d0_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d0_tev0t}}</span>{{cal_d0_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d0_tev0t}}</span>{{cal_d0_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d0_tev1n != "" %}{% if cal_d0_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d0_tev1t}}</span>{{cal_d0_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d0_tev1t}}</span>{{cal_d0_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d0_tev2n != "" %}{% if cal_d0_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d0_tev2t}}</span>{{cal_d0_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d0_tev2t}}</span>{{cal_d0_tev2n}}</div>{% endif %}{% endif %}
   </div>
   <div class="d-allday">
     {% if cal_d0_hol != "" %}<span class="d-hol">{{cal_d0_hol}}</span>{% endif %}
@@ -228,10 +267,12 @@ body{display:flex;flex-direction:column}
     {% if cal_d0_aev1 != "" %}<span class="d-aev">{{cal_d0_aev1}}</span>{% endif %}
   </div>
 </div>
-<div class="day {{ cal_d1_today }} {{ cal_d1_wknd }}{% if cal_d1_hol != "" %} hol{% endif %}">
+<div class="day {{ cal_d1_today }} {{ cal_d1_wknd }}{% if cal_d1_dow == "Tue" or cal_d1_dow == "Thu" %} alt{% endif %}{% if cal_d1_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d1_month_label != "" %}<span class="d-dom">{{cal_d1_month_label}}</span>{% else %}<span class="d-dom">{{cal_d1_dom}}</span>{% endif %}</div>
   <div class="d-evts">
-    {% if cal_d1_tev0n != "" %}<div class="d-ev"><span class="t">{{cal_d1_tev0t}}</span>{{cal_d1_tev0n}}</div>{% endif %}
-    {% if cal_d1_tev1n != "" %}<div class="d-ev"><span class="t">{{cal_d1_tev1t}}</span>{{cal_d1_tev1n}}</div>{% endif %}
+    {% if cal_d1_tev0n != "" %}{% if cal_d1_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d1_tev0t}}</span>{{cal_d1_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d1_tev0t}}</span>{{cal_d1_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d1_tev1n != "" %}{% if cal_d1_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d1_tev1t}}</span>{{cal_d1_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d1_tev1t}}</span>{{cal_d1_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d1_tev2n != "" %}{% if cal_d1_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d1_tev2t}}</span>{{cal_d1_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d1_tev2t}}</span>{{cal_d1_tev2n}}</div>{% endif %}{% endif %}
   </div>
   <div class="d-allday">
     {% if cal_d1_hol != "" %}<span class="d-hol">{{cal_d1_hol}}</span>{% endif %}
@@ -239,10 +280,12 @@ body{display:flex;flex-direction:column}
     {% if cal_d1_aev1 != "" %}<span class="d-aev">{{cal_d1_aev1}}</span>{% endif %}
   </div>
 </div>
-<div class="day {{ cal_d2_today }} {{ cal_d2_wknd }}{% if cal_d2_hol != "" %} hol{% endif %}">
+<div class="day {{ cal_d2_today }} {{ cal_d2_wknd }}{% if cal_d2_dow == "Tue" or cal_d2_dow == "Thu" %} alt{% endif %}{% if cal_d2_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d2_month_label != "" %}<span class="d-dom">{{cal_d2_month_label}}</span>{% else %}<span class="d-dom">{{cal_d2_dom}}</span>{% endif %}</div>
   <div class="d-evts">
-    {% if cal_d2_tev0n != "" %}<div class="d-ev"><span class="t">{{cal_d2_tev0t}}</span>{{cal_d2_tev0n}}</div>{% endif %}
-    {% if cal_d2_tev1n != "" %}<div class="d-ev"><span class="t">{{cal_d2_tev1t}}</span>{{cal_d2_tev1n}}</div>{% endif %}
+    {% if cal_d2_tev0n != "" %}{% if cal_d2_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d2_tev0t}}</span>{{cal_d2_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d2_tev0t}}</span>{{cal_d2_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d2_tev1n != "" %}{% if cal_d2_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d2_tev1t}}</span>{{cal_d2_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d2_tev1t}}</span>{{cal_d2_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d2_tev2n != "" %}{% if cal_d2_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d2_tev2t}}</span>{{cal_d2_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d2_tev2t}}</span>{{cal_d2_tev2n}}</div>{% endif %}{% endif %}
   </div>
   <div class="d-allday">
     {% if cal_d2_hol != "" %}<span class="d-hol">{{cal_d2_hol}}</span>{% endif %}
@@ -250,10 +293,12 @@ body{display:flex;flex-direction:column}
     {% if cal_d2_aev1 != "" %}<span class="d-aev">{{cal_d2_aev1}}</span>{% endif %}
   </div>
 </div>
-<div class="day {{ cal_d3_today }} {{ cal_d3_wknd }}{% if cal_d3_hol != "" %} hol{% endif %}">
+<div class="day {{ cal_d3_today }} {{ cal_d3_wknd }}{% if cal_d3_dow == "Tue" or cal_d3_dow == "Thu" %} alt{% endif %}{% if cal_d3_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d3_month_label != "" %}<span class="d-dom">{{cal_d3_month_label}}</span>{% else %}<span class="d-dom">{{cal_d3_dom}}</span>{% endif %}</div>
   <div class="d-evts">
-    {% if cal_d3_tev0n != "" %}<div class="d-ev"><span class="t">{{cal_d3_tev0t}}</span>{{cal_d3_tev0n}}</div>{% endif %}
-    {% if cal_d3_tev1n != "" %}<div class="d-ev"><span class="t">{{cal_d3_tev1t}}</span>{{cal_d3_tev1n}}</div>{% endif %}
+    {% if cal_d3_tev0n != "" %}{% if cal_d3_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d3_tev0t}}</span>{{cal_d3_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d3_tev0t}}</span>{{cal_d3_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d3_tev1n != "" %}{% if cal_d3_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d3_tev1t}}</span>{{cal_d3_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d3_tev1t}}</span>{{cal_d3_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d3_tev2n != "" %}{% if cal_d3_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d3_tev2t}}</span>{{cal_d3_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d3_tev2t}}</span>{{cal_d3_tev2n}}</div>{% endif %}{% endif %}
   </div>
   <div class="d-allday">
     {% if cal_d3_hol != "" %}<span class="d-hol">{{cal_d3_hol}}</span>{% endif %}
@@ -261,10 +306,12 @@ body{display:flex;flex-direction:column}
     {% if cal_d3_aev1 != "" %}<span class="d-aev">{{cal_d3_aev1}}</span>{% endif %}
   </div>
 </div>
-<div class="day {{ cal_d4_today }} {{ cal_d4_wknd }}{% if cal_d4_hol != "" %} hol{% endif %}">
+<div class="day {{ cal_d4_today }} {{ cal_d4_wknd }}{% if cal_d4_dow == "Tue" or cal_d4_dow == "Thu" %} alt{% endif %}{% if cal_d4_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d4_month_label != "" %}<span class="d-dom">{{cal_d4_month_label}}</span>{% else %}<span class="d-dom">{{cal_d4_dom}}</span>{% endif %}</div>
   <div class="d-evts">
-    {% if cal_d4_tev0n != "" %}<div class="d-ev"><span class="t">{{cal_d4_tev0t}}</span>{{cal_d4_tev0n}}</div>{% endif %}
-    {% if cal_d4_tev1n != "" %}<div class="d-ev"><span class="t">{{cal_d4_tev1t}}</span>{{cal_d4_tev1n}}</div>{% endif %}
+    {% if cal_d4_tev0n != "" %}{% if cal_d4_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d4_tev0t}}</span>{{cal_d4_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d4_tev0t}}</span>{{cal_d4_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d4_tev1n != "" %}{% if cal_d4_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d4_tev1t}}</span>{{cal_d4_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d4_tev1t}}</span>{{cal_d4_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d4_tev2n != "" %}{% if cal_d4_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d4_tev2t}}</span>{{cal_d4_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d4_tev2t}}</span>{{cal_d4_tev2n}}</div>{% endif %}{% endif %}
   </div>
   <div class="d-allday">
     {% if cal_d4_hol != "" %}<span class="d-hol">{{cal_d4_hol}}</span>{% endif %}
@@ -272,10 +319,12 @@ body{display:flex;flex-direction:column}
     {% if cal_d4_aev1 != "" %}<span class="d-aev">{{cal_d4_aev1}}</span>{% endif %}
   </div>
 </div>
-<div class="day {{ cal_d5_today }} {{ cal_d5_wknd }}{% if cal_d5_hol != "" %} hol{% endif %}">
+<div class="day {{ cal_d5_today }} {{ cal_d5_wknd }}{% if cal_d5_dow == "Tue" or cal_d5_dow == "Thu" %} alt{% endif %}{% if cal_d5_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d5_month_label != "" %}<span class="d-dom">{{cal_d5_month_label}}</span>{% else %}<span class="d-dom">{{cal_d5_dom}}</span>{% endif %}</div>
   <div class="d-evts">
-    {% if cal_d5_tev0n != "" %}<div class="d-ev"><span class="t">{{cal_d5_tev0t}}</span>{{cal_d5_tev0n}}</div>{% endif %}
-    {% if cal_d5_tev1n != "" %}<div class="d-ev"><span class="t">{{cal_d5_tev1t}}</span>{{cal_d5_tev1n}}</div>{% endif %}
+    {% if cal_d5_tev0n != "" %}{% if cal_d5_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d5_tev0t}}</span>{{cal_d5_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d5_tev0t}}</span>{{cal_d5_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d5_tev1n != "" %}{% if cal_d5_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d5_tev1t}}</span>{{cal_d5_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d5_tev1t}}</span>{{cal_d5_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d5_tev2n != "" %}{% if cal_d5_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d5_tev2t}}</span>{{cal_d5_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d5_tev2t}}</span>{{cal_d5_tev2n}}</div>{% endif %}{% endif %}
   </div>
   <div class="d-allday">
     {% if cal_d5_hol != "" %}<span class="d-hol">{{cal_d5_hol}}</span>{% endif %}
@@ -283,10 +332,12 @@ body{display:flex;flex-direction:column}
     {% if cal_d5_aev1 != "" %}<span class="d-aev">{{cal_d5_aev1}}</span>{% endif %}
   </div>
 </div>
-<div class="day {{ cal_d6_today }} {{ cal_d6_wknd }}{% if cal_d6_hol != "" %} hol{% endif %}">
+<div class="day {{ cal_d6_today }} {{ cal_d6_wknd }}{% if cal_d6_dow == "Tue" or cal_d6_dow == "Thu" %} alt{% endif %}{% if cal_d6_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d6_month_label != "" %}<span class="d-dom">{{cal_d6_month_label}}</span>{% else %}<span class="d-dom">{{cal_d6_dom}}</span>{% endif %}</div>
   <div class="d-evts">
-    {% if cal_d6_tev0n != "" %}<div class="d-ev"><span class="t">{{cal_d6_tev0t}}</span>{{cal_d6_tev0n}}</div>{% endif %}
-    {% if cal_d6_tev1n != "" %}<div class="d-ev"><span class="t">{{cal_d6_tev1t}}</span>{{cal_d6_tev1n}}</div>{% endif %}
+    {% if cal_d6_tev0n != "" %}{% if cal_d6_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d6_tev0t}}</span>{{cal_d6_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d6_tev0t}}</span>{{cal_d6_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d6_tev1n != "" %}{% if cal_d6_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d6_tev1t}}</span>{{cal_d6_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d6_tev1t}}</span>{{cal_d6_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d6_tev2n != "" %}{% if cal_d6_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d6_tev2t}}</span>{{cal_d6_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d6_tev2t}}</span>{{cal_d6_tev2n}}</div>{% endif %}{% endif %}
   </div>
   <div class="d-allday">
     {% if cal_d6_hol != "" %}<span class="d-hol">{{cal_d6_hol}}</span>{% endif %}
@@ -297,14 +348,12 @@ body{display:flex;flex-direction:column}
   </div>
 
   <div class="cal-row">
-<div class="day {{ cal_d7_today }} {{ cal_d7_wknd }}{% if cal_d7_hol != "" %} hol{% endif %}">
-  <div class="d-hdr">
-    {% if cal_d7_month_label != "" %}<div class="d-month">{{cal_d7_month_label}}</div>{% endif %}
-    <div class="d-dayline"><span class="d-dow">{{cal_d7_dow}}</span><span class="d-dom">{{cal_d7_dom}}</span></div>
-  </div>
+<div class="day {{ cal_d7_today }} {{ cal_d7_wknd }}{% if cal_d7_dow == "Tue" or cal_d7_dow == "Thu" %} alt{% endif %}{% if cal_d7_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d7_month_label != "" %}<span class="d-dom">{{cal_d7_month_label}}</span>{% else %}<span class="d-dom">{{cal_d7_dom}}</span>{% endif %}</div>
   <div class="d-evts">
-    {% if cal_d7_tev0n != "" %}<div class="d-ev"><span class="t">{{cal_d7_tev0t}}</span>{{cal_d7_tev0n}}</div>{% endif %}
-    {% if cal_d7_tev1n != "" %}<div class="d-ev"><span class="t">{{cal_d7_tev1t}}</span>{{cal_d7_tev1n}}</div>{% endif %}
+    {% if cal_d7_tev0n != "" %}{% if cal_d7_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d7_tev0t}}</span>{{cal_d7_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d7_tev0t}}</span>{{cal_d7_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d7_tev1n != "" %}{% if cal_d7_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d7_tev1t}}</span>{{cal_d7_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d7_tev1t}}</span>{{cal_d7_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d7_tev2n != "" %}{% if cal_d7_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d7_tev2t}}</span>{{cal_d7_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d7_tev2t}}</span>{{cal_d7_tev2n}}</div>{% endif %}{% endif %}
   </div>
   <div class="d-allday">
     {% if cal_d7_hol != "" %}<span class="d-hol">{{cal_d7_hol}}</span>{% endif %}
@@ -312,14 +361,12 @@ body{display:flex;flex-direction:column}
     {% if cal_d7_aev1 != "" %}<span class="d-aev">{{cal_d7_aev1}}</span>{% endif %}
   </div>
 </div>
-<div class="day {{ cal_d8_today }} {{ cal_d8_wknd }}{% if cal_d8_hol != "" %} hol{% endif %}">
-  <div class="d-hdr">
-    {% if cal_d8_month_label != "" %}<div class="d-month">{{cal_d8_month_label}}</div>{% endif %}
-    <div class="d-dayline"><span class="d-dow">{{cal_d8_dow}}</span><span class="d-dom">{{cal_d8_dom}}</span></div>
-  </div>
+<div class="day {{ cal_d8_today }} {{ cal_d8_wknd }}{% if cal_d8_dow == "Tue" or cal_d8_dow == "Thu" %} alt{% endif %}{% if cal_d8_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d8_month_label != "" %}<span class="d-dom">{{cal_d8_month_label}}</span>{% else %}<span class="d-dom">{{cal_d8_dom}}</span>{% endif %}</div>
   <div class="d-evts">
-    {% if cal_d8_tev0n != "" %}<div class="d-ev"><span class="t">{{cal_d8_tev0t}}</span>{{cal_d8_tev0n}}</div>{% endif %}
-    {% if cal_d8_tev1n != "" %}<div class="d-ev"><span class="t">{{cal_d8_tev1t}}</span>{{cal_d8_tev1n}}</div>{% endif %}
+    {% if cal_d8_tev0n != "" %}{% if cal_d8_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d8_tev0t}}</span>{{cal_d8_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d8_tev0t}}</span>{{cal_d8_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d8_tev1n != "" %}{% if cal_d8_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d8_tev1t}}</span>{{cal_d8_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d8_tev1t}}</span>{{cal_d8_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d8_tev2n != "" %}{% if cal_d8_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d8_tev2t}}</span>{{cal_d8_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d8_tev2t}}</span>{{cal_d8_tev2n}}</div>{% endif %}{% endif %}
   </div>
   <div class="d-allday">
     {% if cal_d8_hol != "" %}<span class="d-hol">{{cal_d8_hol}}</span>{% endif %}
@@ -327,14 +374,12 @@ body{display:flex;flex-direction:column}
     {% if cal_d8_aev1 != "" %}<span class="d-aev">{{cal_d8_aev1}}</span>{% endif %}
   </div>
 </div>
-<div class="day {{ cal_d9_today }} {{ cal_d9_wknd }}{% if cal_d9_hol != "" %} hol{% endif %}">
-  <div class="d-hdr">
-    {% if cal_d9_month_label != "" %}<div class="d-month">{{cal_d9_month_label}}</div>{% endif %}
-    <div class="d-dayline"><span class="d-dow">{{cal_d9_dow}}</span><span class="d-dom">{{cal_d9_dom}}</span></div>
-  </div>
+<div class="day {{ cal_d9_today }} {{ cal_d9_wknd }}{% if cal_d9_dow == "Tue" or cal_d9_dow == "Thu" %} alt{% endif %}{% if cal_d9_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d9_month_label != "" %}<span class="d-dom">{{cal_d9_month_label}}</span>{% else %}<span class="d-dom">{{cal_d9_dom}}</span>{% endif %}</div>
   <div class="d-evts">
-    {% if cal_d9_tev0n != "" %}<div class="d-ev"><span class="t">{{cal_d9_tev0t}}</span>{{cal_d9_tev0n}}</div>{% endif %}
-    {% if cal_d9_tev1n != "" %}<div class="d-ev"><span class="t">{{cal_d9_tev1t}}</span>{{cal_d9_tev1n}}</div>{% endif %}
+    {% if cal_d9_tev0n != "" %}{% if cal_d9_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d9_tev0t}}</span>{{cal_d9_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d9_tev0t}}</span>{{cal_d9_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d9_tev1n != "" %}{% if cal_d9_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d9_tev1t}}</span>{{cal_d9_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d9_tev1t}}</span>{{cal_d9_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d9_tev2n != "" %}{% if cal_d9_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d9_tev2t}}</span>{{cal_d9_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d9_tev2t}}</span>{{cal_d9_tev2n}}</div>{% endif %}{% endif %}
   </div>
   <div class="d-allday">
     {% if cal_d9_hol != "" %}<span class="d-hol">{{cal_d9_hol}}</span>{% endif %}
@@ -342,14 +387,12 @@ body{display:flex;flex-direction:column}
     {% if cal_d9_aev1 != "" %}<span class="d-aev">{{cal_d9_aev1}}</span>{% endif %}
   </div>
 </div>
-<div class="day {{ cal_d10_today }} {{ cal_d10_wknd }}{% if cal_d10_hol != "" %} hol{% endif %}">
-  <div class="d-hdr">
-    {% if cal_d10_month_label != "" %}<div class="d-month">{{cal_d10_month_label}}</div>{% endif %}
-    <div class="d-dayline"><span class="d-dow">{{cal_d10_dow}}</span><span class="d-dom">{{cal_d10_dom}}</span></div>
-  </div>
+<div class="day {{ cal_d10_today }} {{ cal_d10_wknd }}{% if cal_d10_dow == "Tue" or cal_d10_dow == "Thu" %} alt{% endif %}{% if cal_d10_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d10_month_label != "" %}<span class="d-dom">{{cal_d10_month_label}}</span>{% else %}<span class="d-dom">{{cal_d10_dom}}</span>{% endif %}</div>
   <div class="d-evts">
-    {% if cal_d10_tev0n != "" %}<div class="d-ev"><span class="t">{{cal_d10_tev0t}}</span>{{cal_d10_tev0n}}</div>{% endif %}
-    {% if cal_d10_tev1n != "" %}<div class="d-ev"><span class="t">{{cal_d10_tev1t}}</span>{{cal_d10_tev1n}}</div>{% endif %}
+    {% if cal_d10_tev0n != "" %}{% if cal_d10_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d10_tev0t}}</span>{{cal_d10_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d10_tev0t}}</span>{{cal_d10_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d10_tev1n != "" %}{% if cal_d10_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d10_tev1t}}</span>{{cal_d10_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d10_tev1t}}</span>{{cal_d10_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d10_tev2n != "" %}{% if cal_d10_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d10_tev2t}}</span>{{cal_d10_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d10_tev2t}}</span>{{cal_d10_tev2n}}</div>{% endif %}{% endif %}
   </div>
   <div class="d-allday">
     {% if cal_d10_hol != "" %}<span class="d-hol">{{cal_d10_hol}}</span>{% endif %}
@@ -357,14 +400,12 @@ body{display:flex;flex-direction:column}
     {% if cal_d10_aev1 != "" %}<span class="d-aev">{{cal_d10_aev1}}</span>{% endif %}
   </div>
 </div>
-<div class="day {{ cal_d11_today }} {{ cal_d11_wknd }}{% if cal_d11_hol != "" %} hol{% endif %}">
-  <div class="d-hdr">
-    {% if cal_d11_month_label != "" %}<div class="d-month">{{cal_d11_month_label}}</div>{% endif %}
-    <div class="d-dayline"><span class="d-dow">{{cal_d11_dow}}</span><span class="d-dom">{{cal_d11_dom}}</span></div>
-  </div>
+<div class="day {{ cal_d11_today }} {{ cal_d11_wknd }}{% if cal_d11_dow == "Tue" or cal_d11_dow == "Thu" %} alt{% endif %}{% if cal_d11_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d11_month_label != "" %}<span class="d-dom">{{cal_d11_month_label}}</span>{% else %}<span class="d-dom">{{cal_d11_dom}}</span>{% endif %}</div>
   <div class="d-evts">
-    {% if cal_d11_tev0n != "" %}<div class="d-ev"><span class="t">{{cal_d11_tev0t}}</span>{{cal_d11_tev0n}}</div>{% endif %}
-    {% if cal_d11_tev1n != "" %}<div class="d-ev"><span class="t">{{cal_d11_tev1t}}</span>{{cal_d11_tev1n}}</div>{% endif %}
+    {% if cal_d11_tev0n != "" %}{% if cal_d11_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d11_tev0t}}</span>{{cal_d11_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d11_tev0t}}</span>{{cal_d11_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d11_tev1n != "" %}{% if cal_d11_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d11_tev1t}}</span>{{cal_d11_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d11_tev1t}}</span>{{cal_d11_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d11_tev2n != "" %}{% if cal_d11_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d11_tev2t}}</span>{{cal_d11_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d11_tev2t}}</span>{{cal_d11_tev2n}}</div>{% endif %}{% endif %}
   </div>
   <div class="d-allday">
     {% if cal_d11_hol != "" %}<span class="d-hol">{{cal_d11_hol}}</span>{% endif %}
@@ -372,14 +413,12 @@ body{display:flex;flex-direction:column}
     {% if cal_d11_aev1 != "" %}<span class="d-aev">{{cal_d11_aev1}}</span>{% endif %}
   </div>
 </div>
-<div class="day {{ cal_d12_today }} {{ cal_d12_wknd }}{% if cal_d12_hol != "" %} hol{% endif %}">
-  <div class="d-hdr">
-    {% if cal_d12_month_label != "" %}<div class="d-month">{{cal_d12_month_label}}</div>{% endif %}
-    <div class="d-dayline"><span class="d-dow">{{cal_d12_dow}}</span><span class="d-dom">{{cal_d12_dom}}</span></div>
-  </div>
+<div class="day {{ cal_d12_today }} {{ cal_d12_wknd }}{% if cal_d12_dow == "Tue" or cal_d12_dow == "Thu" %} alt{% endif %}{% if cal_d12_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d12_month_label != "" %}<span class="d-dom">{{cal_d12_month_label}}</span>{% else %}<span class="d-dom">{{cal_d12_dom}}</span>{% endif %}</div>
   <div class="d-evts">
-    {% if cal_d12_tev0n != "" %}<div class="d-ev"><span class="t">{{cal_d12_tev0t}}</span>{{cal_d12_tev0n}}</div>{% endif %}
-    {% if cal_d12_tev1n != "" %}<div class="d-ev"><span class="t">{{cal_d12_tev1t}}</span>{{cal_d12_tev1n}}</div>{% endif %}
+    {% if cal_d12_tev0n != "" %}{% if cal_d12_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d12_tev0t}}</span>{{cal_d12_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d12_tev0t}}</span>{{cal_d12_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d12_tev1n != "" %}{% if cal_d12_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d12_tev1t}}</span>{{cal_d12_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d12_tev1t}}</span>{{cal_d12_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d12_tev2n != "" %}{% if cal_d12_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d12_tev2t}}</span>{{cal_d12_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d12_tev2t}}</span>{{cal_d12_tev2n}}</div>{% endif %}{% endif %}
   </div>
   <div class="d-allday">
     {% if cal_d12_hol != "" %}<span class="d-hol">{{cal_d12_hol}}</span>{% endif %}
@@ -387,14 +426,12 @@ body{display:flex;flex-direction:column}
     {% if cal_d12_aev1 != "" %}<span class="d-aev">{{cal_d12_aev1}}</span>{% endif %}
   </div>
 </div>
-<div class="day {{ cal_d13_today }} {{ cal_d13_wknd }}{% if cal_d13_hol != "" %} hol{% endif %}">
-  <div class="d-hdr">
-    {% if cal_d13_month_label != "" %}<div class="d-month">{{cal_d13_month_label}}</div>{% endif %}
-    <div class="d-dayline"><span class="d-dow">{{cal_d13_dow}}</span><span class="d-dom">{{cal_d13_dom}}</span></div>
-  </div>
+<div class="day {{ cal_d13_today }} {{ cal_d13_wknd }}{% if cal_d13_dow == "Tue" or cal_d13_dow == "Thu" %} alt{% endif %}{% if cal_d13_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d13_month_label != "" %}<span class="d-dom">{{cal_d13_month_label}}</span>{% else %}<span class="d-dom">{{cal_d13_dom}}</span>{% endif %}</div>
   <div class="d-evts">
-    {% if cal_d13_tev0n != "" %}<div class="d-ev"><span class="t">{{cal_d13_tev0t}}</span>{{cal_d13_tev0n}}</div>{% endif %}
-    {% if cal_d13_tev1n != "" %}<div class="d-ev"><span class="t">{{cal_d13_tev1t}}</span>{{cal_d13_tev1n}}</div>{% endif %}
+    {% if cal_d13_tev0n != "" %}{% if cal_d13_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d13_tev0t}}</span>{{cal_d13_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d13_tev0t}}</span>{{cal_d13_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d13_tev1n != "" %}{% if cal_d13_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d13_tev1t}}</span>{{cal_d13_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d13_tev1t}}</span>{{cal_d13_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d13_tev2n != "" %}{% if cal_d13_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d13_tev2t}}</span>{{cal_d13_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d13_tev2t}}</span>{{cal_d13_tev2n}}</div>{% endif %}{% endif %}
   </div>
   <div class="d-allday">
     {% if cal_d13_hol != "" %}<span class="d-hol">{{cal_d13_hol}}</span>{% endif %}
@@ -405,14 +442,12 @@ body{display:flex;flex-direction:column}
   </div>
 
   <div class="cal-row">
-<div class="day {{cal_d14_today}} {{cal_d14_wknd}}{% if cal_d14_hol != "" %} hol{% endif %}">
-  <div class="d-hdr">
-    {% if cal_d14_month_label != "" %}<div class="d-month">{{cal_d14_month_label}}</div>{% endif %}
-    <div class="d-dayline"><span class="d-dow">{{cal_d14_dow}}</span><span class="d-dom">{{cal_d14_dom}}</span></div>
-  </div>
+<div class="day {{cal_d14_today}} {{cal_d14_wknd}}{% if cal_d14_dow == "Tue" or cal_d14_dow == "Thu" %} alt{% endif %}{% if cal_d14_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d14_month_label != "" %}<span class="d-dom">{{cal_d14_month_label}}</span>{% else %}<span class="d-dom">{{cal_d14_dom}}</span>{% endif %}</div>
   <div class="d-evts">
-    {% if cal_d14_tev0n != "" %}<div class="d-ev"><span class="t">{{cal_d14_tev0t}}</span>{{cal_d14_tev0n}}</div>{% endif %}
-    {% if cal_d14_tev1n != "" %}<div class="d-ev"><span class="t">{{cal_d14_tev1t}}</span>{{cal_d14_tev1n}}</div>{% endif %}
+    {% if cal_d14_tev0n != "" %}{% if cal_d14_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d14_tev0t}}</span>{{cal_d14_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d14_tev0t}}</span>{{cal_d14_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d14_tev1n != "" %}{% if cal_d14_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d14_tev1t}}</span>{{cal_d14_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d14_tev1t}}</span>{{cal_d14_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d14_tev2n != "" %}{% if cal_d14_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d14_tev2t}}</span>{{cal_d14_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d14_tev2t}}</span>{{cal_d14_tev2n}}</div>{% endif %}{% endif %}
   </div>
   <div class="d-allday">
     {% if cal_d14_hol != "" %}<span class="d-hol">{{cal_d14_hol}}</span>{% endif %}
@@ -420,14 +455,12 @@ body{display:flex;flex-direction:column}
     {% if cal_d14_aev1 != "" %}<span class="d-aev">{{cal_d14_aev1}}</span>{% endif %}
   </div>
 </div>
-<div class="day {{cal_d15_today}} {{cal_d15_wknd}}{% if cal_d15_hol != "" %} hol{% endif %}">
-  <div class="d-hdr">
-    {% if cal_d15_month_label != "" %}<div class="d-month">{{cal_d15_month_label}}</div>{% endif %}
-    <div class="d-dayline"><span class="d-dow">{{cal_d15_dow}}</span><span class="d-dom">{{cal_d15_dom}}</span></div>
-  </div>
+<div class="day {{cal_d15_today}} {{cal_d15_wknd}}{% if cal_d15_dow == "Tue" or cal_d15_dow == "Thu" %} alt{% endif %}{% if cal_d15_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d15_month_label != "" %}<span class="d-dom">{{cal_d15_month_label}}</span>{% else %}<span class="d-dom">{{cal_d15_dom}}</span>{% endif %}</div>
   <div class="d-evts">
-    {% if cal_d15_tev0n != "" %}<div class="d-ev"><span class="t">{{cal_d15_tev0t}}</span>{{cal_d15_tev0n}}</div>{% endif %}
-    {% if cal_d15_tev1n != "" %}<div class="d-ev"><span class="t">{{cal_d15_tev1t}}</span>{{cal_d15_tev1n}}</div>{% endif %}
+    {% if cal_d15_tev0n != "" %}{% if cal_d15_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d15_tev0t}}</span>{{cal_d15_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d15_tev0t}}</span>{{cal_d15_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d15_tev1n != "" %}{% if cal_d15_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d15_tev1t}}</span>{{cal_d15_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d15_tev1t}}</span>{{cal_d15_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d15_tev2n != "" %}{% if cal_d15_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d15_tev2t}}</span>{{cal_d15_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d15_tev2t}}</span>{{cal_d15_tev2n}}</div>{% endif %}{% endif %}
   </div>
   <div class="d-allday">
     {% if cal_d15_hol != "" %}<span class="d-hol">{{cal_d15_hol}}</span>{% endif %}
@@ -435,14 +468,12 @@ body{display:flex;flex-direction:column}
     {% if cal_d15_aev1 != "" %}<span class="d-aev">{{cal_d15_aev1}}</span>{% endif %}
   </div>
 </div>
-<div class="day {{cal_d16_today}} {{cal_d16_wknd}}{% if cal_d16_hol != "" %} hol{% endif %}">
-  <div class="d-hdr">
-    {% if cal_d16_month_label != "" %}<div class="d-month">{{cal_d16_month_label}}</div>{% endif %}
-    <div class="d-dayline"><span class="d-dow">{{cal_d16_dow}}</span><span class="d-dom">{{cal_d16_dom}}</span></div>
-  </div>
+<div class="day {{cal_d16_today}} {{cal_d16_wknd}}{% if cal_d16_dow == "Tue" or cal_d16_dow == "Thu" %} alt{% endif %}{% if cal_d16_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d16_month_label != "" %}<span class="d-dom">{{cal_d16_month_label}}</span>{% else %}<span class="d-dom">{{cal_d16_dom}}</span>{% endif %}</div>
   <div class="d-evts">
-    {% if cal_d16_tev0n != "" %}<div class="d-ev"><span class="t">{{cal_d16_tev0t}}</span>{{cal_d16_tev0n}}</div>{% endif %}
-    {% if cal_d16_tev1n != "" %}<div class="d-ev"><span class="t">{{cal_d16_tev1t}}</span>{{cal_d16_tev1n}}</div>{% endif %}
+    {% if cal_d16_tev0n != "" %}{% if cal_d16_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d16_tev0t}}</span>{{cal_d16_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d16_tev0t}}</span>{{cal_d16_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d16_tev1n != "" %}{% if cal_d16_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d16_tev1t}}</span>{{cal_d16_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d16_tev1t}}</span>{{cal_d16_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d16_tev2n != "" %}{% if cal_d16_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d16_tev2t}}</span>{{cal_d16_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d16_tev2t}}</span>{{cal_d16_tev2n}}</div>{% endif %}{% endif %}
   </div>
   <div class="d-allday">
     {% if cal_d16_hol != "" %}<span class="d-hol">{{cal_d16_hol}}</span>{% endif %}
@@ -450,14 +481,12 @@ body{display:flex;flex-direction:column}
     {% if cal_d16_aev1 != "" %}<span class="d-aev">{{cal_d16_aev1}}</span>{% endif %}
   </div>
 </div>
-<div class="day {{cal_d17_today}} {{cal_d17_wknd}}{% if cal_d17_hol != "" %} hol{% endif %}">
-  <div class="d-hdr">
-    {% if cal_d17_month_label != "" %}<div class="d-month">{{cal_d17_month_label}}</div>{% endif %}
-    <div class="d-dayline"><span class="d-dow">{{cal_d17_dow}}</span><span class="d-dom">{{cal_d17_dom}}</span></div>
-  </div>
+<div class="day {{cal_d17_today}} {{cal_d17_wknd}}{% if cal_d17_dow == "Tue" or cal_d17_dow == "Thu" %} alt{% endif %}{% if cal_d17_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d17_month_label != "" %}<span class="d-dom">{{cal_d17_month_label}}</span>{% else %}<span class="d-dom">{{cal_d17_dom}}</span>{% endif %}</div>
   <div class="d-evts">
-    {% if cal_d17_tev0n != "" %}<div class="d-ev"><span class="t">{{cal_d17_tev0t}}</span>{{cal_d17_tev0n}}</div>{% endif %}
-    {% if cal_d17_tev1n != "" %}<div class="d-ev"><span class="t">{{cal_d17_tev1t}}</span>{{cal_d17_tev1n}}</div>{% endif %}
+    {% if cal_d17_tev0n != "" %}{% if cal_d17_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d17_tev0t}}</span>{{cal_d17_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d17_tev0t}}</span>{{cal_d17_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d17_tev1n != "" %}{% if cal_d17_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d17_tev1t}}</span>{{cal_d17_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d17_tev1t}}</span>{{cal_d17_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d17_tev2n != "" %}{% if cal_d17_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d17_tev2t}}</span>{{cal_d17_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d17_tev2t}}</span>{{cal_d17_tev2n}}</div>{% endif %}{% endif %}
   </div>
   <div class="d-allday">
     {% if cal_d17_hol != "" %}<span class="d-hol">{{cal_d17_hol}}</span>{% endif %}
@@ -465,14 +494,12 @@ body{display:flex;flex-direction:column}
     {% if cal_d17_aev1 != "" %}<span class="d-aev">{{cal_d17_aev1}}</span>{% endif %}
   </div>
 </div>
-<div class="day {{cal_d18_today}} {{cal_d18_wknd}}{% if cal_d18_hol != "" %} hol{% endif %}">
-  <div class="d-hdr">
-    {% if cal_d18_month_label != "" %}<div class="d-month">{{cal_d18_month_label}}</div>{% endif %}
-    <div class="d-dayline"><span class="d-dow">{{cal_d18_dow}}</span><span class="d-dom">{{cal_d18_dom}}</span></div>
-  </div>
+<div class="day {{cal_d18_today}} {{cal_d18_wknd}}{% if cal_d18_dow == "Tue" or cal_d18_dow == "Thu" %} alt{% endif %}{% if cal_d18_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d18_month_label != "" %}<span class="d-dom">{{cal_d18_month_label}}</span>{% else %}<span class="d-dom">{{cal_d18_dom}}</span>{% endif %}</div>
   <div class="d-evts">
-    {% if cal_d18_tev0n != "" %}<div class="d-ev"><span class="t">{{cal_d18_tev0t}}</span>{{cal_d18_tev0n}}</div>{% endif %}
-    {% if cal_d18_tev1n != "" %}<div class="d-ev"><span class="t">{{cal_d18_tev1t}}</span>{{cal_d18_tev1n}}</div>{% endif %}
+    {% if cal_d18_tev0n != "" %}{% if cal_d18_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d18_tev0t}}</span>{{cal_d18_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d18_tev0t}}</span>{{cal_d18_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d18_tev1n != "" %}{% if cal_d18_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d18_tev1t}}</span>{{cal_d18_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d18_tev1t}}</span>{{cal_d18_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d18_tev2n != "" %}{% if cal_d18_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d18_tev2t}}</span>{{cal_d18_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d18_tev2t}}</span>{{cal_d18_tev2n}}</div>{% endif %}{% endif %}
   </div>
   <div class="d-allday">
     {% if cal_d18_hol != "" %}<span class="d-hol">{{cal_d18_hol}}</span>{% endif %}
@@ -480,14 +507,12 @@ body{display:flex;flex-direction:column}
     {% if cal_d18_aev1 != "" %}<span class="d-aev">{{cal_d18_aev1}}</span>{% endif %}
   </div>
 </div>
-<div class="day {{cal_d19_today}} {{cal_d19_wknd}}{% if cal_d19_hol != "" %} hol{% endif %}">
-  <div class="d-hdr">
-    {% if cal_d19_month_label != "" %}<div class="d-month">{{cal_d19_month_label}}</div>{% endif %}
-    <div class="d-dayline"><span class="d-dow">{{cal_d19_dow}}</span><span class="d-dom">{{cal_d19_dom}}</span></div>
-  </div>
+<div class="day {{cal_d19_today}} {{cal_d19_wknd}}{% if cal_d19_dow == "Tue" or cal_d19_dow == "Thu" %} alt{% endif %}{% if cal_d19_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d19_month_label != "" %}<span class="d-dom">{{cal_d19_month_label}}</span>{% else %}<span class="d-dom">{{cal_d19_dom}}</span>{% endif %}</div>
   <div class="d-evts">
-    {% if cal_d19_tev0n != "" %}<div class="d-ev"><span class="t">{{cal_d19_tev0t}}</span>{{cal_d19_tev0n}}</div>{% endif %}
-    {% if cal_d19_tev1n != "" %}<div class="d-ev"><span class="t">{{cal_d19_tev1t}}</span>{{cal_d19_tev1n}}</div>{% endif %}
+    {% if cal_d19_tev0n != "" %}{% if cal_d19_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d19_tev0t}}</span>{{cal_d19_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d19_tev0t}}</span>{{cal_d19_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d19_tev1n != "" %}{% if cal_d19_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d19_tev1t}}</span>{{cal_d19_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d19_tev1t}}</span>{{cal_d19_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d19_tev2n != "" %}{% if cal_d19_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d19_tev2t}}</span>{{cal_d19_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d19_tev2t}}</span>{{cal_d19_tev2n}}</div>{% endif %}{% endif %}
   </div>
   <div class="d-allday">
     {% if cal_d19_hol != "" %}<span class="d-hol">{{cal_d19_hol}}</span>{% endif %}
@@ -495,19 +520,111 @@ body{display:flex;flex-direction:column}
     {% if cal_d19_aev1 != "" %}<span class="d-aev">{{cal_d19_aev1}}</span>{% endif %}
   </div>
 </div>
-<div class="day {{cal_d20_today}} {{cal_d20_wknd}}{% if cal_d20_hol != "" %} hol{% endif %}">
-  <div class="d-hdr">
-    {% if cal_d20_month_label != "" %}<div class="d-month">{{cal_d20_month_label}}</div>{% endif %}
-    <div class="d-dayline"><span class="d-dow">{{cal_d20_dow}}</span><span class="d-dom">{{cal_d20_dom}}</span></div>
-  </div>
+<div class="day {{cal_d20_today}} {{cal_d20_wknd}}{% if cal_d20_dow == "Tue" or cal_d20_dow == "Thu" %} alt{% endif %}{% if cal_d20_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d20_month_label != "" %}<span class="d-dom">{{cal_d20_month_label}}</span>{% else %}<span class="d-dom">{{cal_d20_dom}}</span>{% endif %}</div>
   <div class="d-evts">
-    {% if cal_d20_tev0n != "" %}<div class="d-ev"><span class="t">{{cal_d20_tev0t}}</span>{{cal_d20_tev0n}}</div>{% endif %}
-    {% if cal_d20_tev1n != "" %}<div class="d-ev"><span class="t">{{cal_d20_tev1t}}</span>{{cal_d20_tev1n}}</div>{% endif %}
+    {% if cal_d20_tev0n != "" %}{% if cal_d20_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d20_tev0t}}</span>{{cal_d20_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d20_tev0t}}</span>{{cal_d20_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d20_tev1n != "" %}{% if cal_d20_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d20_tev1t}}</span>{{cal_d20_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d20_tev1t}}</span>{{cal_d20_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d20_tev2n != "" %}{% if cal_d20_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d20_tev2t}}</span>{{cal_d20_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d20_tev2t}}</span>{{cal_d20_tev2n}}</div>{% endif %}{% endif %}
   </div>
   <div class="d-allday">
     {% if cal_d20_hol != "" %}<span class="d-hol">{{cal_d20_hol}}</span>{% endif %}
     {% if cal_d20_aev0 != "" %}<span class="d-aev">{{cal_d20_aev0}}</span>{% endif %}
     {% if cal_d20_aev1 != "" %}<span class="d-aev">{{cal_d20_aev1}}</span>{% endif %}
+  </div>
+</div>
+  </div>
+
+  <div class="cal-row">
+<div class="day {{cal_d21_today}} {{cal_d21_wknd}}{% if cal_d21_dow == "Tue" or cal_d21_dow == "Thu" %} alt{% endif %}{% if cal_d21_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d21_month_label != "" %}<span class="d-dom">{{cal_d21_month_label}}</span>{% else %}<span class="d-dom">{{cal_d21_dom}}</span>{% endif %}</div>
+  <div class="d-evts">
+    {% if cal_d21_tev0n != "" %}{% if cal_d21_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d21_tev0t}}</span>{{cal_d21_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d21_tev0t}}</span>{{cal_d21_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d21_tev1n != "" %}{% if cal_d21_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d21_tev1t}}</span>{{cal_d21_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d21_tev1t}}</span>{{cal_d21_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d21_tev2n != "" %}{% if cal_d21_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d21_tev2t}}</span>{{cal_d21_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d21_tev2t}}</span>{{cal_d21_tev2n}}</div>{% endif %}{% endif %}
+  </div>
+  <div class="d-allday">
+    {% if cal_d21_hol != "" %}<span class="d-hol">{{cal_d21_hol}}</span>{% endif %}
+    {% if cal_d21_aev0 != "" %}<span class="d-aev">{{cal_d21_aev0}}</span>{% endif %}
+    {% if cal_d21_aev1 != "" %}<span class="d-aev">{{cal_d21_aev1}}</span>{% endif %}
+  </div>
+</div>
+<div class="day {{cal_d22_today}} {{cal_d22_wknd}}{% if cal_d22_dow == "Tue" or cal_d22_dow == "Thu" %} alt{% endif %}{% if cal_d22_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d22_month_label != "" %}<span class="d-dom">{{cal_d22_month_label}}</span>{% else %}<span class="d-dom">{{cal_d22_dom}}</span>{% endif %}</div>
+  <div class="d-evts">
+    {% if cal_d22_tev0n != "" %}{% if cal_d22_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d22_tev0t}}</span>{{cal_d22_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d22_tev0t}}</span>{{cal_d22_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d22_tev1n != "" %}{% if cal_d22_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d22_tev1t}}</span>{{cal_d22_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d22_tev1t}}</span>{{cal_d22_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d22_tev2n != "" %}{% if cal_d22_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d22_tev2t}}</span>{{cal_d22_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d22_tev2t}}</span>{{cal_d22_tev2n}}</div>{% endif %}{% endif %}
+  </div>
+  <div class="d-allday">
+    {% if cal_d22_hol != "" %}<span class="d-hol">{{cal_d22_hol}}</span>{% endif %}
+    {% if cal_d22_aev0 != "" %}<span class="d-aev">{{cal_d22_aev0}}</span>{% endif %}
+    {% if cal_d22_aev1 != "" %}<span class="d-aev">{{cal_d22_aev1}}</span>{% endif %}
+  </div>
+</div>
+<div class="day {{cal_d23_today}} {{cal_d23_wknd}}{% if cal_d23_dow == "Tue" or cal_d23_dow == "Thu" %} alt{% endif %}{% if cal_d23_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d23_month_label != "" %}<span class="d-dom">{{cal_d23_month_label}}</span>{% else %}<span class="d-dom">{{cal_d23_dom}}</span>{% endif %}</div>
+  <div class="d-evts">
+    {% if cal_d23_tev0n != "" %}{% if cal_d23_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d23_tev0t}}</span>{{cal_d23_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d23_tev0t}}</span>{{cal_d23_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d23_tev1n != "" %}{% if cal_d23_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d23_tev1t}}</span>{{cal_d23_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d23_tev1t}}</span>{{cal_d23_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d23_tev2n != "" %}{% if cal_d23_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d23_tev2t}}</span>{{cal_d23_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d23_tev2t}}</span>{{cal_d23_tev2n}}</div>{% endif %}{% endif %}
+  </div>
+  <div class="d-allday">
+    {% if cal_d23_hol != "" %}<span class="d-hol">{{cal_d23_hol}}</span>{% endif %}
+    {% if cal_d23_aev0 != "" %}<span class="d-aev">{{cal_d23_aev0}}</span>{% endif %}
+    {% if cal_d23_aev1 != "" %}<span class="d-aev">{{cal_d23_aev1}}</span>{% endif %}
+  </div>
+</div>
+<div class="day {{cal_d24_today}} {{cal_d24_wknd}}{% if cal_d24_dow == "Tue" or cal_d24_dow == "Thu" %} alt{% endif %}{% if cal_d24_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d24_month_label != "" %}<span class="d-dom">{{cal_d24_month_label}}</span>{% else %}<span class="d-dom">{{cal_d24_dom}}</span>{% endif %}</div>
+  <div class="d-evts">
+    {% if cal_d24_tev0n != "" %}{% if cal_d24_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d24_tev0t}}</span>{{cal_d24_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d24_tev0t}}</span>{{cal_d24_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d24_tev1n != "" %}{% if cal_d24_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d24_tev1t}}</span>{{cal_d24_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d24_tev1t}}</span>{{cal_d24_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d24_tev2n != "" %}{% if cal_d24_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d24_tev2t}}</span>{{cal_d24_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d24_tev2t}}</span>{{cal_d24_tev2n}}</div>{% endif %}{% endif %}
+  </div>
+  <div class="d-allday">
+    {% if cal_d24_hol != "" %}<span class="d-hol">{{cal_d24_hol}}</span>{% endif %}
+    {% if cal_d24_aev0 != "" %}<span class="d-aev">{{cal_d24_aev0}}</span>{% endif %}
+    {% if cal_d24_aev1 != "" %}<span class="d-aev">{{cal_d24_aev1}}</span>{% endif %}
+  </div>
+</div>
+<div class="day {{cal_d25_today}} {{cal_d25_wknd}}{% if cal_d25_dow == "Tue" or cal_d25_dow == "Thu" %} alt{% endif %}{% if cal_d25_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d25_month_label != "" %}<span class="d-dom">{{cal_d25_month_label}}</span>{% else %}<span class="d-dom">{{cal_d25_dom}}</span>{% endif %}</div>
+  <div class="d-evts">
+    {% if cal_d25_tev0n != "" %}{% if cal_d25_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d25_tev0t}}</span>{{cal_d25_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d25_tev0t}}</span>{{cal_d25_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d25_tev1n != "" %}{% if cal_d25_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d25_tev1t}}</span>{{cal_d25_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d25_tev1t}}</span>{{cal_d25_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d25_tev2n != "" %}{% if cal_d25_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d25_tev2t}}</span>{{cal_d25_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d25_tev2t}}</span>{{cal_d25_tev2n}}</div>{% endif %}{% endif %}
+  </div>
+  <div class="d-allday">
+    {% if cal_d25_hol != "" %}<span class="d-hol">{{cal_d25_hol}}</span>{% endif %}
+    {% if cal_d25_aev0 != "" %}<span class="d-aev">{{cal_d25_aev0}}</span>{% endif %}
+    {% if cal_d25_aev1 != "" %}<span class="d-aev">{{cal_d25_aev1}}</span>{% endif %}
+  </div>
+</div>
+<div class="day {{cal_d26_today}} {{cal_d26_wknd}}{% if cal_d26_dow == "Tue" or cal_d26_dow == "Thu" %} alt{% endif %}{% if cal_d26_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d26_month_label != "" %}<span class="d-dom">{{cal_d26_month_label}}</span>{% else %}<span class="d-dom">{{cal_d26_dom}}</span>{% endif %}</div>
+  <div class="d-evts">
+    {% if cal_d26_tev0n != "" %}{% if cal_d26_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d26_tev0t}}</span>{{cal_d26_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d26_tev0t}}</span>{{cal_d26_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d26_tev1n != "" %}{% if cal_d26_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d26_tev1t}}</span>{{cal_d26_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d26_tev1t}}</span>{{cal_d26_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d26_tev2n != "" %}{% if cal_d26_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d26_tev2t}}</span>{{cal_d26_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d26_tev2t}}</span>{{cal_d26_tev2n}}</div>{% endif %}{% endif %}
+  </div>
+  <div class="d-allday">
+    {% if cal_d26_hol != "" %}<span class="d-hol">{{cal_d26_hol}}</span>{% endif %}
+    {% if cal_d26_aev0 != "" %}<span class="d-aev">{{cal_d26_aev0}}</span>{% endif %}
+    {% if cal_d26_aev1 != "" %}<span class="d-aev">{{cal_d26_aev1}}</span>{% endif %}
+  </div>
+</div>
+<div class="day {{cal_d27_today}} {{cal_d27_wknd}}{% if cal_d27_dow == "Tue" or cal_d27_dow == "Thu" %} alt{% endif %}{% if cal_d27_hol != "" %} hol{% endif %}">
+  <div class="d-hdr">{% if cal_d27_month_label != "" %}<span class="d-dom">{{cal_d27_month_label}}</span>{% else %}<span class="d-dom">{{cal_d27_dom}}</span>{% endif %}</div>
+  <div class="d-evts">
+    {% if cal_d27_tev0n != "" %}{% if cal_d27_tev0c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d27_tev0t}}</span>{{cal_d27_tev0n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d27_tev0t}}</span>{{cal_d27_tev0n}}</div>{% endif %}{% endif %}
+    {% if cal_d27_tev1n != "" %}{% if cal_d27_tev1c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d27_tev1t}}</span>{{cal_d27_tev1n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d27_tev1t}}</span>{{cal_d27_tev1n}}</div>{% endif %}{% endif %}
+    {% if cal_d27_tev2n != "" %}{% if cal_d27_tev2c == "personal" %}<div class="d-ev ehs"><span class="t">{{cal_d27_tev2t}}</span>{{cal_d27_tev2n}}</div>{% else %}<div class="d-ev"><span class="t">{{cal_d27_tev2t}}</span>{{cal_d27_tev2n}}</div>{% endif %}{% endif %}
+  </div>
+  <div class="d-allday">
+    {% if cal_d27_hol != "" %}<span class="d-hol">{{cal_d27_hol}}</span>{% endif %}
+    {% if cal_d27_aev0 != "" %}<span class="d-aev">{{cal_d27_aev0}}</span>{% endif %}
+    {% if cal_d27_aev1 != "" %}<span class="d-aev">{{cal_d27_aev1}}</span>{% endif %}
   </div>
 </div>
   </div>
@@ -521,9 +638,10 @@ var VW=window.innerWidth||800,VH=window.innerHeight||480;
 var HDR=28;
 var avail=VH-HDR;
 var TOP_H=Math.floor(avail*0.24);     // top strip ~24%
-var FC_H=Math.max(88,Math.floor(avail*0.20)); // forecast ~20%, min 88px
-var CAL_H=avail-TOP_H-FC_H;           // calendar fills rest
-var CAL_ROW_H=Math.floor(CAL_H/3);    // each row = third (3 rows)
+var FC_H=Math.max(88,Math.floor(avail*0.18));  // forecast ~18%, min 88px
+var CAL_H=avail-TOP_H-FC_H;                    // calendar fills rest
+var CAL_ROW1_H=Math.floor(CAL_H*0.32);         // week 1 gets ~32%
+var CAL_ROW_H=Math.floor((CAL_H-CAL_ROW1_H)/3);// weeks 2-4 share rest
 
 var topEl=document.querySelector('.top');
 var fcEl=document.querySelector('.fc-strip');
@@ -533,7 +651,14 @@ var calRows=document.querySelectorAll('.cal-row');
 if(topEl) topEl.style.height=TOP_H+'px';
 if(fcEl)  fcEl.style.height=FC_H+'px';
 if(calEl){calEl.style.height=CAL_H+'px';calEl.style.flex='none';}
-calRows.forEach(function(r){r.style.height=CAL_ROW_H+'px';r.style.flex='none';});
+calRows.forEach(function(r,i){var h=i===0?CAL_ROW1_H:CAL_ROW_H;r.style.height=h+'px';r.style.flex='none';});
+/* Expand abbreviated DOW to full names in forecast week bands */
+var DOW_FULL={Mon:'Monday',Tue:'Tuesday',Wed:'Wednesday',Thu:'Thursday',Fri:'Friday',Sat:'Saturday',Sun:'Sunday'};
+document.querySelectorAll('.fc-week-band').forEach(function(el){
+  var abbr=el.textContent.trim();
+  if(DOW_FULL[abbr]) el.textContent=DOW_FULL[abbr];
+});
+
 
 
 var NS='http://www.w3.org/2000/svg';
@@ -560,9 +685,10 @@ fcols.forEach(function(col){his.push(parseFloat(col.dataset.hi)||0);los.push(par
 var mnT=Math.min.apply(null,los)-2,mxT=Math.max.apply(null,his)+2,rngT=mxT-mnT||1;
 
 fcols.forEach(function(col,i){
+  var cond=(col.dataset.cond||'').trim();
   /* Icon */
   var svg=document.getElementById('fi'+i);
-  if(svg){var cond=(col.dataset.cond||'').trim();svg.innerHTML=IC[cond]||IC['Overcast'];}
+  if(svg){svg.innerHTML=IC[cond]||IC['Overcast'];}
   /* Temperature bar */
   var bar=document.getElementById('fb'+i);
   if(bar){
@@ -572,6 +698,27 @@ fcols.forEach(function(col,i){
     bar.innerHTML='<rect x="2" y="1" width="96" height="4" fill="#e0e0e0" rx="2"/>'
       +'<rect x="'+lx+'" y="0" width="'+w+'" height="6" fill="#333" rx="2"/>';
   }
+  /* Rain gauge bar */
+  var rbar=document.getElementById('frb'+i);
+  if(rbar){
+    var mm=parseFloat(col.dataset.mm)||0;
+    var maxMm=15,H=30,fillH=Math.min(H,(mm/maxMm)*H);
+    rbar.innerHTML='<rect x="1" y="0" width="10" height="'+H+'" fill="#ddd" rx="3"/>'
+      +(fillH>0.5?'<rect x="1" y="'+(H-fillH).toFixed(1)+'" width="10" height="'+fillH.toFixed(1)+'" fill="#666" rx="3"/>':'');
+  }
+  /* Lightning bolt or snowflake badge */
+  var badge=document.getElementById('fwb'+i);
+  if(badge){
+    if(cond==='Thunderstorm'){
+      badge.innerHTML='<polygon points="9,0 4,7 7.5,7 5,14 12,7 8.5,7" fill="#222"/>';
+    } else if(cond==='Snow'||cond==='Snow Showers'){
+      badge.innerHTML=''
+        +'<line x1="7" y1="1" x2="7" y2="13" stroke="#444" stroke-width="1.8" stroke-linecap="round"/>'
+        +'<line x1="1" y1="7" x2="13" y2="7" stroke="#444" stroke-width="1.8" stroke-linecap="round"/>'
+        +'<line x1="2.8" y1="2.8" x2="11.2" y2="11.2" stroke="#444" stroke-width="1.8" stroke-linecap="round"/>'
+        +'<line x1="11.2" y1="2.8" x2="2.8" y2="11.2" stroke="#444" stroke-width="1.8" stroke-linecap="round"/>';
+    }
+  }
 });
 
 /* Moon phase SVG (standalone below dial) */
@@ -579,12 +726,12 @@ var msvg=document.getElementById('msvg');
 if(msvg){
   var phase=parseFloat('{{ moon_phase }}')||0;
   var mr=22,mc=25;
-  msvg.appendChild(mk('circle',{cx:mc,cy:mc,r:mr,fill:'#1a1a1a',stroke:'#777','stroke-width':'1'}));
-  if(phase>0.98||(phase>=0&&phase<0.02)){msvg.appendChild(mk('circle',{cx:mc,cy:mc,r:mr,fill:'#e8e8e8'}));}
+  msvg.appendChild(mk('circle',{cx:mc,cy:mc,r:mr,fill:'#888',stroke:'#666','stroke-width':'1'}));
+  if(phase>0.98||(phase>=0&&phase<0.02)){msvg.appendChild(mk('circle',{cx:mc,cy:mc,r:mr,fill:'#fff'}));}
   else if(phase>=0.02){var wax=phase<=0.5,ang=phase*2*Math.PI,ex=mr*Math.cos(ang),aE=Math.abs(ex).toFixed(1),ms3,md3;
     if(wax){ms3=(ex>=0)?0:1;md3='M '+mc+','+(mc-mr)+' A '+mr+','+mr+' 0 0 1 '+mc+','+(mc+mr)+' A '+aE+','+mr+' 0 0 '+ms3+' '+mc+','+(mc-mr)+'Z';}
     else{ms3=(ex>=0)?1:0;md3='M '+mc+','+(mc-mr)+' A '+mr+','+mr+' 0 0 0 '+mc+','+(mc+mr)+' A '+aE+','+mr+' 0 0 '+ms3+' '+mc+','+(mc-mr)+'Z';}
-    msvg.appendChild(mk('path',{d:md3,fill:'#e8e8e8'}));}
+    msvg.appendChild(mk('path',{d:md3,fill:'#fff'}));}
 }
 /* Solar dial for indoor/solar col */
 var sdial=document.getElementById('sdial');
@@ -599,9 +746,9 @@ if(sdial){
     function txy2(r,deg){var rad=deg*Math.PI/180;return[CX2+r*Math.cos(rad),CY2-r*Math.sin(rad)];}
     var rA2=mta2(toMin2(sr3)),sA2=mta2(toMin2(ss3));
     var ri2=txy2(R2,rA2),si2=txy2(R2,sA2),sp2=((rA2-sA2)+360)%360;
-    sdial.appendChild(mk2('circle',{cx:CX2,cy:CY2,r:R2,fill:'#E8E8E8'}));
-    sdial.appendChild(mk2('path',{d:'M '+CX2+','+CY2+' L '+ri2[0].toFixed(1)+','+ri2[1].toFixed(1)+' A '+R2+' '+R2+' 0 '+(sp2>180?1:0)+' 1 '+si2[0].toFixed(1)+' '+si2[1].toFixed(1)+' Z',fill:'#FFD700'}));
-    sdial.appendChild(mk2('circle',{cx:CX2,cy:CY2,r:R2,fill:'none',stroke:'#999','stroke-width':'1.5'}));
+    sdial.appendChild(mk2('circle',{cx:CX2,cy:CY2,r:R2,fill:'#bbb'}));
+    sdial.appendChild(mk2('path',{d:'M '+CX2+','+CY2+' L '+ri2[0].toFixed(1)+','+ri2[1].toFixed(1)+' A '+R2+' '+R2+' 0 '+(sp2>180?1:0)+' 1 '+si2[0].toFixed(1)+' '+si2[1].toFixed(1)+' Z',fill:'#fff'}));
+    sdial.appendChild(mk2('circle',{cx:CX2,cy:CY2,r:R2,fill:'none',stroke:'#888','stroke-width':'1.5'}));
   }
 }
 })();

@@ -1,6 +1,6 @@
 <?php
 /**
- * cal-device-api.php v2 — 14-day calendar JSON for TRMNL (with caching)
+ * cal-device-api.php v2  14-day calendar JSON for TRMNL (with caching)
  *
  * Key change from v1: responses are served from a local cache file.
  * iCal fetching only happens when the cache is stale. This prevents
@@ -10,10 +10,10 @@
  */
 
 const DEVICE_KEY  = 'kw_40e818911c1980bcd56dc4aff37a820f811990a130eb771fd9e21a536edc55ea';
-const WINDOW_DAYS = 21;
+const WINDOW_DAYS = 28;
 const FETCH_TIMEOUT = 7;
 
-// Cache file — must be writable by the web server.
+// Cache file  must be writable by the web server.
 // data/ dir should already exist from todo-device-api.php
 const CACHE_FILE = __DIR__ . '/data/cal-cache-v3.json';
 
@@ -43,14 +43,14 @@ if ($supplied === '' || !hash_equals(DEVICE_KEY, $supplied)) {
     http_response_code(401); echo json_encode(['error'=>'Unauthorized']); exit;
 }
 
-// ── Serve from cache if fresh ─────────────────────────────────────────────────
+//  Serve from cache if fresh 
 $cacheAge = file_exists(CACHE_FILE) ? (time() - filemtime(CACHE_FILE)) : PHP_INT_MAX;
 if ($cacheAge < CACHE_TTL) {
     $cached = @file_get_contents(CACHE_FILE);
     if ($cached !== false && strlen($cached) > 10) { echo $cached; exit; }
 }
 
-// ── Rebuild cache ─────────────────────────────────────────────────────────────
+//  Rebuild cache 
 function fetch_url(string $url): ?string {
     $ctx = stream_context_create(['http' => [
         'timeout' => FETCH_TIMEOUT, 'ignore_errors' => true,
@@ -61,6 +61,14 @@ function fetch_url(string $url): ?string {
 }
 
 function ical_unfold(string $t): string { return preg_replace('/\r?\n[ \t]/', '', $t); }
+
+function abbreviate_names(string $s): string {
+    return str_ireplace(
+        ['Sarah',  'Skylet', 'Kendrick'],
+        ['SA',     'SK',     'KL'],
+        $s
+    );
+}
 
 function parse_dt(string $v): array {
     $v = trim($v);
@@ -79,15 +87,66 @@ function parse_dt(string $v): array {
     return ['date'=>null,'time'=>null,'allday'=>true];
 }
 
+function rrule_until_to_ymd(string $raw): string {
+    // Normalise UNTIL value (20260602 or 20260602T140000Z) to Y-m-d (2026-06-02)
+    $d = preg_replace('/T.*$/', '', trim($raw)); // strip time component
+    if (preg_match('/^(\d{4})(\d{2})(\d{2})$/', $d, $m))
+        return "$m[1]-$m[2]-$m[3]";
+    return $d; // already formatted or unrecognised
+}
+
+function expand_rrule(array $ev, string $w0, string $wN): array {
+    // Expand FREQ=DAILY/WEEKLY/MONTHLY recurring events into the window [w0,wN].
+    // Handles UNTIL (date or datetime), COUNT, and INTERVAL.
+    $rrule = $ev['rrule'] ?? '';
+    if (!$rrule) return [$ev];
+    $parts = [];
+    foreach (explode(';', $rrule) as $p) {
+        [$k,$v] = explode('=', $p, 2) + [1=>''];
+        $parts[strtoupper($k)] = $v;
+    }
+    $freq  = strtoupper($parts['FREQ'] ?? '');
+    if (!in_array($freq, ['DAILY','WEEKLY','MONTHLY'])) return [$ev];
+
+    // Normalise UNTIL to Y-m-d string for safe comparison
+    $until = isset($parts['UNTIL']) ? rrule_until_to_ymd($parts['UNTIL']) : null;
+    $count = isset($parts['COUNT']) ? (int)$parts['COUNT'] : PHP_INT_MAX;
+    $interval = max(1, (int)($parts['INTERVAL'] ?? 1));
+
+    // Step string for DateTime::modify()
+    if ($freq === 'DAILY')        $step = "+{$interval} day";
+    elseif ($freq === 'WEEKLY')   $step = "+{$interval} week";
+    else /* MONTHLY */            $step = "+{$interval} month";
+
+    $tz  = new DateTimeZone('America/Vancouver');
+    $cur = new DateTime($ev['date'] . ($ev['time'] ? 'T'.str_replace(':','',$ev['time']).'00' : 'T120000'), $tz);
+    $n   = 0;
+    $results = [];
+    while ($cur->format('Y-m-d') <= $wN && $n < $count) {
+        $d = $cur->format('Y-m-d');
+        if ($until && $d > $until) break;
+        if ($d >= $w0) {
+            $occ = $ev;
+            $occ['date']      = $d;
+            $occ['end_date']  = $d;
+            $occ['multi_day'] = false;
+            $results[] = $occ;
+        }
+        $n++;
+        $cur->modify($step);
+    }
+    return $results ?: [$ev]; // fallback: original event
+}
+
 function parse_ical(string $raw, string $label): array {
     $blocks = preg_split('/BEGIN:VEVENT/', ical_unfold($raw));
     $out = [];
     for ($i=1;$i<count($blocks);$i++) {
-        $summary=''; $dtstart=$dtend=null;
+        $summary=''; $dtstart=$dtend=null; $rrule=''; $exdates=[];
         foreach (preg_split('/\r?\n/', $blocks[$i]) as $line) {
             $u = strtoupper($line);
             if (str_starts_with($u,'SUMMARY:'))
-                $summary = strtr(trim(substr($line,strpos($line,':')+1)),['\\n'=>' ','\\,'=>',','\\;'=>';','\\\\'=>'\\']);
+                $summary = abbreviate_names(strtr(trim(substr($line,strpos($line,':')+1)),['\\n'=>' ','\\,'=>',','\\;'=>';','\\\\'=>'\\']));
             if (str_starts_with($u,'DTSTART'))
                 $dtstart = parse_dt(substr($line,strpos($line,':')+1));
             if (str_starts_with($u,'DTEND')||str_starts_with($u,'DUE')) {
@@ -97,12 +156,21 @@ function parse_ical(string $raw, string $label): array {
                     $dtend['date']=$d->format('Y-m-d');
                 }
             }
+            if (str_starts_with($u,'RRULE:'))
+                $rrule = trim(substr($line, 6));
+            if (str_starts_with($u,'EXDATE')) {
+                // collect exception dates
+                $exval = substr($line, strpos($line,':')+1);
+                foreach (explode(',', $exval) as $ex)
+                    $exdates[] = substr(trim($ex), 0, 10);
+            }
         }
         if ($summary&&$dtstart&&$dtstart['date']) {
             $end = ($dtend&&$dtend['date']) ? $dtend['date'] : $dtstart['date'];
-            $out[] = ['summary'=>$summary,'date'=>$dtstart['date'],'end_date'=>$end,
-                      'time'=>$dtstart['time'],'allday'=>$dtstart['allday'],
-                      'multi_day'=>($end>$dtstart['date']),'cal'=>$label];
+            $ev = ['summary'=>$summary,'date'=>$dtstart['date'],'end_date'=>$end,
+                   'time'=>$dtstart['time'],'allday'=>$dtstart['allday'],
+                   'multi_day'=>($end>$dtstart['date']),'cal'=>$label,'rrule'=>$rrule,'exdates'=>$exdates];
+            $out[] = $ev;
         }
     }
     return $out;
@@ -122,8 +190,20 @@ $w0=array_key_first($days); $wN=array_key_last($days);
 global $CALS; $all=[];
 foreach ($CALS as $cal) { $r=fetch_url($cal['url']); if($r) foreach(parse_ical($r,$cal['label']) as $e) $all[]=$e; }
 
-$seen=[];
+// Expand recurring events, then process all occurrences
+$expanded = [];
 foreach ($all as $ev) {
+    if ($ev['rrule']) {
+        foreach (expand_rrule($ev, $w0, $wN) as $occ) $expanded[] = $occ;
+    } else {
+        $expanded[] = $ev;
+    }
+}
+
+$seen=[];
+foreach ($expanded as $ev) {
+    // Skip EXDATE exceptions
+    if (in_array($ev['date'], $ev['exdates'] ?? [])) continue;
     $key=$ev['summary'].'|'.$ev['date'];
     if (isset($seen[$key])) continue; $seen[$key]=true;
     if ($ev['multi_day']) {
@@ -142,17 +222,17 @@ foreach ($days as &$day)
     usort($day['events'], fn($a,$b)=>strcmp($a['time']??'ZZ',$b['time']??'ZZ'));
 unset($day);
 
-// ── Flatten to d0–d6 scalar keys — avoids TRMNL Liquid array-iteration issues ──
-// No nested objects, no arrays — every value is a plain string or int.
+//  Flatten to d0d6 scalar keys  avoids TRMNL Liquid array-iteration issues 
+// No nested objects, no arrays  every value is a plain string or int.
 // Events are pre-formatted as "HH:MM  Summary" (or just "Summary" if all-day).
 $flatDays = array_values($days);
 $out = ['generated' => (new DateTime('now', $tz))->format(DateTime::ATOM)];
-for ($i = 0; $i < 21; $i++) {
+for ($i = 0; $i < 28; $i++) {
     $day  = $flatDays[$i];
     $evts = $day['events'];
     $ec   = count($evts);
     $out["d{$i}_date"]  = $day['date'];        // "2026-06-02"
-    $out["d{$i}_dow"]   = $day['dow'];        // "Sun" … "Sat"
+    $out["d{$i}_dow"]   = $day['dow'];        // "Sun"  "Sat"
     $out["d{$i}_dom"]   = $day['dom'];         // "17"
     $out["d{$i}_today"] = $day['is_today']   ? 'today' : '';
     $out["d{$i}_wknd"]  = $day['is_weekend'] ? 'wknd'  : '';
@@ -160,13 +240,14 @@ for ($i = 0; $i < 21; $i++) {
     // Split into timed events and all-day events
     $timed  = array_values(array_filter($evts, fn($e) => $e['time'] !== null));
     $allday = array_values(array_filter($evts, fn($e) => $e['time'] === null));
-    for ($j = 0; $j < 2; $j++) {
+    for ($j = 0; $j < 3; $j++) {
         $out["d{$i}_tev{$j}t"] = $timed[$j]['time']    ?? '';  // "07:00"
         $out["d{$i}_tev{$j}n"] = $timed[$j]['summary'] ?? '';  // "422 ZULU Day"
+        $out["d{$i}_tev{$j}c"] = $timed[$j]['cal']     ?? '';  // "personal" = BC EHS
     }
-    // Pre-compute "more" as a ready-to-display string — empty string when none
+    // Pre-compute "more" as a ready-to-display string  empty string when none
     // This lets Liquid use a simple truthy check instead of numeric comparison
-    $out["d{$i}_tmore"] = count($timed)  > 2 ? '+' . (count($timed)  - 2) . ' more' : '';
+    $out["d{$i}_tmore"] = count($timed)  > 3 ? '+' . (count($timed)  - 3) . ' more' : '';
     for ($j = 0; $j < 3; $j++) {
         $out["d{$i}_aev{$j}"] = $allday[$j]['summary'] ?? '';
     }

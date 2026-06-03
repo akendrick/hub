@@ -213,7 +213,7 @@ if (file_exists(TODO_FILE)) {
     $todo = ['urgent'=>$urgent,'rest'=>$rest,'total'=>count($urgent)+count($rest)];
 }
 
-// Moon phase — Julian Date calculation matching plugin-weather-v4.md JS exactly
+// Moon phase  Julian Date calculation matching plugin-weather-v4.md JS exactly
 function compute_moon_phase(): float {
     $SYN    = 29.53058867;
     $JD_REF = 2451549.76; // Jan 6 2000 new moon
@@ -248,13 +248,13 @@ function cond_icon(string $s): string {
 $cal_flat = read_cache(DATA_DIR . '/cal-cache-v3.json') ?? [];
 $cal_days = [];
 $prev_month_abbr = '';
-for ($i = 0; $i <= 20; $i++) {   // 21 days for Dashboard plugin
+for ($i = 0; $i <= 27; $i++) {   // 28 days for Dashboard plugin
     $p = "d{$i}_";
     if (!isset($cal_flat["{$p}dow"])) break;
     $timed=[];
-    for ($t=0;$t<=1;$t++) {
+    for ($t=0;$t<=2;$t++) {
         $n=$cal_flat["{$p}tev{$t}n"]??'';
-        if ($n!=='') $timed[]=['summary'=>$n,'time'=>$cal_flat["{$p}tev{$t}t"]??''];
+        if ($n!=='') $timed[]=['summary'=>$n,'time'=>$cal_flat["{$p}tev{$t}t"]??'','cal'=>$cal_flat["{$p}tev{$t}c"]??''];
     }
     $allday=[];
     for ($a=0;$a<=2;$a++) {
@@ -376,7 +376,7 @@ $out['sun_set']    = $wx_flat['sunset']  ?? '';
 $out['moon_phase'] = $moon['phase'] ?? 0;
 $out['moon_name']  = $moon['name']  ?? '';
 
-// Todo — flat indexed vars (no for-loop needed in template)
+// Todo  flat indexed vars (no for-loop needed in template)
 $out['todo_total'] = $todo['total'] ?? 0;
 $urgent = $todo['urgent'] ?? [];
 $rest   = $todo['rest']   ?? [];
@@ -393,23 +393,26 @@ for ($i = 0; $i < 8; $i++) {
 }
 $out['todo_r_more'] = count($rest) > 8 ? '+' . (count($rest) - 8) . ' more' : '';
 
-// Calendar — flat indexed vars (matches cal-device-api proven format)
+// Calendar  flat indexed vars (matches cal-device-api proven format)
 foreach ($cal_days as $i => $day) {
     $p = "cal_d{$i}_";
     $out["{$p}dow"]         = $day['dow']          ?? '';
     $out["{$p}dom"]         = $day['dom']          ?? '';
     $out["{$p}date"]        = $day['date']         ?? '';
     $out["{$p}month_label"] = $day['month_label']  ?? '';
+    $date_str2 = $day['date'] ?? '';
+    $out["{$p}month_abbr"]  = $date_str2 ? (new DateTime($date_str2, $tz))->format('M') : '';
     $out["{$p}today"] = ($day['is_today']   ?? false) ? 'today' : '';
     $out["{$p}wknd"]  = ($day['is_weekend'] ?? false) ? 'wknd'  : '';
     $out["{$p}hol"]   = $day['holiday'] ?? '';
-    for ($t = 0; $t < 2; $t++) {
+    for ($t = 0; $t < 3; $t++) {
         $ev = $day['events_timed'][$t] ?? null;
         $out["{$p}tev{$t}n"] = $ev ? $ev['summary'] : '';
         $out["{$p}tev{$t}t"] = $ev ? $ev['time']    : '';
+        $out["{$p}tev{$t}c"] = $ev ? ($ev['cal']    ?? '') : '';
     }
-    $out["{$p}tmore"] = count($day['events_timed'] ?? []) > 2
-        ? '+' . (count($day['events_timed']) - 2) . ' more' : '';
+    $out["{$p}tmore"] = count($day['events_timed'] ?? []) > 3
+        ? '+' . (count($day['events_timed']) - 3) . ' more' : '';
     for ($a = 0; $a < 3; $a++) {
         $out["{$p}aev{$a}"] = $day['events_allday'][$a]['summary'] ?? '';
     }

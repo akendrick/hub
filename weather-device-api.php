@@ -1,9 +1,9 @@
 <?php
 /**
- * weather-device-api.php — Unified weather JSON for TRMNL.
+ * weather-device-api.php  Unified weather JSON for TRMNL.
  *
  * Merges EcoWitt + Open-Meteo into one flat, Liquid-friendly response.
- * No parallel arrays — all values are pre-computed strings/objects so
+ * No parallel arrays  all values are pre-computed strings/objects so
  * TRMNL's Liquid never needs to do IDX.nested_array[i] indexing.
  *
  * Usage: GET /weather-device-api.php?key=YOUR_KEY
@@ -72,7 +72,7 @@ function wmo(int $c): string {
     if ($c >= 80 && $c <= 82)       return 'Showers';
     if ($c === 85 || $c === 86)     return 'Snow Showers';
     if ($c >= 95)                   return 'Thunderstorm';
-    return '—';
+    return '';
 }
 
 function wdir(float $deg): string {
@@ -90,10 +90,10 @@ $met = wx_fetch(OPENMETEO_URL);
 
 $out = [];
 
-// ── EcoWitt current conditions ────────────────────────────────────────────────
+//  EcoWitt current conditions 
 $ed = $eco['data'] ?? [];
 $out['temp']        = ri($ed['outdoor']['temperature']['value'] ?? null);
-$out['temp_full']   = $ed['outdoor']['temperature']['value'] ?? '—';
+$out['temp_full']   = $ed['outdoor']['temperature']['value'] ?? '';
 $out['feels']       = ri($ed['outdoor']['feels_like']['value'] ?? null);
 $out['humidity']    = ri($ed['outdoor']['humidity']['value'] ?? null);
 $out['dew']         = ri($ed['outdoor']['dew_point']['value'] ?? null);
@@ -109,7 +109,7 @@ $out['rain_week']   = ri($ed['rainfall']['weekly']['value'] ?? null, 1);
 $out['indoor_temp'] = ri($ed['indoor']['temperature']['value'] ?? null);
 $out['indoor_hum']  = ri($ed['indoor']['humidity']['value'] ?? null);
 
-// ── Open-Meteo forecast ───────────────────────────────────────────────────────
+//  Open-Meteo forecast 
 $md = $met['daily'] ?? [];
 $mc = $met['current'] ?? [];
 
@@ -117,14 +117,14 @@ $out['condition'] = wmo((int)($mc['weather_code'] ?? 0));
 $out['hi']        = ri($md['temperature_2m_max'][0] ?? null);
 $out['lo']        = ri($md['temperature_2m_min'][0] ?? null);
 
-// Sunrise / sunset — strip the date prefix ("2026-05-16T05:23" → "05:23")
+// Sunrise / sunset  strip the date prefix ("2026-05-16T05:23"  "05:23")
 $srRaw = $md['sunrise'][0] ?? '';
 $ssRaw = $md['sunset'][0]  ?? '';
-$out['sunrise'] = strlen($srRaw) >= 16 ? substr($srRaw, 11, 5) : '—';
-$out['sunset']  = strlen($ssRaw) >= 16 ? substr($ssRaw, 11, 5) : '—';
+$out['sunrise'] = strlen($srRaw) >= 16 ? substr($srRaw, 11, 5) : '';
+$out['sunset']  = strlen($ssRaw) >= 16 ? substr($ssRaw, 11, 5) : '';
 
 // Daylight duration as pre-formatted strings
-if ($out['sunrise'] !== '—' && $out['sunset'] !== '—') {
+if ($out['sunrise'] !== '' && $out['sunset'] !== '') {
     [$srH, $srM] = array_map('intval', explode(':', $out['sunrise']));
     [$ssH, $ssM] = array_map('intval', explode(':', $out['sunset']));
     $dayMin = ($ssH * 60 + $ssM) - ($srH * 60 + $srM);
@@ -134,13 +134,13 @@ if ($out['sunrise'] !== '—' && $out['sunset'] !== '—') {
     $out['daylight'] = '';
 }
 
-// 7-day forecast — array of plain objects, no parallel arrays
+// 7-day forecast  array of plain objects, no parallel arrays
 $tz = new DateTimeZone(WX_TZ);
 $forecast = [];
 for ($i = 0; $i < 7; $i++) {
     $code    = (int)($md['weather_code'][$i] ?? 0);
     $timeStr = $md['time'][$i] ?? '';
-    $dow     = $timeStr ? (DateTime::createFromFormat('Y-m-d', $timeStr, $tz)?->format('D') ?? '—') : '—';
+    $dow     = $timeStr ? (DateTime::createFromFormat('Y-m-d', $timeStr, $tz)?->format('D') ?? '') : '';
     $pop     = (int)($md['precipitation_probability_max'][$i] ?? 0);
     $mm      = round((float)($md['precipitation_sum'][$i] ?? 0), 1);
     $forecast[] = [
@@ -153,7 +153,7 @@ for ($i = 0; $i < 7; $i++) {
         'mm_str'    => $mm > 0.1 ? $mm . 'mm' : '',
     ];
 }
-// Flatten forecast — no arrays, plain scalar keys f0_* … f4_*
+// Flatten forecast  no arrays, plain scalar keys f0_*  f6_*
 foreach ($forecast as $i => $fc) {
     $out["f{$i}_dow"]       = $fc['dow'];
     $out["f{$i}_hi"]        = $fc['hi'];
@@ -163,13 +163,13 @@ foreach ($forecast as $i => $fc) {
     $out["f{$i}_mm_str"]    = $fc['mm_str'];
 }
 
-// ── Calendar events for forecast days (reads from cal cache) ─────────────────
+//  Calendar events for forecast days (reads from cal cache) 
 $calCacheFile = __DIR__ . '/data/cal-cache-v3.json';
 $calRaw = @file_get_contents($calCacheFile);
 if ($calRaw) {
     $calData = json_decode($calRaw, true);
     if (is_array($calData)) {
-        for ($i = 0; $i < 5; $i++) {
+        for ($i = 0; $i < 7; $i++) {
             $out["f{$i}_hol"]   = $calData["d{$i}_hol"]   ?? '';
             $out["f{$i}_tev0t"] = $calData["d{$i}_tev0t"] ?? '';
             $out["f{$i}_tev0n"] = $calData["d{$i}_tev0n"] ?? '';
