@@ -76,8 +76,12 @@ function http_get(string $url): ?string {
     return ($r && trim($r) !== '') ? $r : null;
 }
 
-//  1. Weather (from weather-device-api cache) 
-$wx_flat = read_cache(DATA_DIR . '/weather-cache.json') ?? [];
+//  1. Weather (from weather-device-api cache)
+$wx_cache_file = DATA_DIR . '/weather-cache.json';
+if (!file_exists($wx_cache_file) || time() - filemtime($wx_cache_file) >= 600) {
+    http_get(BASE . '/weather-device-api.php?key=' . DEVICE_KEY);
+}
+$wx_flat = read_cache($wx_cache_file) ?? [];
 
 // Build fc.days[] from f0_*  f6_* flat vars
 $fc_days = [];
@@ -177,6 +181,7 @@ if ($game !== null) {
 
 //  4. Todo (from todo.json, same logic as todo-device-api.php) 
 $todo = ['urgent'=>[],'rest'=>[],'total'=>0];
+$tz = new DateTimeZone('America/Vancouver');
 if (file_exists(TODO_FILE)) {
     $all = json_decode(file_get_contents(TODO_FILE), true) ?? [];
     $tz  = new DateTimeZone('America/Vancouver');
@@ -245,7 +250,11 @@ function cond_icon(string $s): string {
 }
 
 //  5. Calendar (from cal-device-api cache)
-$cal_flat = read_cache(DATA_DIR . '/cal-cache-v3.json') ?? [];
+$cal_cache_file = DATA_DIR . '/cal-cache-v3.json';
+if (!file_exists($cal_cache_file) || time() - filemtime($cal_cache_file) >= 1200) {
+    http_get(BASE . '/cal-device-api.php?key=' . DEVICE_KEY);
+}
+$cal_flat = read_cache($cal_cache_file) ?? [];
 $cal_days = [];
 $prev_month_abbr = '';
 for ($i = 0; $i <= 27; $i++) {   // 28 days for Dashboard plugin
@@ -273,7 +282,9 @@ for ($i = 0; $i <= 27; $i++) {   // 28 days for Dashboard plugin
           'holiday'=>$cal_flat["{$p}hol"]??'',
           'events_timed'=>$timed,'events_allday'=>$allday];
     // Inject EcoWitt reminder if this day matches
-    if (($day['date']??'')===$rem_due??'') array_unshift($day['events_allday'],['summary'=>REMINDER_TEXT]);
+    if (($day['date']??'') !== '' && $day['date'] === reminder_due()) {
+        array_unshift($day['events_allday'],['summary'=>REMINDER_TEXT]);
+    }
     $cal_days[]=$day;
 }
 
@@ -355,14 +366,25 @@ foreach ($wx_keys as $k) {
     $out[$k]       = $wx_flat[$k] ?? '';  // bare alias for plugin-weather-v4 backward compat
 }
 
-// 7-day forecast - pass through f0_* to f6_* directly from weather cache
+// 7-day forecast - weather fields from weather cache, calendar fields from cal_days
 for ($i = 0; $i <= 6; $i++) {
-    foreach (['dow','hi','lo','condition','pop_str','mm_str',
-              'hol','tev0n','tev0t','tev1n','tev1t','tmore',
-              'aev0','aev1','aev2','amore'] as $field) {
+    foreach (['dow','hi','lo','condition','pop_str','mm_str'] as $field) {
         $key = "f{$i}_{$field}";
         $out[$key] = $wx_flat[$key] ?? '';
     }
+    $day = $cal_days[$i] ?? null;
+    $timed  = $day['events_timed']  ?? [];
+    $allday = $day['events_allday'] ?? [];
+    $out["f{$i}_hol"]   = $day['holiday'] ?? '';
+    $out["f{$i}_tev0n"] = $timed[0]['summary'] ?? '';
+    $out["f{$i}_tev0t"] = $timed[0]['time']    ?? '';
+    $out["f{$i}_tev1n"] = $timed[1]['summary'] ?? '';
+    $out["f{$i}_tev1t"] = $timed[1]['time']    ?? '';
+    $out["f{$i}_tmore"] = count($timed) > 2 ? '+' . (count($timed) - 2) . ' more' : '';
+    $out["f{$i}_aev0"]  = $allday[0]['summary'] ?? '';
+    $out["f{$i}_aev1"]  = $allday[1]['summary'] ?? '';
+    $out["f{$i}_aev2"]  = $allday[2]['summary'] ?? '';
+    $out["f{$i}_amore"] = count($allday) > 3 ? '+' . (count($allday) - 3) . ' more' : '';
 }
 
 // Pressure + moon (fc_* / moon_*)

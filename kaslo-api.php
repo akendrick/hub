@@ -349,12 +349,15 @@ function build_go(int $game_idx): array {
 }
 
 // ── Todos ─────────────────────────────────────────────────────────────────────
-function build_todo(): array {
-    if (!file_exists(TODOS_FILE)||!is_readable(TODOS_FILE))
-        return ['urgent'=>[],'rest'=>[],'total'=>0];
+function build_todo(array $ical_todos = []): array {
+    $all = [];
+    if (file_exists(TODOS_FILE)&&is_readable(TODOS_FILE)) {
+        $f = json_decode(file_get_contents(TODOS_FILE),true);
+        if (is_array($f)) $all = $f;
+    }
+    $all = array_merge($all, $ical_todos);
 
-    $all = json_decode(file_get_contents(TODOS_FILE),true);
-    if (!is_array($all)) return ['urgent'=>[],'rest'=>[],'total'=>0];
+    if (!$all) return ['urgent'=>[],'rest'=>[],'total'=>0];
 
     $today    = (new DateTime('today'))->format('Y-m-d');
     $tomorrow = (new DateTime('tomorrow'))->format('Y-m-d');
@@ -374,13 +377,16 @@ function build_todo(): array {
         if (!empty($item['done'])) continue;
         if (($item['recurWeekday']??'')!==''||($item['recurDay']??'')!=='') continue;
         $pri=(int)($item['priority']??5); $due=$item['due']??'';
-        $is_urgent=$pri<=2||(!empty($due)&&$due<=$in3);
+        $overdue=(!empty($due)&&$due<$today);
+        $is_urgent=$overdue||$pri<=2||(!empty($due)&&$due<=$in3);
         $tags=(array)($item['tags']??[]);
+        $due_days=!empty($due)?(int)(new DateTime('today'))->diff(new DateTime($due))->format('%r%a'):999999;
         $out=['text'=>$item['text']??'','priority'=>$pri,'due_label'=>$fmt($due?:null),
+              'due_days'=>$due_days,'overdue'=>$overdue,
               'tags'=>array_values($tags),'tags_str'=>implode(' ',$tags)];
         ($is_urgent?$urgent:$rest)[]=$out;
     }
-    usort($urgent,fn($a,$b)=>strcmp($a['due_label']?:'ZZZ',$b['due_label']?:'ZZZ')?:$a['priority']-$b['priority']);
+    usort($urgent,fn($a,$b)=>$a['due_days']-$b['due_days']?:$a['priority']-$b['priority']);
     usort($rest,  fn($a,$b)=>$a['priority']-$b['priority']?:strcmp($a['text'],$b['text']));
 
     return ['urgent'=>$urgent,'rest'=>$rest,'total'=>count($urgent)+count($rest)];
@@ -422,10 +428,11 @@ function build_cal(): array {
     }
     $win_start=array_key_first($days);
 
-    $all_events=[];
+    $all_events=[]; $ical_todos=[];
     foreach (ICAL_FEEDS as $url) {
         $raw=http_get($url);
         if (!$raw||!str_contains($raw,'BEGIN:VCALENDAR')) continue;
+        $is_todo_cal = (bool)preg_match('/^X-WR-CALNAME:\s*Kendrick Stuff\s*$/mi', $raw);
         $text=ical_unfold($raw); $blocks=preg_split('/BEGIN:VEVENT/',$text);
         for ($i=1;$i<count($blocks);$i++) {
             $block=$blocks[$i]; $lines=preg_split('/\r?\n/',$block);
@@ -444,6 +451,14 @@ function build_cal(): array {
                 }
             }
             if ($summary&&$dtstart&&$dtstart['date']) {
+                if ($is_todo_cal) {
+                    $ical_todos[]=['text'=>$summary,'due'=>$dtstart['date'],'priority'=>3,'tags'=>[]];
+                    continue;
+                }
+                if (preg_match('/^TODO:\s*(.+)$/i',$summary,$tm)) {
+                    $ical_todos[]=['text'=>trim($tm[1]),'due'=>$dtstart['date'],'priority'=>3,'tags'=>[]];
+                    continue;
+                }
                 $end_date=($dtend&&$dtend['date'])?$dtend['date']:$dtstart['date'];
                 $all_events[]=['summary'=>$summary,'date'=>$dtstart['date'],'end_date'=>$end_date,
                                'time'=>$dtstart['time'],'allday'=>$dtstart['allday'],
@@ -477,7 +492,7 @@ function build_cal(): array {
     }
     unset($day);
 
-    $result=['days'=>array_values($days)];
+    $result=['days'=>array_values($days),'todos'=>$ical_todos];
     cache_set('ical',$result);
     return $result;
 }
@@ -485,8 +500,8 @@ function build_cal(): array {
 // ── Assemble ──────────────────────────────────────────────────────────────────
 $wx   = build_wx();
 $fc   = build_fc();
-$todo = build_todo();
 $cal  = build_cal();
+$todo = build_todo($cal['todos'] ?? []);
 $go   = ($game_param !== null) ? build_go($game_param) : null;
 
 $sun_rise = $fc['days'][0]['sunrise'] ?? '';

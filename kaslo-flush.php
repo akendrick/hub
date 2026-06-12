@@ -13,11 +13,13 @@ if (function_exists('opcache_reset')) {
 }
 echo "mtime: " . date('Y-m-d H:i:s', filemtime($file)) . "\n";
 
-// Delete /tmp data caches so they rebuild fresh
+// Delete all caches so they rebuild fresh
 $patterns = [
-    '/tmp/kaslo4_om.json',                    // moon + pressure
-    '/tmp/kaslo4_brd_*.json',                 // board positions
-    __DIR__ . '/data/weather-cache.json',     // 7-day forecast
+    '/tmp/kaslo4_om.json',                     // kaslo-api.php: moon + pressure
+    '/tmp/kaslo4_brd_*.json',                  // kaslo-api.php: board positions
+    __DIR__ . '/data/weather-cache.json',      // weather-device-api.php  7-day forecast
+    __DIR__ . '/data/cal-cache-v3.json',       // cal-device-api.php  28-day calendar
+    __DIR__ . '/data/dgs-cache.json',          // dgs-device-api.php  DGS game list
 ];
 echo "\n=== Clearing data caches ===\n";
 foreach ($patterns as $pat) {
