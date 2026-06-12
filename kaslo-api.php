@@ -27,17 +27,23 @@ const TODOS_FILE    = __DIR__ . '/data/todos.json';
 const CACHE_DIR     = '/tmp';
 const TZ            = 'America/Vancouver';
 const FETCH_TIMEOUT = 10;
-const CAL_DAYS      = 7;
+const CAL_DAYS      = 14;
 
-// Paste your full EcoWitt real-time URL here (was IDX_0 in KasloTRMNL)
-const ECOWITT_URL = 'https://www.ecowitt.net/home/share?authorize=6XNND9';
+// EcoWitt v3 API — real-time conditions
+const ECOWITT_URL =
+    'https://api.ecowitt.net/api/v3/device/real_time'
+    . '?application_key=C6FD389063D6A82CC7A68532000A5962'
+    . '&api_key=1c2c26a5-a293-4f82-a69a-9e77b6447344'
+    . '&mac=E0:5A:1B:21:11:57'
+    . '&call_back=all'
+    . '&temp_unitid=1&pressure_unitid=3&wind_speed_unitid=7&rainfall_unitid=12';
 
 // Open-Meteo — 3 days past hourly pressure + 7-day forecast + moon phase
 const OPEN_METEO_URL =
     'https://api.open-meteo.com/v1/forecast?latitude=49.912&longitude=-116.908'
     . '&current=weather_code'
     . '&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,'
-    .   'precipitation_probability_max,weather_code,sunrise,sunset,moon_phase'
+    .   'precipitation_probability_max,weather_code,sunrise,sunset'
     . '&hourly=surface_pressure'
     . '&wind_speed_unit=kmh&timezone=America%2FVancouver&forecast_days=7&past_days=3';
 
@@ -139,9 +145,6 @@ function build_wx(): array {
     $c = cache_get('wx', TTL_WX);
     if ($c) return $c;
 
-    if (ECOWITT_URL === 'REPLACE_WITH_YOUR_ECOWITT_REAL_TIME_URL') {
-        return ['error' => 'not_configured'];
-    }
     $raw = http_get(ECOWITT_URL);
     if (!$raw) return ['error' => 'fetch_failed'];
 
@@ -154,9 +157,9 @@ function build_wx(): array {
         'temp'        => (string)(int)floatval(ecowitt_val($o, 'outdoor',      'temperature',   'value')),
         'temp_full'   => ecowitt_val($o, 'outdoor', 'temperature', 'value'),
         'feels'       => (string)(int)floatval(ecowitt_val($o, 'outdoor',      'feels_like',    'value')),
-        'rain_day'    => ecowitt_val($o, 'rainfall',     'daily',         'value'),
-        'rain_rate'   => ecowitt_val($o, 'rainfall',     'rain_rate',     'value'),
-        'rain_week'   => ecowitt_val($o, 'rainfall',     'weekly',        'value'),
+        'rain_day'    => ecowitt_val($o, 'rainfall_piezo', 'daily',     'value'),
+        'rain_rate'   => ecowitt_val($o, 'rainfall_piezo', 'rain_rate', 'value'),
+        'rain_week'   => ecowitt_val($o, 'rainfall_piezo', 'weekly',    'value'),
         'wind_kmh'    => (string)(int)floatval(ecowitt_val($o, 'wind',         'wind_speed',    'value')),
         'gust_kmh'    => (string)(int)floatval(ecowitt_val($o, 'wind',         'wind_gust',     'value')),
         'wdir'        => wind_dir($wd),
@@ -215,8 +218,12 @@ function build_fc(): array {
     $prev_p  = (float)($history[max(0, count($history) - 4)] ?? $cur_p);
     $delta   = $cur_p - $prev_p;
 
-    // Moon phase
-    $moon_phase = (float)($d['daily']['moon_phase'][0] ?? 0);
+    // Moon phase (computed — Open-Meteo no longer provides moon_phase)
+    $synodic = 29.530588853;
+    $known_new_moon = new DateTime('2000-01-06 18:14:00', new DateTimeZone('UTC'));
+    $days_since = ($now->getTimestamp() - $known_new_moon->getTimestamp()) / 86400;
+    $moon_phase = fmod($days_since, $synodic) / $synodic;
+    if ($moon_phase < 0) $moon_phase += 1;
 
     // Current condition from Open-Meteo current
     $cur_code = (int)($d['current']['weather_code'] ?? 0);
@@ -254,7 +261,7 @@ function parse_quick_status(string $raw): array {
         $s = strtolower(trim($f[7] ?? ''));
         $mine = in_array($s, ['play','pass','score','move','your_turn'], true)
             || str_starts_with($s, 'play') || str_starts_with($s, 'move');
-        ($mine ? $my : $their)[] = $g;
+        if ($mine) { $my[] = $g; } else { $their[] = $g; }
     }
     return [$my, $their];
 }
@@ -384,7 +391,7 @@ function build_todo(array $ical_todos = []): array {
         $out=['text'=>$item['text']??'','priority'=>$pri,'due_label'=>$fmt($due?:null),
               'due_days'=>$due_days,'overdue'=>$overdue,
               'tags'=>array_values($tags),'tags_str'=>implode(' ',$tags)];
-        ($is_urgent?$urgent:$rest)[]=$out;
+        if ($is_urgent) { $urgent[]=$out; } else { $rest[]=$out; }
     }
     usort($urgent,fn($a,$b)=>$a['due_days']-$b['due_days']?:$a['priority']-$b['priority']);
     usort($rest,  fn($a,$b)=>$a['priority']-$b['priority']?:strcmp($a['text'],$b['text']));
@@ -507,7 +514,86 @@ $go   = ($game_param !== null) ? build_go($game_param) : null;
 $sun_rise = $fc['days'][0]['sunrise'] ?? '';
 $sun_set  = $fc['days'][0]['sunset']  ?? '';
 
-echo json_encode([
+// ── Flatten for Liquid templates ───────────────────────────────────────────
+$flat = [];
+$fc_today = $fc['days'][0] ?? [];
+
+$flat['temp']        = $wx['temp']        ?? '';
+$flat['feels']       = $wx['feels']       ?? '';
+$flat['hi']          = $fc_today['hi']    ?? '';
+$flat['lo']          = $fc_today['lo']    ?? '';
+$flat['condition']   = $fc['current_condition'] ?? ($fc_today['condition'] ?? '');
+$flat['wdir']        = $wx['wdir']        ?? '';
+$flat['wind_kmh']    = $wx['wind_kmh']    ?? '';
+$flat['gust_kmh']    = $wx['gust_kmh']    ?? '';
+$flat['rain_day']    = $wx['rain_day']    ?? '';
+$flat['rain_rate']   = $wx['rain_rate']   ?? '';
+$flat['rain_week']   = $wx['rain_week']   ?? '';
+$flat['humidity']    = $wx['humidity']    ?? '';
+$flat['dew']         = $wx['dew']         ?? '';
+$flat['pressure']    = $wx['pressure']    ?? '';
+$flat['uvi']         = $wx['uvi']         ?? '';
+$flat['solar']       = $wx['solar']       ?? '';
+$flat['indoor_temp'] = $wx['indoor_temp'] ?? '';
+$flat['indoor_hum']  = $wx['indoor_hum']  ?? '';
+
+$flat['sunrise']    = $fc_today['sunrise'] ?? $sun_rise;
+$flat['sunset']     = $fc_today['sunset']  ?? $sun_set;
+$flat['moon_phase'] = $fc['moon_phase'] ?? 0;
+$flat['moon_name']  = $fc['moon_name']  ?? '';
+
+$cal_days = $cal['days'] ?? [];
+
+// 7-day forecast strip (f0_*..f6_*) + that day's calendar events
+for ($i=0;$i<=6;$i++) {
+    $fday = $fc['days'][$i] ?? [];
+    $flat["f{$i}_dow"]       = $fday['dow'] ?? '';
+    $flat["f{$i}_hi"]        = $fday['hi']  ?? '';
+    $flat["f{$i}_lo"]        = $fday['lo']  ?? '';
+    $flat["f{$i}_condition"] = $fday['condition'] ?? '';
+    $flat["f{$i}_pop_str"]   = (isset($fday['pop']) && $fday['pop']>0) ? $fday['pop'].'%' : '';
+    $flat["f{$i}_mm_str"]    = (isset($fday['mm'])  && $fday['mm']>0)  ? $fday['mm'].'mm' : '';
+
+    $cday   = $cal_days[$i] ?? [];
+    $timed  = $cday['events_timed']  ?? [];
+    $allday = $cday['events_allday'] ?? [];
+    $flat["f{$i}_hol"]   = $cday['holiday'] ?? '';
+    $flat["f{$i}_tev0n"] = $timed[0]['summary'] ?? ''; $flat["f{$i}_tev0t"] = $timed[0]['time'] ?? '';
+    $flat["f{$i}_tev1n"] = $timed[1]['summary'] ?? ''; $flat["f{$i}_tev1t"] = $timed[1]['time'] ?? '';
+    $flat["f{$i}_tmore"] = count($timed)  > 2 ? '+'.(count($timed)-2).' more'  : '';
+    $flat["f{$i}_aev0"]  = $allday[0]['summary'] ?? '';
+    $flat["f{$i}_aev1"]  = $allday[1]['summary'] ?? '';
+    $flat["f{$i}_aev2"]  = $allday[2]['summary'] ?? '';
+    $flat["f{$i}_amore"] = count($allday) > 3 ? '+'.(count($allday)-3).' more' : '';
+}
+
+// 2-week calendar grid (cal_d0_*..cal_d13_*)
+foreach ($cal_days as $i => $d) {
+    $dt = new DateTime($d['date']);
+    $flat["cal_d{$i}_date"]        = $d['date'];
+    $flat["cal_d{$i}_dow"]         = $d['dow'];
+    $flat["cal_d{$i}_dom"]         = $d['dom'];
+    $flat["cal_d{$i}_month_label"] = ($d['dom']=='1') ? $dt->format('M') : '';
+    $flat["cal_d{$i}_today"]       = $d['is_today']   ? 'today' : '';
+    $flat["cal_d{$i}_wknd"]        = $d['is_weekend'] ? 'wknd'  : '';
+    $flat["cal_d{$i}_hol"]         = $d['holiday'] ?? '';
+
+    $timed  = $d['events_timed']  ?? [];
+    $allday = $d['events_allday'] ?? [];
+    foreach ([0,1,2] as $j) {
+        $flat["cal_d{$i}_tev{$j}n"] = $timed[$j]['summary'] ?? '';
+        $flat["cal_d{$i}_tev{$j}t"] = $timed[$j]['time']    ?? '';
+        $flat["cal_d{$i}_tev{$j}c"] = '';
+        $flat["cal_d{$i}_aev{$j}"]  = $allday[$j]['summary'] ?? '';
+    }
+}
+
+// Immediate to-do items (todo_u0_text..todo_u5_text)
+for ($i=0;$i<=5;$i++) {
+    $flat["todo_u{$i}_text"] = $todo['urgent'][$i]['text'] ?? '';
+}
+
+echo json_encode(array_merge([
     'go'   => $go,
     'wx'   => $wx,
     'fc'   => $fc,
@@ -515,4 +601,4 @@ echo json_encode([
     'moon' => ['phase' => $fc['moon_phase'] ?? 0, 'name' => $fc['moon_name'] ?? ''],
     'todo' => $todo,
     'cal'  => $cal,
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+], $flat), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
