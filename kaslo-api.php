@@ -54,6 +54,7 @@ const ICAL_FEEDS = [
     'https://p162-caldav.icloud.com/published/2/MTI5MzgzNTk0MTI5MzgzNWY9cTYgK0OwIRz4UCfQYKvJY44bQNHC73gDwS5V1U5jUkV9ynvy7uipCHeNIfenut1Eq0LNCaulcS6IDwnCXzpP_iBTsC0Fc21d3SMFtSvB_1CnVBymPyAyPnzFyGkhsg',
     'https://p102-caldav.icloud.com/published/2/MTI5MzgzNTk0MTI5MzgzNWY9cTYgK0OwIRz4UCfQYKvnN6NvIE36DmOUbrBgiLcGN7ezhsYo-YXFxAw38AN_vpaiEFRiXefJROr9Az80VcU',
     'https://p101-caldav.icloud.com/published/2/Mjc4Mjk1ODMxMjc4Mjk1OPiLHZnPp67Ltgtp3v229x8qT-uPdlC-Sg6bv_JZdLUiimpxJVvfu-OL9CBtnZ3CMevVIgwICabIi9WTyZIKqHA',
+    'https://p162-caldav.icloud.com/published/2/MTI5MzgzNTk0MTI5MzgzNWY9cTYgK0OwIRz4UCfQYKtOUJXav9qD_PB150PGNtFg0BbnEVoVeluzj3n-3g4T5091rVJ6mtlpJfKd6cpgv8A',
 ];
 
 const BC_HOLIDAYS = [
@@ -178,7 +179,7 @@ function build_wx(): array {
 
 // ── Open-Meteo forecast ───────────────────────────────────────────────────────
 function build_fc(): array {
-    $c = cache_get('forecast', TTL_FC);
+    $c = cache_get('forecast3', TTL_FC);
     if ($c) return $c;
 
     $raw = http_get(OPEN_METEO_URL);
@@ -190,21 +191,23 @@ function build_fc(): array {
     $tz  = new DateTimeZone(TZ);
     $now = new DateTime('now', $tz);
 
-    // 7-day forecast days
+    // 7-day forecast days (daily.time[0] is 3 days ago due to past_days=3)
     $days = [];
+    $off = 3;
     for ($i = 0; $i < 7; $i++) {
-        $code   = (int)($d['daily']['weather_code'][$i] ?? 0);
-        $sr_raw = $d['daily']['sunrise'][$i] ?? '';
-        $ss_raw = $d['daily']['sunset'][$i]  ?? '';
+        $j = $i + $off;
+        $code   = (int)($d['daily']['weather_code'][$j] ?? 0);
+        $sr_raw = $d['daily']['sunrise'][$j] ?? '';
+        $ss_raw = $d['daily']['sunset'][$j]  ?? '';
         $days[] = [
-            'date'      => $d['daily']['time'][$i] ?? '',
-            'dow'       => (new DateTime($d['daily']['time'][$i] ?? 'today', $tz))->format('D'),
-            'hi'        => (int)round($d['daily']['temperature_2m_max'][$i]          ?? 0),
-            'lo'        => (int)round($d['daily']['temperature_2m_min'][$i]          ?? 0),
+            'date'      => $d['daily']['time'][$j] ?? '',
+            'dow'       => (new DateTime($d['daily']['time'][$j] ?? 'today', $tz))->format('D'),
+            'hi'        => (int)round($d['daily']['temperature_2m_max'][$j]          ?? 0),
+            'lo'        => (int)round($d['daily']['temperature_2m_min'][$j]          ?? 0),
             'code'      => $code,
             'condition' => wmo_label($code),
-            'pop'       => (int)($d['daily']['precipitation_probability_max'][$i]    ?? 0),
-            'mm'        => round((float)($d['daily']['precipitation_sum'][$i]        ?? 0), 1),
+            'pop'       => (int)($d['daily']['precipitation_probability_max'][$j]    ?? 0),
+            'mm'        => round((float)($d['daily']['precipitation_sum'][$j]        ?? 0), 1),
             'sunrise'   => substr(explode('T', $sr_raw)[1] ?? '', 0, 5),
             'sunset'    => substr(explode('T', $ss_raw)[1] ?? '', 0, 5),
         ];
@@ -239,7 +242,7 @@ function build_fc(): array {
         'pressure_history_json' => json_encode(array_values($history), JSON_UNESCAPED_SLASHES),
     ];
 
-    cache_set('forecast', $result);
+    cache_set('forecast3', $result);
     return $result;
 }
 
