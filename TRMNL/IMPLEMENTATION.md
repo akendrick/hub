@@ -1,6 +1,6 @@
 # Kaslo TRMNL Dashboard  Implementation Reference
 
-**Display**: TRMNL e-ink 800x480px, 16-level gray, scale_factor 1.8
+**Display**: TRMNL X e-ink 1040x780px, 16-level gray, scale_factor 1.8 (native panel 1872x1404)
 **Server**: knotwork.ca | `/home/kw_9g92aw/knotwork.ca/`
 **Local mirror**: `/Users/kendrick/Documents/WEBhosting/knotwork.ca/`
 **Device key**: `kw_40e818911c1980bcd56dc4aff37a820f811990a130eb771fd9e21a536edc55ea`
@@ -11,29 +11,28 @@
 
 ```
 knotwork.ca/
- kaslo-api.php               MAIN AGGREGATOR  all plugins poll this
- kaslo-flush.php             Cache reset + rebuild (run after any PHP deploy)
- weather-device-api.php      EcoWitt + Open-Meteo  data/weather-cache.json
- cal-device-api.php          3x iCloud iCal  data/cal-cache-v3.json
- dgs-device-api.php          DGS scrape  data/dgs-cache.json
- todo-device-api.php         todo.json  JSON (used by legacy todo plugin)
+ kaslo-api.php               MAIN ENDPOINT — all plugins poll this
+ kaslo-flush.php             OPcache + cache reset (run after any PHP deploy)
  data/
-    weather-cache.json      Written by weather-device-api.php (TTL 10 min)
-    cal-cache-v3.json       Written by cal-device-api.php (TTL 20 min)
-    dgs-cache.json          Written by dgs-device-api.php (TTL 5 min)
-    todo.json               Hand-edited; read directly by kaslo-api.php
- /tmp/
-    kaslo4_om.json          Moon phase + pressure (TTL 1 hr)
-    kaslo4_brd_NNN.json     Board position per game (TTL 15 min)
+    todos.json               Hand-edited todo items (kaslo-api.php reads directly)
+ /tmp/                       (auto-created by kaslo-api.php, not committed)
+    kaslo_wx.json            EcoWitt real-time weather (TTL 5 min)
+    kaslo_forecast3.json     Open-Meteo forecast + pressure (TTL 30 min)
+    kaslo_ical.json          4x iCloud iCal feeds (TTL 30 min)
+    kaslo_dgs_board_NNN.json Board position per game ID (TTL 15 min)
  TRMNL/
      IMPLEMENTATION.md       This file
-     plugin-dashboard.md     PRIMARY PLUGIN: full-screen dashboard
+     VARIABLES-REFERENCE.md  Full variable listing (authoritative)
+     BEST-PRACTICES.html     PHP gotchas, Liquid rules, testing
+     PORTRAIT-MODE.md        Portrait orientation guide
+     kaslo-test.sh           Test suite (syntax + remote)
+     plugin-dashboard.md     PRIMARY: full-screen dashboard
+     plugin-cal2wks.md       2-week calendar (new)
      plugin-go-todo.md       Go board + todo sidebar (game=0)
      plugin-go-cal.md        Go board + calendar sidebar (game=1)
      plugin-go-weather.md    Go board + weather sidebar (game=2)
      plugin-weather-v4.md    Full-screen weather panels
      KasloTRMNL.txt          Simple 3-column weather
-     kaslo-api.php           Symlink/copy of server kaslo-api.php
 ```
 
 ---
@@ -41,112 +40,84 @@ knotwork.ca/
 ## Dependency Graph
 
 ```
-EcoWitt IKASLO6 
-Open-Meteo (forecast + pressure) > weather-device-api.php                 
-                                          > data/weather-cache.json       
-                                                                             > kaslo-api.php > TRMNL plugins
-3x iCloud iCal > cal-device-api.php                                        
-                        > data/cal-cache-v3.json                          
-                                                                             
-DGS > dgs-device-api.php > data/dgs-cache.json 
-                                                                             
-data/todo.json (hand-edited) 
-                                                                             
-Open-Meteo (pressure history) > /tmp/kaslo4_om.json 
-DGS SGF endpoint > /tmp/kaslo4_brd_NNN.json
+EcoWitt v3 API (api.ecowitt.net) ──────────────────────────────────────────┐
+Open-Meteo (7-day forecast + hourly pressure, past_days=3) ────────────────┤
+4x iCloud iCal feeds ──────────────────────────────────────────────────────┤──> kaslo-api.php ──> TRMNL plugins
+data/todos.json (hand-edited) ─────────────────────────────────────────────┤
+DGS SGF endpoint (when &game=N) ───────────────────────────────────────────┘
 ```
 
-**kaslo-api.php** is the single URL all dashboard/go plugins hit. It only
-READS caches  it never re-fetches EcoWitt or iCal directly.
+**kaslo-api.php** is fully self-contained — it fetches all sources directly
+and caches each to `/tmp/kaslo_*.json`. It does NOT depend on or read from
+separate device API scripts or `data/*.json` cache files.
+
+**Active file location**: `/Users/kendrick/Documents/WEBhosting/knotwork.ca/kaslo-api.php`
+(the TRMNL/ subdirectory copy is documentation only)
 
 ---
 
 ## PHP Files
 
-### `kaslo-api.php`  Unified aggregator (PRIMARY)
+### `kaslo-api.php`  Unified self-contained endpoint (PRIMARY)
+**Active file**: `/Users/kendrick/Documents/WEBhosting/knotwork.ca/kaslo-api.php`
 **URL**: `https://knotwork.ca/kaslo-api.php?key=KEY[&game=N]`
-**Used by**: plugin-dashboard, plugin-go-todo, plugin-go-cal, plugin-go-weather, plugin-weather-v4, KasloTRMNL
+**Used by**: plugin-dashboard, plugin-cal2wks, plugin-go-todo, plugin-go-cal, plugin-go-weather, plugin-weather-v4, KasloTRMNL
 
-Reads from:
-- `data/weather-cache.json`  current weather + 7-day forecast
-- `data/cal-cache-v3.json`  28-day calendar events
-- `data/dgs-cache.json`  DGS game list (only when `&game=N`)
-- `data/todo.json`  todo items
-- `/tmp/kaslo4_om.json`  moon phase + pressure (fetches Open-Meteo if stale)
-- `/tmp/kaslo4_brd_NNN.json`  board position (fetches DGS SGF if stale)
+Fetches all data internally and caches to `/tmp/kaslo_*.json`. Does NOT call
+separate device API scripts or read from `data/*.json` cache files.
+
+| Source | Constant | TTL | Cache key |
+|---|---|---|---|
+| EcoWitt v3 API (real-time) | `ECOWITT_URL` | 300s (5 min) | `kaslo_wx.json` |
+| Open-Meteo (forecast + pressure) | `OPEN_METEO_URL` | 1800s (30 min) | `kaslo_forecast3.json` |
+| 4× iCloud iCal feeds | `ICAL_FEEDS[]` | 1800s (30 min) | `kaslo_ical.json` |
+| DGS SGF board (when `&game=N`) | `DGS_SGF_BASE` | 900s (15 min) | `kaslo_dgs_board_NNN.json` |
 
 Key constants to maintain:
 ```php
-const REMINDER_ANCHOR = '2026-05-28';  // Update when EcoWitt key refreshed
-const REMINDER_TEXT   = 'Refresh EcoWitt Sharing API';
+const CAL_DAYS = 14;   // calendar window days (0..13)
+const TZ       = 'America/Vancouver';
+const TTL_WX   = 300;    // 5 min
+const TTL_FC   = 1800;   // 30 min
+const TTL_DGS  = 900;    // 15 min
+const TTL_ICAL = 1800;   // 30 min
 ```
+
+**EcoWitt API credentials** (in `ECOWITT_URL`):
+- `application_key`: C6FD389063D6A82CC7A68532000A5962
+- `api_key`: 1c2c26a5-a293-4f82-a69a-9e77b6447344
+- `mac`: E0:5A:1B:21:11:57
+- Endpoint: `api.ecowitt.net/api/v3/device/real_time?...&call_back=all`
+- Units: temp_unitid=1 (°C), pressure_unitid=3 (hPa), wind_speed_unitid=7 (km/h), rainfall_unitid=12 (mm)
+- Rain field: `rainfall_piezo` (not `rainfall`)
+
+**4 iCal feeds** (`ICAL_FEEDS` array):
+- BC EHS + WORK calendar
+- Family calendar
+- Kendrick Stuff ← all events extracted as todos (not shown on calendar grid)
+- SD8 calendar
+
+**Todo sources** merged in `build_todo()`:
+1. `data/todos.json` (hand-edited)
+2. All events from "Kendrick Stuff" iCal feed (event date = due date, priority 3)
+3. Any event in any feed titled `TODO: <text>` (same treatment)
+
+**Critical bug fixes applied (session Jul 2026):**
+- `f0–f6_*` calendar event fields now sourced from `$cal_days[$i]`, not weather cache
+- `(cond ? $a : $b)[] = $x` ternary-on-LHS syntax removed throughout
+- `past_days=3` offset corrected: `$off = 3` skips to today's forecast day
+- Moon phase computed locally (Open-Meteo `moon_phase` daily param removed from API)
+- EcoWitt changed from share-page URL to real v3 API
 
 ---
 
-### `kaslo-flush.php`  Full cache reset
+### `kaslo-flush.php`  Cache reset
 **URL**: `https://knotwork.ca/kaslo-flush.php`
 **Run after**: any PHP file deploy
 
-Actions performed (in order):
-1. OPcache invalidate + reset for kaslo-api.php
-2. Delete `/tmp/kaslo4_om.json` (moon/pressure)
-3. Delete `/tmp/kaslo4_brd_*.json` (all board caches)
-4. Delete `data/weather-cache.json` (forces 7-day forecast rebuild)
-5. HTTP GET `weather-device-api.php`  rebuilds weather cache
-6. HTTP GET `cal-device-api.php`  rebuilds 28-day calendar cache
-
-Output confirms: "Weather rebuilt: 7 forecast days" and "Calendar rebuilt: 28 days"
-
----
-
-### `weather-device-api.php`  Weather data source
-**URL**: `https://knotwork.ca/weather-device-api.php?key=KEY`
-**Writes**: `data/weather-cache.json` (TTL 10 min)
-**Used by**: kaslo-api.php reads its cache; must be polled separately to stay fresh
-
-Sources:
-- **EcoWitt IKASLO6**: current temp, humidity, wind, rain, pressure, UV, solar, indoor
-- **Open-Meteo** (`forecast_days=7`): hi/lo, weather code, precip, sunrise/sunset for f0f6
-- **cal-cache-v3.json**: merges calendar events into forecast days (f0_tev0n etc.)
-
-Output flat keys: `temp`, `feels`, `condition`, `humidity`, `pressure`, `wind_kmh`, `gust_kmh`, `wdir`, `rain_day`, `rain_rate`, `rain_week`, `uvi`, `solar`, `indoor_temp`, `indoor_hum`, `sunrise`, `sunset`, `daylight`, `hi`, `lo` plus `f0_*` through `f6_*`
-
-**Note**: `forecast_days=7` is set  all 7 days have hi/lo/condition data.
-
----
-
-### `cal-device-api.php`  Calendar data source
-**URL**: `https://knotwork.ca/cal-device-api.php?key=KEY`
-**Writes**: `data/cal-cache-v3.json` (TTL 20 min)
-**Used by**: kaslo-api.php reads its cache; weather-device-api.php merges it
-
-Sources: 3 iCloud iCal feeds
-- `personal` = BC EHS + WORK calendar (label used for EHS chicklet styling)
-- `personal2` = Kendrick Stuff
-- `personal3` = Family
-
-Key features:
-- **WINDOW_DAYS = 28** (4 weeks, d0d27)
-- **RRULE expansion**: FREQ=DAILY, WEEKLY, MONTHLY  recurring events generate occurrences across the full 28-day window with correct UNTIL/COUNT handling
-- **EXDATE**: exception dates respected (cancelled recurring instances skipped)
-- **Name abbreviations** via `abbreviate_names()`:
-  - "Sarah" / "sarah"  "SA"
-  - "Skylet" / "skylet"  "SK"
-  - "Kendrick" / "kendrick"  "KL"
-- **tev{j}c**: calendar label per event (used for EHS chicklet class in dashboard)
-
-Output: flat keys `d0_dow`, `d0_dom`, `d0_date`, `d0_today`, `d0_wknd`, `d0_hol`, `d0_tev0n/t/c`, `d0_tev1n/t/c`, `d0_tev2n/t/c`, `d0_tmore`, `d0_aev0/1/2`, `d0_amore` ... repeated for d0d27
-
----
-
-### `dgs-device-api.php`  Dragon Go Server
-**URL**: `https://knotwork.ca/dgs-device-api.php?key=KEY`
-**Writes**: `data/dgs-cache.json` (TTL 5 min)
-**Used by**: kaslo-api.php (reads cache when `&game=N`)
-
-- User: shrimphead, UID 24738
-- Login + HTML scrape (quick_status.php endpoint broken)
-- DGS config: `/home/kw_9g92aw/knotwork.ca/config/dgs-config.json`
+Deletes all `/tmp/kaslo_*.json` caches and calls `opcache_invalidate()` +
+`opcache_reset()`. On the next plugin poll, kaslo-api.php fetches fresh data
+from all sources and rebuilds caches automatically.
 
 ---
 
@@ -185,13 +156,13 @@ Full-screen dashboard with adaptive JS layout (window.innerWidth/innerHeight):
 
 ```
 
-**JS layout proportions** (at 480px screen, 28px header):
-- `avail` = 452px
-- `TOP_H` = `floor(avail * 0.24)`  108px
-- `FC_H` = `max(88, floor(avail * 0.18))`  88px
-- `CAL_H` = avail - TOP_H - FC_H  256px
-- `CAL_ROW1_H` = `floor(CAL_H * 0.32)`  81px (current week, bigger)
-- `CAL_ROW_H` = `floor((CAL_H - CAL_ROW1_H) / 3)`  58px (weeks 2-4)
+**JS layout proportions** (at 780px screen, 28px header):
+- `avail` = 752px
+- `TOP_H` = `floor(avail * 0.24)`  180px
+- `FC_H` = `max(88, floor(avail * 0.18))`  135px
+- `CAL_H` = avail - TOP_H - FC_H  437px
+- `CAL_ROW1_H` = `floor(CAL_H * 0.32)`  139px (current week, bigger)
+- `CAL_ROW_H` = `floor((CAL_H - CAL_ROW1_H) / 3)`  99px (weeks 2-4)
 
 **Forecast strip columns** (`.fc-col`):
 - Top: full-width DOW band (`Tuesday` etc.  JS expands from "Tue" via `DOW_FULL` lookup)
@@ -217,7 +188,7 @@ Full-screen dashboard with adaptive JS layout (window.innerWidth/innerHeight):
 | Holiday | `#c8c8c8` medium gray |
 | Today | `#484848` dark gray, white text |
 
-**Variables used**: weather bare aliases (`temp`, `condition`, `feels`, `hi`, `lo`, `wind_kmh`, `wdir`, `rain_day`, `humidity`, `pressure`, `indoor_temp`, `indoor_hum`, `sunrise`, `sunset`), `moon_phase`, `moon_name`, `f0_*``f6_*`, `cal_d0_*``cal_d27_*`, `todo_u0_*``todo_u5_*`, `todo_r0_*``todo_r7_*`, `todo_total`
+**Variables used**: weather bare aliases (`temp`, `condition`, `feels`, `hi`, `lo`, `wind_kmh`, `wdir`, `rain_day`, `humidity`, `pressure`, `indoor_temp`, `indoor_hum`, `sunrise`, `sunset`), `moon_phase`, `moon_name`, `f0_*`–`f6_*`, `cal_d0_*`–`cal_d13_*`, `todo_u0_text`–`todo_u5_text`, `todo.total`
 
 ---
 
@@ -264,113 +235,23 @@ Full-screen dashboard with adaptive JS layout (window.innerWidth/innerHeight):
 **URL**: `kaslo-api.php?key=KEY`
 
 - Header | Col 1: current conditions | Col 2: stats 22 grid | Col 3: 7-day forecast | Footer
-- Hardcoded 800480px (non-adaptive)
+- Hardcoded 1040x780px (non-adaptive) — needs update for TRMNL X
 - **Variables**: bare aliases (`temp`, `condition`, `sunrise` etc.) + `f0_*``f6_*`
 
 ---
 
 ## kaslo-api.php Variable Reference
 
-All variables are flat top-level JSON keys  no nested objects, no arrays.
+See **[VARIABLES-REFERENCE.md](VARIABLES-REFERENCE.md)** for the complete, authoritative listing.
 
-### Weather (bare aliases + wx_* prefix both available)
-| Variable | Example | Source |
-|---|---|---|
-| `temp` / `wx_temp` | `"15"` | EcoWitt outdoor temp C |
-| `feels` / `wx_feels` | `"13"` | EcoWitt feels-like C |
-| `condition` / `wx_condition` | `"Clear"` | Open-Meteo WMO code |
-| `hi` / `wx_hi` | `"22"` | Today forecast high C |
-| `lo` / `wx_lo` | `"10"` | Today forecast low C |
-| `wind_kmh` / `wx_wind_kmh` | `"10"` | EcoWitt wind speed |
-| `gust_kmh` / `wx_gust_kmh` | `"15"` | EcoWitt gust |
-| `wdir` / `wx_wdir` | `"NE"` | Compass direction |
-| `rain_day` / `wx_rain_day` | `"0.0"` | Daily rain mm |
-| `rain_rate` / `wx_rain_rate` | `"0.0"` | Rain rate mm/h |
-| `rain_week` / `wx_rain_week` | `"2.4"` | Weekly rain mm |
-| `humidity` / `wx_humidity` | `"74"` | Outdoor humidity % |
-| `dew` / `wx_dew` | `"9"` | Dew point C |
-| `pressure` / `wx_pressure` | `"948"` | Relative pressure hPa |
-| `uvi` / `wx_uvi` | `"2"` | UV index |
-| `solar` / `wx_solar` | `"320"` | Solar W/m |
-| `indoor_temp` / `wx_indoor_temp` | `"23"` | Indoor temp C |
-| `indoor_hum` / `wx_indoor_hum` | `"45"` | Indoor humidity % |
-| `sunrise` / `wx_sunrise` | `"04:42"` | HH:MM |
-| `sunset` / `wx_sunset` | `"20:48"` | HH:MM |
-| `daylight` / `wx_daylight` | `"16h 06m daylight"` | Duration string |
-
-### Forecast (f0_* through f6_*  7 days)
-| Variable | Example | Notes |
-|---|---|---|
-| `f0_dow` | `"Tue"` | 3-letter day of week |
-| `f0_hi` / `f0_lo` | `"22"` / `"10"` | C |
-| `f0_condition` | `"Partly Cloudy"` | Used for icon lookup in JS |
-| `f0_pop_str` | `"28%"` | Empty if 10% |
-| `f0_mm_str` | `"0.3mm"` | Empty if <0.1mm |
-| `f0_hol` | `"Canada Day"` | Holiday on that day |
-| `f0_tev0n` / `f0_tev0t` | `"SA dentist"` / `"11:00"` | Timed event 0 |
-| `f0_tev1n` / `f0_tev1t` | `""` / `""` | Timed event 1 |
-| `f0_aev0` / `f0_aev1` | `"TRIP"` / `""` | All-day events |
-| `fc_pressure_now` | `"948.2"` | Current pressure hPa |
-| `fc_pressure_trend` | `"rising"` | rising / falling / steady |
-| `fc_pressure_json` | `"[948,949,...]"` | Hourly history array |
-
-### Sun & Moon
-| Variable | Example | Notes |
-|---|---|---|
-| `sun_rise` / `sun_set` | `"04:42"` / `"20:48"` | For go.* plugins |
-| `moon_phase` | `0.73` | 0=new, 0.5=full; Julian Date formula |
-| `moon_name` | `"Waning Gibbous"` | Age-based name |
-
-### Calendar (cal_d0_* through cal_d27_*  28 days)
-| Variable | Example | Notes |
-|---|---|---|
-| `cal_d0_dow` | `"Tue"` | 3-letter DOW |
-| `cal_d0_dom` | `"2"` | Day of month (no leading zero) |
-| `cal_d0_date` | `"2026-06-02"` | ISO date |
-| `cal_d0_month_label` | `"Jul"` | Only on first day of new month |
-| `cal_d0_month_abbr` | `"Jun"` | 3-letter month every day (for today band) |
-| `cal_d0_today` | `"today"` | `"today"` or `""` |
-| `cal_d0_wknd` | `"wknd"` | `"wknd"` or `""` |
-| `cal_d0_hol` | `"Canada Day"` | Holiday name or `""` |
-| `cal_d0_tev0n` | `"SA dentist"` | Timed event 0 name (name-abbreviated) |
-| `cal_d0_tev0t` | `"11:00"` | Timed event 0 time |
-| `cal_d0_tev0c` | `"personal"` | Calendar label  "personal" = BC EHS |
-| `cal_d0_tev1n/t/c` | | Timed event 1 |
-| `cal_d0_tev2n/t/c` | | Timed event 2 |
-| `cal_d0_tmore` | `"+1 more"` | Overflow count |
-| `cal_d0_aev0/1/2` | `"TRIP"` | All-day events |
-| `cal_d0_amore` | `""` | All-day overflow |
-| `cal_d0_f_cond` | `"Rain"` | Forecast condition |
-| `cal_d0_f_hi` / `cal_d0_f_lo` | `"22"` / `"10"` | Forecast hi/lo |
-| `cal_d0_f_pop` | `"28%"` | Precip probability |
-| `cal_d0_f_mm` | `"0.3mm"` | Precip amount |
-
-**Name abbreviations** applied at parse time in cal-device-api.php:
-- Sarah/sarah  SA  Skylet/skylet  SK  Kendrick/kendrick  KL
-
-### Todo (todo_*)
-| Variable | Example | Notes |
-|---|---|---|
-| `todo_total` | `"11"` | Total open items |
-| `todo_u0_text``todo_u5_text` | `"Report Cards"` | Up to 6 urgent items |
-| `todo_u0_meta``todo_u5_meta` | `"Tomorrow"` | Due date / tags |
-| `todo_u_more` | `"+2 more"` | Overflow or `""` |
-| `todo_r0_text``todo_r7_text` | `"Chop firewood"` | Up to 8 rest items |
-| `todo_r0_meta``todo_r7_meta` | `""` | Due date |
-| `todo_r_more` | `""` | Overflow |
-
-### Go Board (go_*)
-| Variable | Notes |
-|---|---|
-| `go_opponent` | DGS handle |
-| `go_color` | `"b"` or `"w"` |
-| `go_moves` | Move number |
-| `go_time_left` | Time remaining |
-| `go_my_turn_count` | Games awaiting your move |
-| `go_total_games` | Active 1919 games |
-| `go_board_black_json` | `"[[col,row],...]"` |
-| `go_board_white_json` | `"[[col,row],...]"` |
-| `go_last_col/row/color` | Last move |
+Key points:
+- Flat keys use **bare names only** — no `wx_*` prefix (e.g. `temp`, not `wx_temp`)
+- Calendar window is **14 days**: `cal_d0_*` through `cal_d13_*`
+- Sun times are `sunrise` / `sunset` (not `sun_rise` / `sun_set`)
+- `daylight` key does **not** exist in flat output
+- Todo flat keys: only `todo_u0_text` through `todo_u5_text`; `todo.total` is nested
+- Pressure fields (`fc_pressure_*`) are in the nested `fc` object
+- Moon phase computed locally via Julian Date (Open-Meteo moon_phase param removed)
 
 ---
 
@@ -378,11 +259,11 @@ All variables are flat top-level JSON keys  no nested objects, no arrays.
 
 Use `width:100%;height:100%` on html/body. Compute ALL dimensions from
 `window.innerWidth` / `window.innerHeight` in JS. Stamp explicit px values
-onto DOM. Never hardcode 800px or 480px.
+onto DOM. Never hardcode 1040px or 780px.
 
 ```js
-var VW = window.innerWidth  || 800;
-var VH = window.innerHeight || 480;
+var VW = window.innerWidth  || 1040;
+var VH = window.innerHeight || 780;
 var HDR = 28;
 var avail = VH - HDR;
 // ... compute section heights as fractions of avail ...
@@ -415,20 +296,19 @@ Board rendered via innerHTML SVG (NOT appendChild)
 ```
 curl https://knotwork.ca/kaslo-flush.php
 ```
-Always flush  this resets OPcache AND rebuilds both weather and calendar caches.
+Always flush — this resets OPcache and deletes all `/tmp/kaslo_*.json` caches.
+Fresh data is fetched from EcoWitt, Open-Meteo, and iCal on the next plugin poll.
 
 **TRMNL Plugin URLs:**
 | Plugin | File | URL |
 |---|---|---|
-| Dashboard  | plugin-dashboard.md | `kaslo-api.php?key=KEY` |
+| Dashboard | plugin-dashboard.md | `kaslo-api.php?key=KEY` |
+| 2-week calendar | plugin-cal2wks.md | `kaslo-api.php?key=KEY` |
 | Go + Todo | plugin-go-todo.md | `kaslo-api.php?key=KEY&game=0` |
 | Go + Calendar | plugin-go-cal.md | `kaslo-api.php?key=KEY&game=1` |
 | Go + Weather | plugin-go-weather.md | `kaslo-api.php?key=KEY&game=2` |
 | Weather panels | plugin-weather-v4.md | `kaslo-api.php?key=KEY` |
 | Weather simple | KasloTRMNL.txt | `kaslo-api.php?key=KEY` |
-| (legacy) Todo | plugin-todo-v5.2.md | `todo-device-api.php?key=KEY` |
-| (legacy) Calendar | plugin-calendar-v6.md | `cal-device-api.php?key=KEY` |
-| (layout ref) DGS | plugin-dgs-v3.md | `dgs-device-api.php?key=KEY` |
 
 **Plugin settings**: Strategy=Polling, Verb=GET, Remove bleed margin=Yes
 **Paste**: markup between the ` ```html ` fences only
@@ -438,42 +318,27 @@ Always flush  this resets OPcache AND rebuilds both weather and calendar caches.
 
 ## Maintenance
 
-### EcoWitt API key (~every 30 days)
-1. Refresh at ecowitt.net
-2. Update `api_key` in `weather-device-api.php` and `ECOWITT_URL`
-3. Update `REMINDER_ANCHOR` in `kaslo-api.php` to today's date
-4. Run `kaslo-flush.php`
+### EcoWitt API key (if ever rotated)
+1. Get new `api_key` from ecowitt.net
+2. Update `ECOWITT_URL` constant in `kaslo-api.php`
+3. Run `kaslo-flush.php` to bust old weather cache
 
 ### BC Holidays
-- Defined in `cal-device-api.php`  `BC_HOLIDAYS` array
-- Covers 2026  add 2027 dates before year-end
+- Defined in `kaslo-api.php` — `BC_HOLIDAYS` array
+- Covers 2026 — add 2027 dates before year-end
 
-### Calendar name abbreviations
-- Defined in `cal-device-api.php`  `abbreviate_names()` function
-- Current: SarahSA, SkyletSK, KendrickKL
-- Applied at parse time; takes effect after cache rebuild (kaslo-flush)
-
-### RRULE recurring events
-- `cal-device-api.php` expands FREQ=DAILY, WEEKLY, MONTHLY
-- UNTIL (with or without time component), COUNT, INTERVAL all handled
-- EXDATE exception dates respected
-- BYDAY not expanded (uses start-date's weekday for weekly events)
-
-### Open-Meteo moon_phase discontinued
-- `daily=moon_phase` returns error  do not add back
-- Moon phase computed via `compute_moon_phase()` (Julian Date) in kaslo-api.php
-- Same formula in plugin-weather-v4.md JS  results match
+### Open-Meteo moon_phase — do not re-add
+- `daily=moon_phase` parameter returns 400 error from Open-Meteo
+- Moon phase computed via `compute_moon_phase()` (Julian Date formula) in kaslo-api.php
+- Same formula used in plugin-weather-v4.md JS — results agree
 
 ### Cache locations
-| File | Written by | TTL | Contents |
-|---|---|---|---|
-| `data/weather-cache.json` | weather-device-api.php | 10 min | EcoWitt + 7-day forecast |
-| `data/cal-cache-v3.json` | cal-device-api.php | 20 min | 28-day calendar, RRULE expanded |
-| `data/dgs-cache.json` | dgs-device-api.php | 5 min | DGS game list |
-| `/tmp/kaslo4_om.json` | kaslo-api.php | 1 hr | Moon phase + hourly pressure |
-| `/tmp/kaslo4_brd_NNN.json` | kaslo-api.php | 15 min | Board position per game ID |
+| File | TTL | Contents |
+|---|---|---|
+| `/tmp/kaslo_wx.json` | 5 min | EcoWitt real-time conditions |
+| `/tmp/kaslo_forecast3.json` | 30 min | Open-Meteo 7-day forecast + hourly pressure |
+| `/tmp/kaslo_ical.json` | 30 min | 4× iCloud iCal feeds parsed |
+| `/tmp/kaslo_dgs_board_NNN.json` | 15 min | DGS SGF board position per game |
 
-### weather-device-api.php must be polled externally
-- kaslo-api.php reads FROM its cache but never refreshes it
-- Ensure at least one TRMNL plugin polls `weather-device-api.php?key=KEY` every 10 min
-- kaslo-flush.php now does this once on demand  not sufficient for continuous freshness
+All `/tmp/kaslo_*.json` files are deleted by `kaslo-flush.php` and rebuilt
+automatically on the next poll. No persistent `data/*.json` cache files.

@@ -1,0 +1,1037 @@
+
+<title>TRMNL Kaslo — Best Practices & Testing Guide</title>
+<style>
+/* ── Tokens ── */
+:root {
+  --bg:           #F7F6F2;
+  --bg-2:         #EFEDE7;
+  --bg-3:         #E8E6DF;
+  --text:         #1C1B17;
+  --text-muted:   #6B685F;
+  --accent:       #9A6B10;
+  --accent-warm:  #D4A740;
+  --rule:         #D4D1C8;
+  --warn-bg:      #FDF3ED;
+  --warn-border:  #B84020;
+  --warn-text:    #8A2010;
+  --tip-bg:       #EFF5EB;
+  --tip-border:   #4A8030;
+  --tip-text:     #2A5018;
+  --code-bg:      #E8E6DF;
+  --code-text:    #2A2820;
+  --code-border:  #C8C5BC;
+  --toc-w:        220px;
+  --content-max:  680px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:          #1A1916;
+    --bg-2:        #222017;
+    --bg-3:        #2A2820;
+    --text:        #E4E2DA;
+    --text-muted:  #8A877C;
+    --accent:      #D4A740;
+    --accent-warm: #D4A740;
+    --rule:        #302E28;
+    --warn-bg:     #2A1810;
+    --warn-border: #C04428;
+    --warn-text:   #E8906A;
+    --tip-bg:      #122010;
+    --tip-border:  #3A6028;
+    --tip-text:    #7AC06A;
+    --code-bg:     #242219;
+    --code-text:   #D4C9A8;
+    --code-border: #38352C;
+  }
+}
+:root[data-theme="light"] {
+  --bg:           #F7F6F2;
+  --bg-2:         #EFEDE7;
+  --bg-3:         #E8E6DF;
+  --text:         #1C1B17;
+  --text-muted:   #6B685F;
+  --accent:       #9A6B10;
+  --accent-warm:  #D4A740;
+  --rule:         #D4D1C8;
+  --warn-bg:      #FDF3ED;
+  --warn-border:  #B84020;
+  --warn-text:    #8A2010;
+  --tip-bg:       #EFF5EB;
+  --tip-border:   #4A8030;
+  --tip-text:     #2A5018;
+  --code-bg:      #E8E6DF;
+  --code-text:    #2A2820;
+  --code-border:  #C8C5BC;
+}
+:root[data-theme="dark"] {
+  --bg:          #1A1916;
+  --bg-2:        #222017;
+  --bg-3:        #2A2820;
+  --text:        #E4E2DA;
+  --text-muted:  #8A877C;
+  --accent:      #D4A740;
+  --accent-warm: #D4A740;
+  --rule:        #302E28;
+  --warn-bg:     #2A1810;
+  --warn-border: #C04428;
+  --warn-text:   #E8906A;
+  --tip-bg:      #122010;
+  --tip-border:  #3A6028;
+  --tip-text:    #7AC06A;
+  --code-bg:     #242219;
+  --code-text:   #D4C9A8;
+  --code-border: #38352C;
+}
+
+/* ── Reset & Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  line-height: 1.65;
+  min-height: 100vh;
+}
+
+/* ── Page Header ── */
+.page-header {
+  background: var(--bg-2);
+  border-bottom: 2px solid var(--accent);
+  padding: 32px 40px 28px;
+}
+.page-header-inner {
+  max-width: calc(var(--toc-w) + var(--content-max) + 80px);
+  margin: 0 auto;
+}
+.eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+.page-title {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -.01em;
+  text-wrap: balance;
+  color: var(--text);
+}
+.page-sub {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: 8px;
+  max-width: 520px;
+  text-wrap: balance;
+}
+.page-meta {
+  display: flex;
+  gap: 24px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.meta-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: .02em;
+}
+.meta-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-warm);
+  flex-shrink: 0;
+}
+
+/* ── Layout ── */
+.layout {
+  max-width: calc(var(--toc-w) + var(--content-max) + 80px);
+  margin: 0 auto;
+  display: flex;
+  align-items: flex-start;
+  padding: 0 24px;
+  gap: 0;
+}
+
+/* ── TOC ── */
+.toc {
+  width: var(--toc-w);
+  flex-shrink: 0;
+  position: sticky;
+  top: 24px;
+  padding: 28px 28px 28px 0;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule) transparent;
+}
+.toc-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+.toc-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.toc-list li a {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 3px;
+  border-left: 2px solid transparent;
+  line-height: 1.4;
+  transition: color .1s, border-color .1s, background .1s;
+}
+.toc-list li a:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--bg-2);
+}
+.toc-list li.sub a { padding-left: 20px; font-size: 11px; }
+.toc-rule { border: none; border-top: 1px solid var(--rule); margin: 12px 0; }
+
+/* ── Content ── */
+.content {
+  flex: 1;
+  min-width: 0;
+  padding: 40px 0 80px 40px;
+  border-left: 1px solid var(--rule);
+  max-width: var(--content-max);
+}
+
+/* ── Sections ── */
+.section { margin-bottom: 60px; }
+.section + .section { border-top: 1px solid var(--rule); padding-top: 52px; }
+
+.sec-eyebrow {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.sec-title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  text-wrap: balance;
+  color: var(--text);
+  margin-bottom: 14px;
+}
+.sec-intro {
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.7;
+  margin-bottom: 28px;
+  max-width: 560px;
+  text-wrap: balance;
+}
+
+h3 {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .01em;
+  text-transform: uppercase;
+  color: var(--text);
+  margin: 32px 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--rule);
+}
+h3:first-child { margin-top: 0; }
+
+p {
+  font-size: 14.5px;
+  line-height: 1.72;
+  color: var(--text);
+  margin-bottom: 14px;
+}
+p:last-child { margin-bottom: 0; }
+
+/* ── Rules (inline) ── */
+.rule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.rule-item {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 10px;
+  align-items: baseline;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.rule-num {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.rule-text strong { color: var(--text); font-weight: 700; }
+.rule-text { color: var(--text); }
+
+/* ── Callouts ── */
+.callout {
+  border-left: 3px solid;
+  border-radius: 0 4px 4px 0;
+  padding: 14px 16px;
+  margin: 20px 0;
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+.callout.warn {
+  background: var(--warn-bg);
+  border-color: var(--warn-border);
+  color: var(--warn-text);
+}
+.callout.tip {
+  background: var(--tip-bg);
+  border-color: var(--tip-border);
+  color: var(--tip-text);
+}
+.callout-label {
+  font-weight: 800;
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 5px;
+  opacity: .75;
+}
+.callout p { margin-bottom: 6px; font-size: 13.5px; line-height: 1.6; color: inherit; }
+.callout p:last-child { margin-bottom: 0; }
+
+/* ── Code ── */
+pre, code {
+  font-family: 'SF Mono', 'Cascadia Code', 'Fira Mono', 'Consolas', monospace;
+  font-size: 12.5px;
+}
+code {
+  background: var(--code-bg);
+  color: var(--code-text);
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--code-border);
+  white-space: nowrap;
+}
+pre {
+  background: var(--code-bg);
+  color: var(--code-text);
+  border: 1px solid var(--code-border);
+  border-radius: 5px;
+  padding: 16px 18px;
+  margin: 16px 0;
+  overflow-x: auto;
+  line-height: 1.55;
+}
+pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12.5px;
+  white-space: pre;
+  color: inherit;
+}
+
+/* ── KV table ── */
+.kv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 16px 0;
+}
+.kv-table th {
+  text-align: left;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 0 12px 8px;
+  border-bottom: 1px solid var(--rule);
+}
+.kv-table th:first-child { padding-left: 0; }
+.kv-table td {
+  padding: 8px 12px;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+  line-height: 1.5;
+  color: var(--text);
+}
+.kv-table td:first-child { padding-left: 0; }
+.kv-table tr:last-child td { border-bottom: none; }
+.kv-table td code { font-size: 11.5px; }
+
+/* ── Test block ── */
+.test-block {
+  background: var(--bg-2);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  margin: 20px 0;
+  overflow: hidden;
+}
+.test-block-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--bg-3);
+}
+.test-block-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.test-chip {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 2px;
+  background: var(--accent);
+  color: var(--bg);
+}
+.test-block-body { padding: 14px 16px; }
+.test-block-body p { font-size: 13.5px; margin-bottom: 10px; color: var(--text-muted); }
+.test-block-body pre { margin: 8px 0; }
+
+/* ── Dep graph ── */
+.dep-graph {
+  background: var(--bg-2);
+  border: 1px solid var(--rule);
+  border-radius: 5px;
+  padding: 20px;
+  font-family: 'SF Mono', 'Cascadia Code', monospace;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.7;
+  margin: 16px 0;
+  overflow-x: auto;
+}
+.dep-graph .hl { color: var(--accent); font-weight: 700; }
+
+/* ── Inline badge ── */
+.badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 2px;
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+}
+.badge.php  { background: #7B54A0; color: #fff; }
+.badge.html { background: #2A6AC4; color: #fff; }
+.badge.cli  { background: var(--bg-3); color: var(--text-muted); border: 1px solid var(--rule); }
+
+/* ── UL/OL ── */
+ul, ol {
+  padding-left: 20px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+li { font-size: 14px; line-height: 1.65; color: var(--text); }
+li strong { font-weight: 700; }
+ul li::marker { color: var(--accent); }
+ol li::marker { color: var(--accent); font-weight: 700; font-size: 13px; }
+
+/* ── Checklist ── */
+.checklist {
+  list-style: none;
+  padding-left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 16px 0;
+}
+.checklist li {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 10px;
+  font-size: 13.5px;
+  align-items: baseline;
+}
+.check-box {
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--rule);
+  border-radius: 2px;
+  flex-shrink: 0;
+  position: relative;
+  top: 2px;
+  background: var(--bg);
+}
+
+/* ── Responsive ── */
+@media (max-width: 760px) {
+  .layout { flex-direction: column; padding: 0 16px; }
+  .toc {
+    width: 100%;
+    position: static;
+    max-height: none;
+    padding: 20px 0 0;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 0;
+    overflow-y: visible;
+  }
+  .content {
+    padding: 32px 0 60px;
+    border-left: none;
+    border-top: 1px solid var(--rule);
+    max-width: 100%;
+  }
+  .page-header { padding: 24px 20px 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+
+<!-- ── PAGE HEADER ── -->
+<header class="page-header">
+  <div class="page-header-inner">
+    <div class="eyebrow">Kaslo TRMNL Dashboard</div>
+    <h1 class="page-title">Best Practices &amp; Testing Guide</h1>
+    <p class="page-sub">Hard-won rules for the PHP backend, Liquid plugin templates, and how to test both without a CI pipeline.</p>
+    <div class="page-meta">
+      <span class="meta-chip"><span class="meta-dot"></span>PHP 8.4 · knotwork.ca</span>
+      <span class="meta-chip"><span class="meta-dot"></span>TRMNL X 1040×780 e-ink</span>
+      <span class="meta-chip"><span class="meta-dot"></span>Updated Jul 2026</span>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- ── TOC ── -->
+  <nav class="toc" aria-label="Table of contents">
+    <div class="toc-label">Contents</div>
+    <ul class="toc-list">
+      <li><a href="#architecture">Architecture</a></li>
+      <li class="sub"><a href="#dep-graph">Dependency graph</a></li>
+      <li class="sub"><a href="#cache-ttls">Cache TTLs</a></li>
+      <hr class="toc-rule">
+      <li><a href="#php-rules">PHP Backend Rules</a></li>
+      <li class="sub"><a href="#gotchas">Critical gotchas</a></li>
+      <li class="sub"><a href="#file-io">File I/O patterns</a></li>
+      <li class="sub"><a href="#output">Output format</a></li>
+      <hr class="toc-rule">
+      <li><a href="#plugin-rules">Plugin / Liquid Rules</a></li>
+      <li class="sub"><a href="#variable-access">Variable access</a></li>
+      <li class="sub"><a href="#layout">Layout: JS sizing</a></li>
+      <li class="sub"><a href="#go-board">Go board rendering</a></li>
+      <hr class="toc-rule">
+      <li><a href="#testing">Testing Strategy</a></li>
+      <li class="sub"><a href="#test-php">PHP fixture tests</a></li>
+      <li class="sub"><a href="#test-schema">Schema smoke tests</a></li>
+      <li class="sub"><a href="#test-plugin">Plugin HTML tests</a></li>
+      <li class="sub"><a href="#test-flush">Flush as integration test</a></li>
+      <hr class="toc-rule">
+      <li><a href="#deploy">Deployment Checklist</a></li>
+      <li><a href="#maintenance">Maintenance</a></li>
+    </ul>
+  </nav>
+
+  <!-- ── CONTENT ── -->
+  <main class="content">
+
+    <!-- 1. Architecture -->
+    <section class="section" id="architecture">
+      <div class="sec-eyebrow">Section 01</div>
+      <h2 class="sec-title">Architecture</h2>
+      <p class="sec-intro"><code>kaslo-api.php</code> is fully self-contained. It fetches all data sources directly and caches results to <code>/tmp/kaslo_*.json</code>. It must never make HTTP calls back to <code>knotwork.ca</code> — self-referencing calls on this host silently hang or fail.</p>
+
+      <h3 id="dep-graph">Dependency graph</h3>
+      <div class="dep-graph">
+EcoWitt v3 API (api.ecowitt.net)  ─────────────────────────────────────────┐
+Open-Meteo (7-day forecast + pressure, past_days=3)  ──────────────────────┤
+4x iCloud iCal feeds  ─────────────────────────────────────────────────────┤──► <span class="hl">kaslo-api.php</span> ──► TRMNL plugins
+data/todos.json (hand-edited)  ────────────────────────────────────────────┤
+DGS SGF endpoint (when &amp;game=N)  ──────────────────────────────────────┘
+
+Cache written to:
+  /tmp/kaslo_wx.json            EcoWitt real-time  (TTL 5 min)
+  /tmp/kaslo_forecast3.json     Open-Meteo forecast + pressure  (TTL 30 min)
+  /tmp/kaslo_ical.json          4x iCal feeds  (TTL 30 min)
+  /tmp/kaslo_dgs_board_NNN.json DGS board per game  (TTL 15 min)
+      </div>
+
+      <div class="callout warn">
+        <span class="callout-label">Critical</span>
+        <p><code>kaslo-api.php</code> must never make HTTP calls back to <code>knotwork.ca</code>. Self-referencing calls on this host silently hang or fail. Always read <code>data/todos.json</code> from disk; all other sources are fetched externally.</p>
+      </div>
+
+      <h3 id="cache-ttls">Cache TTLs</h3>
+      <table class="kv-table">
+        <thead>
+          <tr><th>File</th><th>TTL</th><th>Contents</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>/tmp/kaslo_wx.json</code></td><td>5 min</td><td>EcoWitt real-time conditions</td></tr>
+          <tr><td><code>/tmp/kaslo_forecast3.json</code></td><td>30 min</td><td>Open-Meteo 7-day forecast + hourly pressure</td></tr>
+          <tr><td><code>/tmp/kaslo_ical.json</code></td><td>30 min</td><td>4x iCloud iCal feeds parsed (14-day calendar)</td></tr>
+          <tr><td><code>/tmp/kaslo_dgs_board_NNN.json</code></td><td>15 min</td><td>DGS SGF board position per game</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 2. PHP Backend Rules -->
+    <section class="section" id="php-rules">
+      <div class="sec-eyebrow">Section 02</div>
+      <h2 class="sec-title">PHP Backend Rules</h2>
+      <p class="sec-intro">These are the rules that were learned the hard way — each gotcha below caused a real outage or silent bug.</p>
+
+      <h3 id="gotchas">Critical gotchas</h3>
+
+      <div class="callout warn">
+        <span class="callout-label">Gotcha 1 — Non-ASCII characters</span>
+        <p><strong>Never put non-ASCII characters in PHP files.</strong> Box-drawing chars (─, │, └), em-dashes (—), arrows (→, ←), and any Unicode outside ASCII cause silent PHP parse errors on the server. This includes characters that look fine in a local editor.</p>
+        <p>Safe alternatives: use <code>-&gt;</code>, <code>==&gt;</code>, plain hyphens <code>---</code>, and HTML entities (<code>&amp;middot;</code>, <code>&amp;rarr;</code>) in string literals.</p>
+      </div>
+
+      <div class="callout warn">
+        <span class="callout-label">Gotcha 2 — Ternary on left side of assignment</span>
+        <p><strong>Do not use a ternary expression as the left-hand side of an array push.</strong> <code>($a ? $b : $c)[] = $x</code> is illegal in PHP 8 and causes a parse error.</p>
+        <p>Use a temporary variable or an <code>if/else</code> block instead:</p>
+      </div>
+
+<pre><code><span style="opacity:.5">// WRONG — illegal in PHP 8</span>
+($pri <= 2 ? $urgent : $rest)[] = $item;
+
+<span style="opacity:.5">// RIGHT — assign first, then push</span>
+$target = ($pri <= 2) ? 'urgent' : 'rest';
+$$target[] = $item;
+
+<span style="opacity:.5">// or simply:</span>
+if ($pri <= 2) { $urgent[] = $item; } else { $rest[] = $item; }</code></pre>
+
+      <div class="callout warn">
+        <span class="callout-label">Gotcha 3 — OPcache serves stale bytecode</span>
+        <p><strong>After uploading any PHP file, run <code>kaslo-flush.php</code> immediately.</strong> OPcache on this host persists compiled bytecode across requests. Uploading a new file does not invalidate it automatically — the old code keeps running.</p>
+        <p><code>kaslo-flush.php</code> calls <code>opcache_invalidate()</code> and <code>opcache_reset()</code>, then rebuilds the weather and calendar caches.</p>
+      </div>
+
+      <div class="callout warn">
+        <span class="callout-label">Gotcha 4 — File paths</span>
+        <p><strong>Hand-edited todos are at <code>data/todos.json</code></strong> (relative to web root). The <code>/tmp/kaslo_*.json</code> files are auto-managed by kaslo-api.php — never edit them by hand.</p>
+      </div>
+
+      <div class="callout warn">
+        <span class="callout-label">Gotcha 5 — DGS quick_status.php is broken</span>
+        <p><code>quick_status.php</code> returns <code>unknown_user</code> for all accounts. kaslo-api.php fetches the SGF endpoint directly for board position. Do not attempt to restore quick_status — it's a DGS server issue.</p>
+      </div>
+
+      <div class="callout warn">
+        <span class="callout-label">Gotcha 6 — Open-Meteo moon_phase removed</span>
+        <p>The <code>daily=moon_phase</code> parameter to Open-Meteo now returns an error. Moon phase is computed from first principles using the Julian Date formula in <code>compute_moon_phase()</code>. Do not re-add <code>moon_phase</code> to any Open-Meteo URL.</p>
+      </div>
+
+      <h3 id="file-io">File I/O patterns</h3>
+      <p>Always use these helper patterns — they handle missing files and malformed JSON gracefully:</p>
+
+<pre><code><span style="opacity:.5">// Reading a cache file — returns null if missing or invalid</span>
+function read_cache(string $path): ?array {
+    if (!file_exists($path)) return null;
+    $d = json_decode(file_get_contents($path), true);
+    return is_array($d) ? $d : null;
+}
+
+<span style="opacity:.5">// Reading /tmp cache with TTL — returns null if expired</span>
+function cache_get(string $name, int $ttl): ?array {
+    $p = '/tmp/kaslo_' . $name . '.json';
+    if (!file_exists($p) || time() - filemtime($p) >= $ttl) return null;
+    $d = json_decode(file_get_contents($p), true);
+    return is_array($d) ? $d : null;
+}
+
+<span style="opacity:.5">// Writing /tmp cache atomically</span>
+function cache_set(string $name, array $d): void {
+    file_put_contents('/tmp/kaslo_' . $name . '.json', json_encode($d), LOCK_EX);
+}</code></pre>
+
+      <p>Always default-to-empty when reading a cache: <code>read_cache(...) ?? []</code>. Never assume the cache file exists or is current — it may be missing on a fresh deploy or after <code>kaslo-flush.php</code>.</p>
+
+      <h3 id="output">Output format</h3>
+      <p>All output from <code>kaslo-api.php</code> must be a <strong>flat JSON object</strong> — no nested objects, no arrays at the top level. TRMNL's Liquid engine accesses variables by name; nested structure becomes inaccessible.</p>
+
+<pre><code><span style="opacity:.5">// RIGHT — flat top-level keys</span>
+{
+  "temp": "15",
+  "feels": "13",
+  "go_opponent": "GreenMonk",
+  "cal_d0_dow": "Tue",
+  "todo_u0_text": "Report Cards"
+}
+
+<span style="opacity:.5">// WRONG — nested objects are unreachable in Liquid</span>
+{
+  "wx": { "temp": "15", "feels": "13" },
+  "go": { "opponent": "GreenMonk" }
+}</code></pre>
+
+      <p>Only bare aliases (<code>temp</code>, not <code>wx_temp</code>) are in the flat output. The nested <code>wx</code>, <code>fc</code>, <code>todo</code>, <code>cal</code>, <code>go</code> objects are also present; TRMNL auto-flattens one level using underscores (<code>go.opponent</code> → <code>go_opponent</code>).</p>
+    </section>
+
+    <!-- 3. Plugin / Liquid Rules -->
+    <section class="section" id="plugin-rules">
+      <div class="sec-eyebrow">Section 03</div>
+      <h2 class="sec-title">Plugin &amp; Liquid Rules</h2>
+      <p class="sec-intro">TRMNL plugins are HTML/CSS/Liquid templates. The Liquid dialect has a few surprises that differ from standard Liquid or Jinja.</p>
+
+      <h3 id="variable-access">Variable access</h3>
+      <div class="rule-list">
+        <div class="rule-item">
+          <span class="rule-num">01</span>
+          <div class="rule-text"><strong>Use plain <code>{{ }}</code> and <code>{% %}</code> delimiters.</strong> No <code>##</code> prefix. TRMNL's Liquid is standard Ruby Liquid.</div>
+        </div>
+        <div class="rule-item">
+          <span class="rule-num">02</span>
+          <div class="rule-text"><strong>Single polling URL = <code>IDX_0</code> namespace for all variables.</strong> When only one URL is configured, every variable is accessed as a bare name: <code>{{ temp }}</code>, <code>{{ go_opponent }}</code>, <code>{{ cal_d0_dow }}</code>.</div>
+        </div>
+        <div class="rule-item">
+          <span class="rule-num">03</span>
+          <div class="rule-text"><strong>Check existence before rendering.</strong> Use <code>{% if go_opponent != "" %}</code> rather than assuming a value is present — caches can be missing or stale after a flush.</div>
+        </div>
+        <div class="rule-item">
+          <span class="rule-num">04</span>
+          <div class="rule-text"><strong>For integers, compare without quotes:</strong> <code>{% if go_my_turn_count > 0 %}</code>. For strings, compare with quotes: <code>{% if go_color == "b" %}</code>.</div>
+        </div>
+        <div class="rule-item">
+          <span class="rule-num">05</span>
+          <div class="rule-text"><strong>Paste only the HTML between the fences.</strong> Do not include the markdown header block or the ` ```html ` / ` ``` ` fences themselves when pasting into the TRMNL plugin editor.</div>
+        </div>
+      </div>
+
+      <p>Time is available via <code>{{ trmnl.user.time | date: "%H:%M %a %-d" }}</code> — this uses TRMNL's built-in device time, not a variable from the API.</p>
+
+      <h3 id="layout">Layout: JS-driven sizing</h3>
+      <p>The TRMNL X renders at 1040×780 CSS pixels (landscape) or 780×1040 (portrait), backed by a native 1872×1404 panel at scale_factor 1.8. Never hardcode these dimensions — always compute layout from <code>window.innerWidth</code> and <code>window.innerHeight</code>, which report the correct values natively in both orientations.</p>
+
+      <p><strong>The canonical pattern (from <code>plugin-dgs-v3.md</code>):</strong></p>
+
+<pre><code>var VW   = window.innerWidth  || 1040;
+var VH   = window.innerHeight || 780;
+var HDR  = 28;                           <span style="opacity:.5">// header bar height</span>
+var avail = VH - HDR;
+
+<span style="opacity:.5">// Derive section heights as proportions of available space</span>
+var TOP_H = Math.floor(avail * 0.24);    <span style="opacity:.5">// ~180px at 780</span>
+var FC_H  = Math.max(88, Math.floor(avail * 0.18));
+var CAL_H = avail - TOP_H - FC_H;
+
+<span style="opacity:.5">// Stamp explicit px values onto elements — do NOT rely on CSS %</span>
+document.getElementById('top').style.height  = TOP_H + 'px';
+document.getElementById('fc').style.height   = FC_H  + 'px';
+document.getElementById('cal').style.height  = CAL_H + 'px';</code></pre>
+
+      <div class="rule-list" style="margin-top:20px">
+        <div class="rule-item">
+          <span class="rule-num">A</span>
+          <div class="rule-text"><strong>Set <code>width:100%;height:100%</code></strong> on <code>html</code> and <code>body</code>. Use <code>overflow:hidden</code> — e-ink has no scrollbars.</div>
+        </div>
+        <div class="rule-item">
+          <span class="rule-num">B</span>
+          <div class="rule-text"><strong>Use <code>flex-shrink:0</code></strong> on fixed-height elements (header, forecast strip) so they don't compress when the main content fills remaining space.</div>
+        </div>
+        <div class="rule-item">
+          <span class="rule-num">C</span>
+          <div class="rule-text"><strong>Stamp <code>px</code> values from JS, not CSS <code>%</code></strong>, for all major section heights. CSS percentages can misbehave inside flex containers on the TRMNL rendering engine.</div>
+        </div>
+        <div class="rule-item">
+          <span class="rule-num">D</span>
+          <div class="rule-text"><strong>Use <code>white-space:nowrap; overflow:hidden; text-overflow:ellipsis</code></strong> on all text that could overflow. Long event names and opponent handles will always push past their container.</div>
+        </div>
+      </div>
+
+      <h3 id="go-board">Go board rendering</h3>
+      <p>The board is drawn as inline SVG via <code>element.innerHTML</code>. Do not use <code>appendChild</code> — it requires constructing SVG elements through the DOM API, which is verbose and slow.</p>
+
+      <table class="kv-table">
+        <thead><tr><th>Element</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>Board background</td><td><code>#D4A740</code> (golden amber)</td></tr>
+          <tr><td>Grid lines — border</td><td><code>#3A2000</code>, 1.6px</td></tr>
+          <tr><td>Grid lines — inner</td><td><code>#3A2000</code>, 0.6px</td></tr>
+          <tr><td>Hoshi dots</td><td><code>#3A2000</code>, r = max(1.2, cell×0.1)</td></tr>
+          <tr><td>Black stone</td><td>fill <code>#111</code>, stroke <code>#000</code> 0.4px + white glint ellipse</td></tr>
+          <tr><td>White stone</td><td>fill <code>#f8f8f8</code>, stroke <code>#444</code> 1px</td></tr>
+          <tr><td>Stone radius</td><td>min(cell×0.47, 11)</td></tr>
+          <tr><td>Last move marker</td><td>circle r=stone×0.32; <code>#fff</code> on black, <code>#222</code> on white</td></tr>
+          <tr><td>viewBox</td><td><code>0 0 420 420</code></td></tr>
+        </tbody>
+      </table>
+
+      <p>Board position comes from <code>go_board_black_json</code> and <code>go_board_white_json</code> — JSON arrays of <code>[col, row]</code> pairs, 1-indexed. The last move is at <code>[go_last_col, go_last_row]</code>.</p>
+    </section>
+
+    <!-- 4. Testing Strategy -->
+    <section class="section" id="testing">
+      <div class="sec-eyebrow">Section 04</div>
+      <h2 class="sec-title">Testing Strategy</h2>
+      <p class="sec-intro">There's no CI pipeline — tests are pragmatic local scripts and remote smoke checks. Four levels, each catching a different class of bug.</p>
+
+      <!-- Test 1 -->
+      <div class="test-block" id="test-php">
+        <div class="test-block-hdr">
+          <span class="test-block-title">Level 1 — PHP syntax check <span class="badge php">PHP</span></span>
+          <span class="test-chip">Before every upload</span>
+        </div>
+        <div class="test-block-body">
+          <p>Run PHP's built-in linter against every PHP file before transferring it to the server. This catches non-ASCII parse errors, ternary-on-LHS issues, and any other syntax problem — instantly, with no server involved.</p>
+<pre><code>php -l kaslo-api.php
+php -l kaslo-flush.php</code></pre>
+          <p>A clean file prints: <code>No syntax errors detected in kaslo-api.php</code>. Any other output means do not upload.</p>
+          <p><strong>Make this a habit</strong>: run <code>php -l</code> before every FTP/SFTP transfer. It takes under a second and catches the most painful class of errors before they reach the server.</p>
+        </div>
+      </div>
+
+      <!-- Test 2 -->
+      <div class="test-block">
+        <div class="test-block-hdr">
+          <span class="test-block-title">Level 2 — Fixture-based local test <span class="badge php">PHP</span></span>
+          <span class="test-chip">After logic changes</span>
+        </div>
+        <div class="test-block-body">
+          <p>Maintain a <code>test-fixtures/</code> directory with representative JSON snapshots of the cache files. Pre-populate <code>/tmp/</code> with them and run <code>kaslo-api.php</code> via CLI to verify output keys and values without touching the live server.</p>
+
+          <p><strong>Directory structure:</strong></p>
+<pre><code>test-fixtures/
+  kaslo_wx.json            <span style="opacity:.5"># typical EcoWitt real-time response</span>
+  kaslo_forecast3.json     <span style="opacity:.5"># Open-Meteo 7-day forecast + pressure</span>
+  kaslo_ical.json          <span style="opacity:.5"># parsed 4x iCal feeds, 14-day window</span>
+  todos.json               <span style="opacity:.5"># mix of urgent and rest items</span></code></pre>
+
+          <p><strong>Running the test:</strong></p>
+<pre><code><span style="opacity:.5"># Seed /tmp caches with fixtures, then run locally</span>
+cp test-fixtures/kaslo_wx.json        /tmp/
+cp test-fixtures/kaslo_forecast3.json /tmp/
+cp test-fixtures/kaslo_ical.json      /tmp/
+cp test-fixtures/todos.json           data/todos.json
+
+php -r '
+  $_SERVER["DOCUMENT_ROOT"] = getcwd();
+  $_GET = ["key" => "kw_40e818911c1980bcd56dc4aff37a820f811990a130eb771fd9e21a536edc55ea", "game" => "0"];
+  ob_start();
+  include "kaslo-api.php";
+  $out = json_decode(ob_get_clean(), true);
+
+  <span style="opacity:.5">// Assert required keys exist</span>
+  $required = ["temp","condition","go_opponent","todo_u0_text","cal_d0_dow","moon_phase"];
+  foreach ($required as $k) {
+    echo ($out[$k] !== null ? "PASS" : "FAIL") . " $k\n";
+  }
+  echo "Keys total: " . count($out) . "\n";
+'</code></pre>
+
+          <p><strong>Edge-case fixtures to maintain:</strong></p>
+          <ul>
+            <li>EcoWitt cache missing or stale (tests graceful fallback)</li>
+            <li>Todo with only rest items, no urgents</li>
+            <li>Calendar with a recurring event and an EXDATE</li>
+            <li>No active Go games (empty board response)</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Test 3 -->
+      <div class="test-block" id="test-schema">
+        <div class="test-block-hdr">
+          <span class="test-block-title">Level 3 — Remote schema smoke test <span class="badge cli">CLI</span></span>
+          <span class="test-chip">After every deploy</span>
+        </div>
+        <div class="test-block-body">
+          <p>After uploading and flushing, hit the live endpoint and verify the output shape. This confirms the server is running the new code and all caches are populated.</p>
+<pre><code>KEY="kw_40e818911c1980bcd56dc4aff37a820f811990a130eb771fd9e21a536edc55ea"
+BASE="https://knotwork.ca/kaslo-api.php?key=$KEY"
+
+<span style="opacity:.5"># Check all major data groups are present</span>
+curl -s "$BASE&game=0" | jq '{
+  weather_ok:   (.temp        != null and .condition != null),
+  go_ok:        (.go_opponent  != null),
+  todo_ok:      (.todo_u0_text != null),
+  cal_ok:       (.cal_d0_dow   != null and .cal_d13_dow != null),
+  moon_ok:      (.moon_phase   != null),
+  forecast_ok:  (.f0_dow       != null and .f6_dow != null),
+  key_count:    (keys | length)
+}'</code></pre>
+          <p>Expected output — all <code>true</code>, key_count typically 150+:</p>
+<pre><code>{
+  "weather_ok":  true,
+  "go_ok":       true,
+  "todo_ok":     true,
+  "cal_ok":      true,
+  "moon_ok":     true,
+  "forecast_ok": true,
+  "key_count":   165
+}</code></pre>
+          <p>Also check all three game slots individually:</p>
+<pre><code>for G in 0 1 2; do
+  echo -n "game=$G: "
+  curl -s "$BASE&game=$G" | jq '.go_opponent + " (" + .go_color + ")"'
+done</code></pre>
+        </div>
+      </div>
+
+      <!-- Test 4 -->
+      <div class="test-block" id="test-plugin">
+        <div class="test-block-hdr">
+          <span class="test-block-title">Level 4 — Plugin HTML layout test <span class="badge html">HTML</span></span>
+          <span class="test-chip">After plugin changes</span>
+        </div>
+        <div class="test-block-body">
+          <p>Create a local test HTML file where all Liquid variables are replaced with hardcoded representative values. Open it in a browser resized to exactly 1040×780 (landscape) or 780×1040 (portrait) to verify layout before pasting into TRMNL.</p>
+
+          <p><strong>Test file template:</strong></p>
+<pre><code><span style="opacity:.5">&lt;!-- plugin-go-todo-TEST.html --&gt;
+&lt;!-- Replace every {{ variable }} with a literal value --&gt;
+&lt;!-- Replace {% if condition %} with the branch that exercises the layout --&gt;</span>
+
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;&lt;/head&gt;&lt;body&gt;
+
+&lt;!-- Paste plugin HTML here with Liquid replaced by literals --&gt;
+&lt;!-- Example substitutions: --&gt;
+&lt;!--   {{ go_opponent }}      → "GreenMonk"              --&gt;
+&lt;!--   {{ go_color }}         → "b"                      --&gt;
+&lt;!--   {{ go_moves }}         → "47"                     --&gt;
+&lt;!--   {{ go_my_turn_count }} → "2"                      --&gt;
+&lt;!--   {{ todo_total }}       → "11"                     --&gt;
+&lt;!--   {{ todo_u0_text }}     → "A very long urgent item that might overflow its container" --&gt;
+
+&lt;/body&gt;&lt;/html&gt;</code></pre>
+
+          <p><strong>Checklist for every plugin layout test:</strong></p>
+          <ul class="checklist">
+            <li><span class="check-box"></span>No content clips at the right edge or bottom</li>
+            <li><span class="check-box"></span>Long text truncates with ellipsis, not overflow</li>
+            <li><span class="check-box"></span>Proportions hold at exactly 1040×780 landscape or 780×1040 portrait (use browser DevTools device mode)</li>
+            <li><span class="check-box"></span>Empty state: test with zero todo items, no active Go game, no calendar events</li>
+            <li><span class="check-box"></span>Go board renders with both a black stone and a white stone as the last move</li>
+            <li><span class="check-box"></span>Font sizes are legible at e-ink gray scale (avoid pure light grays like <code>#ddd</code> for text)</li>
+            <li><span class="check-box"></span>Today's calendar cell is clearly distinct from non-today cells</li>
+          </ul>
+
+          <div class="callout tip">
+            <span class="callout-label">Tip</span>
+            <p>The TRMNL preview in the web dashboard re-renders on save. Use it for a final check after pasting — it shows the actual e-ink scaling and font rendering. But always do the local browser test first to catch layout issues before they hit the display.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Test 5 — Flush as integration test -->
+      <div class="test-block" id="test-flush">
+        <div class="test-block-hdr">
+          <span class="test-block-title">Level 5 — Flush as integration test <span class="badge cli">CLI</span></span>
+          <span class="test-chip">After any PHP deploy</span>
+        </div>
+        <div class="test-block-body">
+          <p><code>kaslo-flush.php</code> doubles as an integration test: it invalidates OPcache and deletes all <code>/tmp/kaslo_*.json</code> caches. Fresh data is then fetched from all sources on the next plugin poll. Its output is the acceptance signal that the new PHP code is running.</p>
+<pre><code>curl -s https://knotwork.ca/kaslo-flush.php</code></pre>
+          <p><strong>Expected output:</strong></p>
+<pre><code>OPcache invalidated: kaslo-api.php
+OPcache reset: OK
+Caches cleared</code></pre>
+          <p>If OPcache reset fails, the old bytecode may still be running. Run the Level 3 smoke test immediately after to confirm the new code is active.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Deployment Checklist -->
+    <section class="section" id="deploy">
+      <div class="sec-eyebrow">Section 05</div>
+      <h2 class="sec-title">Deployment Checklist</h2>
+      <p class="sec-intro">Run through this in order — every step has caught a real bug.</p>
+
+      <div class="rule-list">
+        <div class="rule-item">
+          <span class="rule-num">1</span>
+          <div class="rule-text"><strong>Syntax check all changed PHP files:</strong> <code>php -l &lt;file&gt;.php</code> — must print "No syntax errors detected."</div>
+        </div>
+        <div class="rule-item">
+          <span class="rule-num">2</span>
+          <div class="rule-text"><strong>Check for non-ASCII characters:</strong> <code>grep -P '[^\x00-\x7F]' kaslo-api.php</code> — must return nothing. Any match is a potential parse error.</div>
+        </div>
+        <div class="rule-item">
+          <span class="rule-num">3</span>
+          <div class="rule-text"><strong>Upload the file(s)</strong> via SFTP/FTP to <code>/home/kw_9g92aw/knotwork.ca/</code>.</div>
+        </div>
+        <div class="rule-item">
+          <span class="rule-num">4</span>
+          <div class="rule-text"><strong>Run the flush:</strong> <code>curl https://knotwork.ca/kaslo-flush.php</code> — confirm "OPcache reset: OK" and "Caches cleared."</div>
+        </div>
+        <div class="rule-item">
+          <span class="rule-num">5</span>
+          <div class="rule-text"><strong>Run the schema smoke test</strong> (Level 3 above) — confirm all data groups are present and key count is reasonable.</div>
+        </div>
+        <div class="rule-item">
+          <span class="rule-num">6</span>
+          <div class="rule-text"><strong>Force a TRMNL plugin refresh</strong> in the TRMNL dashboard — verify the display shows fresh data and no layout issues.</div>
+        </div>
+      </div>
+
+      <h3>Plugin settings (all plugins)</h3>
+      <table class="kv-table">
+        <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>Strategy</td><td>Polling</td></tr>
+          <tr><td>Verb</td><td>GET</td></tr>
+          <tr><td>Remove bleed margin</td><td>Yes</td></tr>
+          <tr><td>Interval — go.* plugins</td><td>15 min (DGS rate limit)</td></tr>
+          <tr><td>Interval — weather/dashboard</td><td>10 min</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 6. Maintenance -->
+    <section class="section" id="maintenance">
+      <div class="sec-eyebrow">Section 06</div>
+      <h2 class="sec-title">Maintenance</h2>
+
+      <h3>EcoWitt API key (if ever rotated)</h3>
+      <ol>
+        <li>Get new <code>api_key</code> from <strong>ecowitt.net</strong>.</li>
+        <li>Update the <code>ECOWITT_URL</code> constant in <code>kaslo-api.php</code>.</li>
+        <li>Run <code>kaslo-flush.php</code> to bust the stale weather cache.</li>
+      </ol>
+
+      <h3>BC Holidays</h3>
+      <p>Defined in <code>kaslo-api.php</code> in the <code>BC_HOLIDAYS</code> array. The current entries cover 2026. Add 2027 dates before year-end — do it in November before the calendar window expands into 2027.</p>
+
+      <h3>Test fixture freshness</h3>
+      <p>Refresh the fixtures in <code>test-fixtures/</code> every few months by copying the live <code>/tmp/kaslo_*.json</code> caches from the server. Stale fixtures won't catch regressions in how new data shapes are handled.</p>
+
+<pre><code><span style="opacity:.5"># Refresh fixtures from server</span>
+sftp kw_9g92aw@knotwork.ca &lt;&lt;'EOF'
+get /tmp/kaslo_wx.json            test-fixtures/
+get /tmp/kaslo_forecast3.json     test-fixtures/
+get /tmp/kaslo_ical.json          test-fixtures/
+get /home/kw_9g92aw/knotwork.ca/data/todos.json  test-fixtures/
+EOF</code></pre>
+    </section>
+
+  </main>
+</div>
